@@ -1,0 +1,10 @@
+Revision history for Language-Expr
+
+0.02    2010-05-12
+
+        Add enum_vars().
+
+
+0.01    2010-05-07
+
+        First release.
