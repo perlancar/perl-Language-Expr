@@ -6,8 +6,7 @@ package Language::Expr::Manual::Syntax;
 
 Language::Expr language is very simple. It has just enough features to
 support mathematical/logical/string operations, arrays, hashes,
-variables, and function calls. It does not define any predefined
-variables or builtin functions.
+variables, and function calls.
 
 Language::Expr is (intentionally) not Turing-complete (lacks
 assignment and loops).
@@ -145,7 +144,7 @@ along with their associativity.
 
 There are two syntax of variables:
 
- $alphanum123
+ $alphanum123 (including $_)
  $.
  $..
 
@@ -173,7 +172,30 @@ Examples:
 
 Difference from Perl: parentheses are required.
 
-The language does not define list of known functions.
+The language define just a few functions:
 
+=head2 map({ EXPR }, ARRAY) -> RESULT_ARRAY
+
+This is similar to Perl's map() (but notice the required parentheses),
+it will form a new array composed from the result of EXPR. EXPR will
+be evaluated for each element of ARRAY (stored in B<$_>). The original
+value of $_ will be restored after EXPR completes.
+
+=head2 grep({ EXPR }, ARRAY) -> RESULT_ARRAY
+
+This is similar to Perl's grep() (but notice the required
+parentheses), it will form a new array composed from the elements of
+ARRAY when EXPR evaluates to true (like in Perl, empty string '', the
+number 0, boolean C<false>, C<undef> are considered false). EXPR will
+be evaluated for each element of ARRAY (stored in B<$_>). The original
+value of $_ will be restored after EXPR completes.
+
+=head2 usort({ EXPR }, ARRAY) -> RESULT_ARRAY
+
+This is similar to Perl's sort() (but notice the required
+parentheses), it will return the ARRAY sorted using comparison in
+EXPR. EXPR will be evaluated for each element of ARRAY (B<$a> and
+B<$b> will be set with two values to be compared). The original value
+of B<$a> and B<$b> will be restored after EXPR completes.
 
 =cut

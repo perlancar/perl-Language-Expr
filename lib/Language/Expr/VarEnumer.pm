@@ -4,6 +4,8 @@ package Language::Expr::VarEnumer;
 use Any::Moose;
 with 'Language::Expr::InterpreterRole';
 
+require Language::Expr::Parser;
+
 =head1 ATTRIBUTES
 
 =head2 result => ARRAYREF
@@ -13,8 +15,6 @@ Store the list of variables seen during parsing.
 =cut
 
 has result => (is => 'rw');
-
-
 
 =head2 METHODS
 
@@ -88,6 +88,15 @@ sub rule_var {
 }
 
 sub rule_func { }
+
+sub rule_func_map {
+}
+
+sub rule_func_grep {
+}
+
+sub rule_func_usort {
+}
 
 sub rule_preprocess {
     my ($self, %args) = @_;

@@ -22,8 +22,7 @@ and functions. See L<Language::Expr::Manual::Syntax> for description
 of the language syntax.
 
 The language is very simple. The parser is just around 120 lines
-long. There is no predefined variables or functions or even many of
-the semantics.
+long.
 
 This distribution consists of the language parser
 (L<Language::Expr::Parser>) and the interpreter

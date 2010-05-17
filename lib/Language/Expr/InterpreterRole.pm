@@ -23,10 +23,15 @@ requires 'rule_squotestr';
 requires 'rule_dquotestr';
 requires 'rule_var';
 requires 'rule_func';
+requires 'rule_func_map';
+requires 'rule_func_grep';
+requires 'rule_func_usort';
 requires 'rule_bool';
 requires 'rule_num';
 requires 'rule_preprocess';
 requires 'rule_postprocess';
+
+requires 'rule_func_map';
 
 no Any::Moose;
 1;

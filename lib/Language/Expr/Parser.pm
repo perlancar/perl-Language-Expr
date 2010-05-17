@@ -18,6 +18,8 @@ sub parse_expr {
 
     use Regexp::Grammars;
     state $obj; # WARN: this is not thread-safe!?
+    state $subexpr_stack;
+
     state $grammar = qr{
         ^<answer>$
 
@@ -158,11 +160,15 @@ sub parse_expr {
         <rule: func>
             <func_name=([A-Za-z_]\w*)> \( \)
             (?{ $MATCH = $obj->rule_func(match=>{func_name=>$MATCH{func_name}, args=>[]}) })
+          | <func_name=(map|grep|usort)> \( \{ <expr=answer> \} (?{ push @$subexpr_stack, $CONTEXT; }), <input_array=answer> \)
+            (?{ my $meth = "rule_func_$MATCH{func_name}";
+                $MATCH = $obj->$meth(match=>{expr=>pop(@$subexpr_stack), array=>$MATCH{input_array}}) })
           | <func_name=([A-Za-z_]\w*)> \( <[args=answer]> ** (,) \)
             (?{ $MATCH = $obj->rule_func(match=>%MATCH) })
 
     }xms;
 
+    $subexpr_stack = [];
     $obj = $obj_arg;
     $obj_arg->rule_preprocess(string_ref => \$str);
     die "Invalid syntax in expression `$str`" unless $str =~ $grammar;

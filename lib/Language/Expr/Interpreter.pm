@@ -284,6 +284,21 @@ sub rule_func {
     }
 }
 
+sub rule_func_map {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    #print "expr = $match->{expr}, array = $match->{array}\n";
+    die "This interpreter doesn't support subexpression (map)";
+}
+
+sub rule_func_grep {
+    die "This interpreter doesn't support subexpression (grep)";
+}
+
+sub rule_func_usort {
+    die "This interpreter doesn't support subexpression (usprt)";
+}
+
 sub rule_preprocess {
 }
 
@@ -291,6 +306,11 @@ sub rule_postprocess {
     my ($self, %args) = @_;
     my $result = $args{result};
     $result;
+}
+
+sub subexpr {
+    my ($self, $e) = @_;
+    die "This interpreter cannot handle subexpression (e=$e)\n";
 }
 
 __PACKAGE__->meta->make_immutable;
