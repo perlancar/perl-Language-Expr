@@ -23,6 +23,14 @@ List known functions.
 
 has funcs => (is => 'rw', default => sub { {} });
 
+=head2 level => INT
+
+Current recursion level.
+
+=cut
+
+has level => (is => 'rw', default => 0);
+
 
 =head2 METHODS
 
@@ -284,19 +292,55 @@ sub rule_func {
     }
 }
 
-sub rule_func_map {
-    my ($self, %args) = @_;
+sub _map_grep_usort {
+    my ($which, $self, %args) = @_;
     my $match = $args{match};
-    #print "expr = $match->{expr}, array = $match->{array}\n";
-    die "This interpreter doesn't support subexpression (map)";
+    my $ary = $match->{array};
+    my $expr = $match->{expr};
+    die "Second argument to map/grep/usort must be an array"
+        unless ref($ary) eq 'ARRAY';
+    local $self->{level} = $self->{level}+1;
+    print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
+    my $res;
+    if ($which eq 'map') {
+        $res = [];
+        local $self->{vars}{_};
+        for (@$ary) {
+            $self->{vars}{_} = $_;
+            push @$res, Language::Expr::Parser::parse_expr($expr, $self,
+                                                           $self->level);
+            push @$res, $_;
+        }
+    } elsif ($which eq 'grep') {
+        local $self->{vars}{_};
+        $res = [ grep {
+            $self->{vars}{_} = $_;
+            $self->Language::Expr::Parser::parse_expr($expr, $self,
+                                                      $self->level)
+        } @$ary];
+    } elsif ($which eq 'usort') {
+        local $self->{vars}{a};
+        local $self->{vars}{b};
+        $res = [ sort {
+            $self->{vars}{a} = $a;
+            $self->{vars}{b} = $b;
+            Language::Expr::Parser::parse_expr($expr, $self,
+                                               $self->level)
+        } @$ary];
+    }
+    $res;
+}
+
+sub rule_func_map {
+    _map_grep_usort('map', @_);
 }
 
 sub rule_func_grep {
-    die "This interpreter doesn't support subexpression (grep)";
+    _map_grep_usort('grep', @_);
 }
 
 sub rule_func_usort {
-    die "This interpreter doesn't support subexpression (usprt)";
+    _map_grep_usort('usort', @_);
 }
 
 sub rule_preprocess {
@@ -306,11 +350,6 @@ sub rule_postprocess {
     my ($self, %args) = @_;
     my $result = $args{result};
     $result;
-}
-
-sub subexpr {
-    my ($self, $e) = @_;
-    die "This interpreter cannot handle subexpression (e=$e)\n";
 }
 
 __PACKAGE__->meta->make_immutable;

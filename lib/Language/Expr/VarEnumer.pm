@@ -90,12 +90,15 @@ sub rule_var {
 sub rule_func { }
 
 sub rule_func_map {
+    die "Subexpression not yet supported";
 }
 
 sub rule_func_grep {
+    die "Subexpression not yet supported";
 }
 
 sub rule_func_usort {
+    die "Subexpression not yet supported";
 }
 
 sub rule_preprocess {

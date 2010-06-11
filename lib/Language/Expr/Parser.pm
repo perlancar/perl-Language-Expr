@@ -2,10 +2,13 @@ package Language::Expr::Parser;
 # ABSTRACT: Parse Language::Expr expression
 
 use feature 'state';
-use strict;
-use warnings;
+# now can't compile with this on?
+#use strict;
+#use warnings;
 
-=head1 FUNCTIONS
+my $MAX_LEVELS = 3;
+
+=head1 METHODS
 
 =head2 parse_expr($str, $obj)
 
@@ -14,13 +17,21 @@ Parse expression in $str. Will call various rule_*() methods in $obj.
 =cut
 
 sub parse_expr {
-    my ($str, $obj_arg) = @_;
+    my ($str, $obj_arg, $level) = @_;
+
+    $level //= 0;
+    die "Recursion level ($level) too deep (max $MAX_LEVELS)" if $level >= $MAX_LEVELS;
 
     use Regexp::Grammars;
-    state $obj; # WARN: this is not thread-safe!?
-    state $subexpr_stack;
 
-    state $grammar = qr{
+    # WARN: this is not thread-safe!?
+    state $obj;
+    local $subexpr_stack = [];
+
+    # each recursion level gets its own grammar because the grammar
+    # apparently is not re-entrant
+
+    state $grammars = [ map { qr{
         ^<answer>$
 
         <rule: answer>
@@ -166,12 +177,12 @@ sub parse_expr {
           | <func_name=([A-Za-z_]\w*)> \( <[args=answer]> ** (,) \)
             (?{ $MATCH = $obj->rule_func(match=>%MATCH) })
 
-    }xms;
+    }xms } 0..($MAX_LEVELS-1)];
 
-    $subexpr_stack = [];
     $obj = $obj_arg;
-    $obj_arg->rule_preprocess(string_ref => \$str);
-    die "Invalid syntax in expression `$str`" unless $str =~ $grammar;
+    $obj_arg->rule_preprocess(string_ref => \$str, level => $level);
+    #print "DEBUG: Parsing expression `$str` with grammars->[$level] ...\n";
+    die "Invalid syntax in expression `$str`" unless $str =~ $grammars->[$level];
     $obj_arg->rule_postprocess(result => $/{answer});
 }
 

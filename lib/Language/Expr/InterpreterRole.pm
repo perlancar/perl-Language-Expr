@@ -31,7 +31,5 @@ requires 'rule_num';
 requires 'rule_preprocess';
 requires 'rule_postprocess';
 
-requires 'rule_func_map';
-
 no Any::Moose;
 1;
