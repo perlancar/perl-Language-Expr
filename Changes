@@ -1,5 +1,11 @@
 Revision history for Language-Expr
 
+0.03    2010-06-11
+
+        Add map(), grep(), and usort() (but so far only working in
+        parser level only).
+
+
 0.02    2010-05-12
 
         Add enum_vars().
