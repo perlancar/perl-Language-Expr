@@ -28,8 +28,10 @@ sub parse_expr {
     state $obj;
     local $subexpr_stack = [];
 
-    # each recursion level gets its own grammar because the grammar
-    # apparently is not re-entrant
+    # create not just 1 but 0..$MAX_LEVELS-1 of grammar objects, each
+    # for each recursion level (e.g. for map/grep/usort), fearing that
+    # the grammar is not reentrant. but currently no luck yet, still
+    # results in segfault/bus error.
 
     state $grammars = [ map { qr{
         ^<answer>$
