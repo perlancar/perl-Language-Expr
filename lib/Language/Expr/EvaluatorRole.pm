@@ -1,5 +1,5 @@
-package Language::Expr::InterpreterRole;
-# ABSTRACT: Specification for Language::Expr exprression interpreter
+package Language::Expr::EvaluatorRole;
+# ABSTRACT: Specification for Language::Expr interpreter/compiler
 
 use Any::Moose '::Role';
 
@@ -28,8 +28,8 @@ requires 'rule_func_grep';
 requires 'rule_func_usort';
 requires 'rule_bool';
 requires 'rule_num';
-requires 'rule_preprocess';
-requires 'rule_postprocess';
+requires 'expr_preprocess';
+requires 'expr_postprocess';
 
 no Any::Moose;
 1;

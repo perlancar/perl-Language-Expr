@@ -1,8 +1,8 @@
-package Language::Expr::DummyItp;
+package Language::Expr::Interpreter::Dummy;
 # Dummy interpreter for Language::Expr (used for testing)
 
 use Any::Moose;
-with 'Language::Expr::InterpreterRole';
+with 'Language::Expr::EvaluatorRole';
 
 require Language::Expr::Parser;
 
@@ -14,7 +14,7 @@ This interpreter does nothing. It is used only for testing the parser.
 
 =head2 METHODS
 
-=for Pod::Coverage ^rule_.+
+=for Pod::Coverage ^(rule|expr)_.+
 
 =cut
 
@@ -43,8 +43,8 @@ sub rule_func { }
 sub rule_func_map { }
 sub rule_func_grep { }
 sub rule_func_usort { }
-sub rule_preprocess { }
-sub rule_postprocess { }
+sub expr_preprocess { }
+sub expr_postprocess { }
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

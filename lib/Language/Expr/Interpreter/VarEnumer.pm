@@ -1,8 +1,8 @@
-package Language::Expr::VarEnumer;
+package Language::Expr::Interpreter::VarEnumer;
 # Enumerate variables mentioned in Language::Expr expression
 
 use Any::Moose;
-with 'Language::Expr::InterpreterRole';
+with 'Language::Expr::EvaluatorRole';
 
 require Language::Expr::Parser;
 
@@ -18,7 +18,7 @@ has result => (is => 'rw');
 
 =head2 METHODS
 
-=for Pod::Coverage ^rule_.+
+=for Pod::Coverage ^(rule|expr)_.+
 
 =cut
 
@@ -101,13 +101,19 @@ sub rule_func_usort {
     die "Subexpression not yet supported";
 }
 
-sub rule_preprocess {
+sub expr_preprocess {
     my ($self, %args) = @_;
     $self->result([]);
 }
 
-sub rule_postprocess {
+sub expr_postprocess {
 }
+
+=head1 BUGS/TODOS
+
+Currently subexpression (map/grep/usort) doesn't work yet.
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

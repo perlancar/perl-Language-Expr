@@ -25,38 +25,35 @@ The language is very simple. The parser is just around 120 lines
 long.
 
 This distribution consists of the language parser
-(L<Language::Expr::Parser>) and the interpreter
-(L<Language::Expr::Interpreter>).
-
-The parser is used by other modules such as L<Data::Template::Expr>
-and L<Data::Schema>, to provide support for expressions. In the latter
-case, the expressions are converted into Perl, PHP, and JavaScript.
+(L<Language::Expr::Parser>), some interpreters
+(Language::Expr::Interpreter::*), and some compilers
+(Language::Expr::Compiler::*).
 
 =cut
 
 use Any::Moose;
 use Language::Expr::Parser;
-use Language::Expr::Interpreter;
-use Language::Expr::VarEnumer;
+use Language::Expr::Interpreter::Default;
+use Language::Expr::Interpreter::VarEnumer;
 
 
 =head1 ATTRIBUTES
 
 =head2 interpreter
 
-The Language::Expr::Interpreter instance.
+The Language::Expr::Interpreter::Default instance.
 
 =cut
 
-has interpreter => (is => 'ro', default => sub { Language::Expr::Interpreter->new });
+has interpreter => (is => 'ro', default => sub { Language::Expr::Interpreter::Default->new });
 
 =head2 varenumer
 
-The Language::Expr::VarEnumer instance.
+The Language::Expr::Interpreter::VarEnumer instance.
 
 =cut
 
-has varenumer => (is => 'ro', default => sub { Language::Expr::VarEnumer->new });
+has varenumer => (is => 'ro', default => sub { Language::Expr::Interpreter::VarEnumer->new });
 
 =head1 METHODS
 
@@ -137,14 +134,9 @@ schemas.
 
 =head2 Why don't you use Language::Farnsworth, or Math::Expression, or Math::Expression::Evaluator, or $FOO?
 
-I need a parser separate from the interpreter, because in different
-applications I need a different set of functions and different
-semantics. In Data::Schema, I also need to use the parser to emit code
-for other languages.
-
-The language is simple enough that it's much easier to just create my
-own parser instead of trying to fit the abovementioned modules for my
-needs.
+I need several compilers and interpreters (some even with different
+semantics), so that it's easier to start with a simple parser of my
+own. And of course there are personal preference of language syntax.
 
 =head2 I want different syntax for (variables, foo operator, etc)!
 
@@ -158,6 +150,9 @@ L<Regexp::Grammmars> should be much faster than
 L<Parse::RecDescent>. If you need faster parsing speed you can take a
 look at reimplementing the parser using L<Parse::Yapp>,
 L<Parse::Eyapp>, etc.
+
+If you are having performance runtime problem, try switching from
+using the interpreter to using one of the available compilers.
 
 =head2 How to show details of errors in expression?
 

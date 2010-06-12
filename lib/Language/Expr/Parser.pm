@@ -182,10 +182,10 @@ sub parse_expr {
     }xms } 0..($MAX_LEVELS-1)];
 
     $obj = $obj_arg;
-    $obj_arg->rule_preprocess(string_ref => \$str, level => $level);
+    $obj_arg->expr_preprocess(string_ref => \$str, level => $level);
     #print "DEBUG: Parsing expression `$str` with grammars->[$level] ...\n";
     die "Invalid syntax in expression `$str`" unless $str =~ $grammars->[$level];
-    $obj_arg->rule_postprocess(result => $/{answer});
+    $obj_arg->expr_postprocess(result => $/{answer});
 }
 
 1;

@@ -7,7 +7,7 @@ use warnings;
 use Test::More tests => 9*3;
 use Test::Exception;
 use Language::Expr::Parser;
-use Language::Expr::DummyItp;
+use Language::Expr::Interpreter::Dummy;
 use POSIX;
 
 my @data = (
@@ -51,7 +51,7 @@ my @data = (
     {category=>'usort', text=>'usort({ usort({rand()}, [$_, $_+1, $_+2]) }, [1,2,3])'}, # nested usort
 );
 
-my $itp = new Language::Expr::DummyItp;
+my $itp = new Language::Expr::Interpreter::Dummy;
 
 for (@data) {
     if ($_->{error}) {

@@ -1,8 +1,8 @@
-package Language::Expr::Interpreter;
+package Language::Expr::Interpreter::Default;
 # A default interpreter for Language::Expr
 
 use Any::Moose;
-with 'Language::Expr::InterpreterRole';
+with 'Language::Expr::EvaluatorRole';
 use List::Util 'reduce';
 
 =head1 ATTRIBUTES
@@ -34,7 +34,7 @@ has level => (is => 'rw', default => 0);
 
 =head2 METHODS
 
-=for Pod::Coverage ^rule_.+
+=for Pod::Coverage ^(rule|expr)_.+
 
 =cut
 
@@ -300,7 +300,7 @@ sub _map_grep_usort {
     die "Second argument to map/grep/usort must be an array"
         unless ref($ary) eq 'ARRAY';
     local $self->{level} = $self->{level}+1;
-    print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
+    #print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
     my $res;
     if ($which eq 'map') {
         $res = [];
@@ -343,14 +343,20 @@ sub rule_func_usort {
     _map_grep_usort('usort', @_);
 }
 
-sub rule_preprocess {
+sub expr_preprocess {
 }
 
-sub rule_postprocess {
+sub expr_postprocess {
     my ($self, %args) = @_;
     my $result = $args{result};
     $result;
 }
+
+=head1 BUGS/TODOS
+
+Currently subexpression (map/grep/usort) doesn't work yet.
+
+=cut
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
