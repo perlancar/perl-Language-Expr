@@ -43,6 +43,7 @@ sub rule_func { }
 sub rule_func_map { }
 sub rule_func_grep { }
 sub rule_func_usort { }
+sub rule_parenthesis { }
 sub expr_preprocess { }
 sub expr_postprocess { }
 

@@ -28,6 +28,7 @@ requires 'rule_func_grep';
 requires 'rule_func_usort';
 requires 'rule_bool';
 requires 'rule_num';
+requires 'rule_parenthesis';
 requires 'expr_preprocess';
 requires 'expr_postprocess';
 

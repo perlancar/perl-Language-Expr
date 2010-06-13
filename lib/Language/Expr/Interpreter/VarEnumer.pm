@@ -101,13 +101,14 @@ sub rule_func_usort {
     die "Subexpression not yet supported";
 }
 
+sub rule_parenthesis {}
+
 sub expr_preprocess {
     my ($self, %args) = @_;
     $self->result([]);
 }
 
-sub expr_postprocess {
-}
+sub expr_postprocess {}
 
 =head1 BUGS/TODOS
 

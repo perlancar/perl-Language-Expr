@@ -113,15 +113,16 @@ sub parse_expr {
 
 # precedence level 15: left     term (variable, str/num literals, func(), (paren))
         <rule: term>
-              <MATCH=func>
-            | <MATCH=var0>
-            | <MATCH=str0>
-            | <MATCH=undef>
-            | <MATCH=num0>
-            | <MATCH=bool0>
-            | <MATCH=array>
-            | <MATCH=hash>
-            | \( <MATCH=answer> \)
+            <MATCH=func>
+          | <MATCH=var0>
+          | <MATCH=str0>
+          | <MATCH=undef>
+          | <MATCH=num0>
+          | <MATCH=bool0>
+          | <MATCH=array>
+          | <MATCH=hash>
+          | \( <answer> \)
+            (?{ $MATCH = $obj->rule_parenthesis(match=>%MATCH) // $MATCH{answer} })
 
         <rule: array>
             \[ \]

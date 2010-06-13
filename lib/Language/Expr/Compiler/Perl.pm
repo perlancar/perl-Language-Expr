@@ -1,36 +1,9 @@
-package Language::Expr::Interpreter::Default;
-# A default interpreter for Language::Expr
+package Language::Expr::Compiler::Perl;
+# Compile Language::Expr expression to Perl
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 use List::Util 'reduce';
-
-=head1 ATTRIBUTES
-
-=head2 vars => {NAME => VAL, ...}
-
-Store variables.
-
-=cut
-
-has vars  => (is => 'rw', default => sub { {} });
-
-=head2 funcs => {NAME => CODEREF, ...}
-
-List known functions.
-
-=cut
-
-has funcs => (is => 'rw', default => sub { {} });
-
-=head2 level => INT
-
-Current recursion level.
-
-=cut
-
-has level => (is => 'rw', default => 0);
-
 
 =head2 METHODS
 
@@ -147,14 +120,13 @@ sub rule_bit_shift {
 sub rule_add {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = shift @{$match->{operand}};
+    my @res;
+    push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
-        if    ($op eq '+') { $res += $term }
-        elsif ($op eq '-') { $res -= $term }
-        elsif ($op eq '.') { $res .= $term }
+        push @res, " ", $op, " ", $term;
     }
-    $res;
+    join "", @res;
 }
 
 sub rule_mult {
@@ -300,7 +272,7 @@ sub _map_grep_usort {
     die "Second argument to map/grep/usort must be an array"
         unless ref($ary) eq 'ARRAY';
     local $self->{level} = $self->{level}+1;
-    #print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
+    print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
     my $res;
     if ($which eq 'map') {
         $res = [];
@@ -343,7 +315,11 @@ sub rule_func_usort {
     _map_grep_usort('usort', @_);
 }
 
-sub rule_parenthesis {}
+sub rule_parenthesis {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    "(" . $match->{answer} . ")";
+}
 
 sub expr_preprocess {}
 
@@ -352,12 +328,6 @@ sub expr_postprocess {
     my $result = $args{result};
     $result;
 }
-
-=head1 BUGS/TODOS
-
-Currently subexpression (map/grep/usort) doesn't work yet.
-
-=cut
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
