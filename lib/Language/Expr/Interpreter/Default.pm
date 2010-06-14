@@ -91,7 +91,7 @@ sub rule_bit_and {
     $res;
 }
 
-sub rule_equal {
+sub rule_comparison3 {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $res = shift @{$match->{operand}};
@@ -99,18 +99,14 @@ sub rule_equal {
     my $last_term = $res;
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
-        if    ($op eq '==' ) { return '' unless $res = ($last_term ==  $term) }
-        elsif ($op eq '!=' ) { return '' unless $res = ($last_term !=  $term) }
-        elsif ($op eq '<=>') { $res = ($last_term <=> $term) }
-        elsif ($op eq 'eq' ) { return '' unless $res = ($last_term eq  $term) }
-        elsif ($op eq 'ne' ) { return '' unless $res = ($last_term ne  $term) }
+        if    ($op eq '<=>') { $res = ($last_term <=> $term) }
         elsif ($op eq 'cmp') { $res = ($last_term cmp $term) }
         $last_term = $term;
     }
     $res;
 }
 
-sub rule_less_greater {
+sub rule_comparison {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $res = shift @{$match->{operand}};
@@ -118,18 +114,21 @@ sub rule_less_greater {
     my $last_term = $res;
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
-        die "Invalid syntax" unless defined($op);
-        if    ($op eq '<' ) { return '' unless ($last_term <  $term) }
-        elsif ($op eq '<=') { return '' unless ($last_term <= $term) }
-        elsif ($op eq '>' ) { return '' unless ($last_term >  $term) }
-        elsif ($op eq '>=') { return '' unless ($last_term >= $term) }
-        elsif ($op eq 'lt') { return '' unless ($last_term lt $term) }
-        elsif ($op eq 'gt') { return '' unless ($last_term gt $term) }
-        elsif ($op eq 'le') { return '' unless ($last_term le $term) }
-        elsif ($op eq 'ge') { return '' unless ($last_term ge $term) }
+        if    ($op eq '==' ) { return '' unless $res = ($last_term == $term ? 1:'') }
+        elsif ($op eq '!=' ) { return '' unless $res = ($last_term != $term ? 1:'') }
+        elsif ($op eq 'eq' ) { return '' unless $res = ($last_term eq $term ? 1:'') }
+        elsif ($op eq 'ne' ) { return '' unless $res = ($last_term ne $term ? 1:'') }
+        elsif ($op eq '<'  ) { return '' unless $res = ($last_term <  $term ? 1:'') }
+        elsif ($op eq '<=' ) { return '' unless $res = ($last_term <= $term ? 1:'') }
+        elsif ($op eq '>'  ) { return '' unless $res = ($last_term >  $term ? 1:'') }
+        elsif ($op eq '>=' ) { return '' unless $res = ($last_term >= $term ? 1:'') }
+        elsif ($op eq 'lt' ) { return '' unless $res = ($last_term lt $term ? 1:'') }
+        elsif ($op eq 'gt' ) { return '' unless $res = ($last_term gt $term ? 1:'') }
+        elsif ($op eq 'le' ) { return '' unless $res = ($last_term le $term ? 1:'') }
+        elsif ($op eq 'ge' ) { return '' unless $res = ($last_term ge $term ? 1:'') }
         $last_term = $term;
     }
-    1;
+    $res;
 }
 
 sub rule_bit_shift {

@@ -43,9 +43,9 @@ sub rule_bit_or_xor { }
 
 sub rule_bit_and { }
 
-sub rule_equal { }
+sub rule_comparison3 { }
 
-sub rule_less_greater { }
+sub rule_comparison { }
 
 sub rule_bit_shift { }
 

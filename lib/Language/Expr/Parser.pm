@@ -62,24 +62,23 @@ sub parse_expr {
 
 # precedence level  6: left     &
         <rule: bit_and>
-            <[operand=equal]> ** <[op=(&)]>
+            <[operand=comparison3]> ** <[op=(&)]>
             (?{ $MATCH = $obj->rule_bit_and(match=>%MATCH) })
 
-# precedence level  7: nonassoc == != <=> eq ne cmp
-        <rule: equal>
-            # \x3c = "<", \x3e = ">"
-            <[operand=less_greater]> ** <[op=(==|!=|\x3c=\x3e|eq|ne|cmp)]>
-            (?{ $MATCH = $obj->rule_equal(match=>%MATCH) })
+            # NOTE: \x3c = "<", \x3e = ">"
 
-# precedence level  8: nonassoc < > <= >= lt gt le ge
-        <rule: less_greater>
-            # \x3c = "<", \x3e = ">"
-            <[operand=bit_shift]> ** <[op=(\x3c=?|\x3e=?|lt|gt|le|ge)]>
-            (?{ $MATCH = $obj->rule_less_greater(match=>%MATCH) })
+# precedence level  7: nonassoc (currently the grammar says assoc) <=> cmp
+        <rule: comparison3>
+            <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
+            (?{ $MATCH = $obj->rule_comparison3(match=>%MATCH) })
+
+# precedence level  8: left == != eq ne < > <= >= ge gt le lt
+        <rule: comparison>
+            <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
+            (?{ $MATCH = $obj->rule_comparison(match=>%MATCH) })
 
 # precedence level  9: left     << >>
         <rule: bit_shift>
-            # \x3c = "<", \x3e = ">"
             <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
             (?{ $MATCH = $obj->rule_bit_shift(match=>%MATCH) })
 

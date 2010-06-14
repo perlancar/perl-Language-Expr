@@ -118,7 +118,7 @@ interpreter/compiler).
 
 Which, BTW, is also the way it is done in Python, Ruby, and PHP.
 
-=item * Comparison operators can be chained.
+=item * Comparison operators can be chained (except <=> and cmp).
 
 =back
 
@@ -130,8 +130,8 @@ along with their associativity.
  left     &&
  left     | ^
  left     &
- left     == != <=> cmp eq ne
- left     < > <= >= ge gt le lt
+ left     == != <=> cmp eq ne < > <= >= ge gt le lt
+ nonassoc <=> cmp
  left     << >>
  left     + - .
  left     * / % x
