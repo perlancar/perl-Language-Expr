@@ -1,6 +1,6 @@
 # just to make PodWeaver happy at the moment
 package Language::Expr::Manual::Syntax;
-# ABSTRACT: Language::Expr::Manual::Syntax - Description of the Language::Expr language
+# ABSTRACT: Description of the Language::Expr language
 
 =head1 OVERVIEW
 
@@ -111,7 +111,8 @@ logical operators mostly to separate statements, which we do not have.
 
 =item * Currently no tertiary "?:" operator.
 
-Use B<if()> function instead (if it is supported by the interpreter).
+Use B<if()> function instead (availability depends on
+interpreter/compiler).
 
 =item * Hash value is accessed using [] instead of {}.
 
@@ -129,8 +130,8 @@ along with their associativity.
  left     &&
  left     | ^
  left     &
- nonassoc == != <=> cmp eq ne
- nonassoc < > <= >= ge gt le lt
+ left     == != <=> cmp eq ne
+ left     < > <= >= ge gt le lt
  left     << >>
  left     + - .
  left     * / % x
@@ -153,10 +154,10 @@ and:
  ${anything goes except closing curly brace}
 
 Difference from Perl: The simple syntax does not allow
-namespaces/package names (e.g. $foo::bar). In fact, the interpreter is
-allowed to have its own namespace scheme. L<Data::Schema> and
-L<Data::Template::Expr> uses a namespace + filesystem-like path
-scheme, e.g.:
+namespaces/package names (e.g. $foo::bar). In fact, the
+compiler/interpreter is allowed to have its own namespace
+scheme. L<Data::Schema> and L<Data::Template::Expr> uses a namespace +
+filesystem-like path scheme, e.g.:
 
  ${../foo}
  ${/foo/bar/baz}
