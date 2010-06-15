@@ -99,7 +99,7 @@ sub parse_expr {
 
 # precedence level 13: right    **
         <rule: power>
-            <[operand=subscripting]> ** <op=(\*\*)>
+            <[operand=subscripting]> ** <[op=(\*\*)]>
             (?{ $MATCH = $obj->rule_power(match=>%MATCH) })
 
 # precedence level 14: left    hash[s], array[i]
