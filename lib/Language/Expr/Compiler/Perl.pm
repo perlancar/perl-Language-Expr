@@ -3,11 +3,34 @@ package Language::Expr::Compiler::Perl;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
-use List::Util 'reduce';
+
+require Language::Expr::Interpreter::Default;
+
+=head1 DESCRIPTION
+
+Compiles Language::Expr expression to Perl code. Some notes:
+
+=over 4
+
+=item * Currently strings are rudimentary escaped.
+
+Data dumping modules can't be used currently due to segfaults (at
+least in 5.10.1).
+
+=item * Variables by default simply use Perl variables.
+
+E.g. $a becomes $a, and so on. Be careful not to make variables which
+are invalid in Perl, e.g. $.. or ${foo/bar} (but ${foo::bar} is okay
+because it translates to $foo::bar).
+
+You can subclass and override rule_var() if you want to provide your
+own variables.
+
+=back
 
 =head2 METHODS
 
-=for Pod::Coverage ^(rule|expr)_.+
+=for Pod::Coverage ^((rule|expr)_.+|quote)$
 
 =cut
 
@@ -24,6 +47,7 @@ sub rule_or_xor {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '||') { push @res, " || $term" }
         elsif ($op eq '//') { push @res, " // $term" }
         # add parenthesis because perl's xor precendence is low
@@ -39,6 +63,7 @@ sub rule_and {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '&&') { push @res, " && $term" }
     }
     join "", grep {defined} @res;
@@ -51,6 +76,7 @@ sub rule_bit_or_xor {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '|') { push @res, " | $term" }
         elsif ($op eq '^') { push @res, " ^ $term" }
     }
@@ -64,6 +90,7 @@ sub rule_bit_and {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '&') { push @res, " & $term" }
     }
     join "", grep {defined} @res;
@@ -76,6 +103,7 @@ sub rule_comparison3 {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '<=>') { push @res, " <=> $term" }
         elsif ($op eq 'cmp') { push @res, " cmp $term" }
     }
@@ -92,6 +120,7 @@ sub rule_comparison {
     for my $term (@{$match->{operand}}) {
         push @opds, $term;
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '==' ) { push @ops, '=='  }
         elsif ($op eq '!=' ) { push @ops, '!='  }
         elsif ($op eq 'eq' ) { push @ops, 'eq'  }
@@ -132,13 +161,15 @@ sub rule_comparison {
 sub rule_bit_shift {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = shift @{$match->{operand}};
+    my @res;
+    push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
-        if    ($op eq '>>') { $res >>= $term }
-        elsif ($op eq '<<') { $res <<= $term }
+        last unless $op;
+        if    ($op eq '>>') { push @res, " >> $term" }
+        elsif ($op eq '<<') { push @res, " << $term" }
     }
-    $res;
+    join "", grep {defined} @res;
 }
 
 sub rule_add {
@@ -148,6 +179,7 @@ sub rule_add {
     push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '.') { push @res, " . $term" }
         if    ($op eq '+') { push @res, " + $term" }
         if    ($op eq '-') { push @res, " - $term" }
@@ -158,123 +190,102 @@ sub rule_add {
 sub rule_mult {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = shift @{$match->{operand}};
+    my @res;
+    push @res, shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
-        if    ($op eq '*') { $res *= $term }
-        elsif ($op eq '/') { $res /= $term }
-        elsif ($op eq '%') { $res %= $term }
-        elsif ($op eq 'x') { $res x= $term }
+        last unless $op;
+        if    ($op eq '*') { push @res, " * $term" }
+        if    ($op eq '/') { push @res, " / $term" }
+        if    ($op eq '%') { push @res, " % $term" }
+        if    ($op eq 'x') { push @res, " x $term" }
     }
-    $res;
+    join "", grep {defined} @res;
 }
 
 sub rule_unary {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = $match->{operand};
-    if ($match->{op}) {
-        for my $op (reverse @{$match->{op}}) {
-            if    ($op eq '!') { $res = !$res }
-            elsif ($op eq '-') { $res = -$res }
-            elsif ($op eq '~') { $res = ~($res+0) }
-        }
+    my @res;
+    push @res, $match->{operand};
+    for my $op (reverse @{$match->{op}//=[]}) {
+        last unless $op;
+        if    ($op eq '!') { unshift @res, "!" }
+        if    ($op eq '-') { unshift @res, "-" }
+        if    ($op eq '~') { unshift @res, "~" }
     }
-    $res;
+    join "", grep {defined} @res;
 }
 
 sub rule_power {
     my ($self, %args) = @_;
     my $match = $args{match};
-    reduce { $b ** $a } reverse @{$match->{operand}};
+    my @res;
+    push @res, shift @{$match->{operand}};
+    for my $term (@{$match->{operand}}) {
+        push @res, " ** $term";
+    }
+    join "", grep {defined} @res;
 }
 
 sub rule_subscripting {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = shift @{$match->{operand}};
-    for my $i (@{$match->{subscript}}) {
-        if (ref($res) eq 'ARRAY'  ) { $res = $res->[$i] }
-        elsif (ref($res) eq 'HASH') { $res = $res->{$i} }
-        else { die "Invalid subscript on nonhash/nonarray" }
+    my @res;
+    my $opd = $match->{operand};
+    my @ss = @{$match->{subscript}//=[]};
+    return $opd unless @ss;
+    for my $s (@ss) {
+        push @res, qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
+            qq!if (ref(\$v)) eq 'HASH') { \$v->{\$s} } !.
+                qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
+                    qq!die "Invalid subscript \$s for \$v" } })!;
     }
-    $res;
+    join "", grep {defined} @res;
 }
 
 sub rule_array {
     my ($self, %args) = @_;
     my $match = $args{match};
-    $match->{element};
+    "[" . join(", ", @{ $match->{element} }) . "]";
 }
 
 sub rule_hash {
     my ($self, %args) = @_;
     my $match = $args{match};
-    return { map { $_->[0] => $_->[1] } @{ $match->{pair} } }
+    "{" . join(", ", @{ $match->{pair} }). "}";
 }
 
 sub rule_undef {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    undef;
+    "undef";
 }
 
 sub rule_squotestr {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    join "", map {
-        $_ eq "\\'" ? "'" :
-        $_ eq "\\\\" ? "\\" :
-        $_
-    } @{ $match->{part} };
+    quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
 }
 
 sub rule_dquotestr {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-
-    #return join(", ", map {"[$_]"} @{$match->{part}}); #DEBUG
-
-    join "", map {
-        $_ eq "\\'" ? "'" :
-        $_ eq "\\\"" ? '"' :
-        $_ eq "\\\\" ? "\\" :
-        $_ eq "\\\$" ? '$' :
-        $_ eq "\\t" ? "\t" :
-        $_ eq "\\n" ? "\n" :
-        $_ eq "\\f" ? "\f" :
-        $_ eq "\\b" ? "\b" :
-        $_ eq "\\a" ? "\a" :
-        $_ eq "\\e" ? "\e" :
-        $_ eq "\\e" ? "\e" :
-        /^\\([0-7]{1,3})$/ ? chr(oct($1)) :
-        /^\\x([0-9A-Fa-f]{1,2})$/ ? chr(hex($1)) :
-        /^\\x\{([0-9A-Fa-f]{1,4})\}$/ ? chr(hex($1)) :
-        /^\$(\w+)$/ ? $self->vars->{$1} :
-        /^\$\((.+)\)$/ ? $self->vars->{$1} :
-        $_ eq "\\" ? "" :
-        $_
-    } @{ $match->{part} };
+    quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
 }
 
 sub rule_bool {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if ($match->{bool} eq 'true') { 1 } else { '' }
+    if ($match->{bool} eq 'true') { 1 } else { "''" }
 }
 
 sub rule_num {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if    ($match->{num} eq 'inf') { "Inf"+0 }
-    elsif ($match->{num} eq 'nan') { "NaN"+0 }
+    if    ($match->{num} eq 'inf') { '"Inf"' }
+    elsif ($match->{num} eq 'nan') { '"NaN"' }
     else                           { $match->{num}+0 }
 }
 
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    $self->vars->{ $match->{var} };
+    "\$$match->{var}";
 }
 
 sub rule_func {
@@ -353,6 +364,20 @@ sub expr_postprocess {
     my ($self, %args) = @_;
     my $result = $args{result};
     $result;
+}
+
+# can't use regex here (perl segfaults), at least in 5.10.1, because
+# we are in one big re::gr regex.
+sub quote {
+    my @c;
+    for my $c (split '', $_[0]) {
+        my $o = ord($c);
+        if    ($c eq "'") { push @c, "\\'" }
+        elsif ($c eq "\\") { push @c, "\\\\" }
+        elsif ($o >= 32 && $o <= 127) { push @c, $c }
+        else { push @c, sprintf("\\x%02x", $o) }
+    }
+    "'" . join("", @c) . "'";
 }
 
 __PACKAGE__->meta->make_immutable;

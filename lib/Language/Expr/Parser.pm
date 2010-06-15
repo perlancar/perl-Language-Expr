@@ -104,7 +104,7 @@ sub parse_expr {
 
 # precedence level 14: left    hash[s], array[i]
         <rule: subscripting>
-            <[operand=term]> <[subscript]>*
+            <operand=term> <[subscript]>*
             (?{ $MATCH = $obj->rule_subscripting(match=>%MATCH) })
 
         <rule: subscript>

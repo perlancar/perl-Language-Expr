@@ -50,6 +50,7 @@ sub rule_or_xor {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '||') { $res ||= $term          }
         elsif ($op eq '//') { $res //= $term          }
         elsif ($op eq '^^') { $res = ($res xor $term) }
@@ -63,6 +64,7 @@ sub rule_and {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '&&') { $res &&= $term }
     }
     $res;
@@ -74,6 +76,7 @@ sub rule_bit_or_xor {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '|') { $res = $res+0 | $term }
         elsif ($op eq '^') { $res = $res+0 ^ $term }
     }
@@ -86,6 +89,7 @@ sub rule_bit_and {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '&') { $res = $res+0 & $term }
     }
     $res;
@@ -99,6 +103,7 @@ sub rule_comparison3 {
     my $last_term = $res;
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '<=>') { $res = ($last_term <=> $term) }
         elsif ($op eq 'cmp') { $res = ($last_term cmp $term) }
         $last_term = $term;
@@ -114,6 +119,7 @@ sub rule_comparison {
     my $last_term = $res;
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '==' ) { return '' unless $res = ($last_term == $term ? 1:'') }
         elsif ($op eq '!=' ) { return '' unless $res = ($last_term != $term ? 1:'') }
         elsif ($op eq 'eq' ) { return '' unless $res = ($last_term eq $term ? 1:'') }
@@ -137,6 +143,7 @@ sub rule_bit_shift {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '>>') { $res >>= $term }
         elsif ($op eq '<<') { $res <<= $term }
     }
@@ -149,6 +156,7 @@ sub rule_add {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '+') { $res += $term }
         elsif ($op eq '-') { $res -= $term }
         elsif ($op eq '.') { $res .= $term }
@@ -162,6 +170,7 @@ sub rule_mult {
     my $res = shift @{$match->{operand}};
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
+        last unless $op;
         if    ($op eq '*') { $res *= $term }
         elsif ($op eq '/') { $res /= $term }
         elsif ($op eq '%') { $res %= $term }
@@ -193,7 +202,7 @@ sub rule_power {
 sub rule_subscripting {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my $res = shift @{$match->{operand}};
+    my $res = $match->{operand};
     for my $i (@{$match->{subscript}}) {
         if (ref($res) eq 'ARRAY'  ) { $res = $res->[$i] }
         elsif (ref($res) eq 'HASH') { $res = $res->{$i} }
