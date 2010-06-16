@@ -32,28 +32,53 @@ This distribution consists of the language parser
 =cut
 
 use Any::Moose;
-use Language::Expr::Parser;
 use Language::Expr::Interpreter::Default;
+use Language::Expr::Compiler::Perl;
 use Language::Expr::Interpreter::VarEnumer;
 
 
 =head1 ATTRIBUTES
 
-=head2 interpreter
+=head2 interpreted => BOOL
+
+Whether to use the interpreter. By default is 0 (use the compiler,
+which means Language::Expr expression will be compiled to Perl code
+first before executed).
+
+=cut
+
+has interpreted => (is => 'rw', default => 0);
+
+=head2 interpreter => OBJ
 
 The Language::Expr::Interpreter::Default instance.
 
 =cut
 
-has interpreter => (is => 'ro', default => sub { Language::Expr::Interpreter::Default->new });
+has interpreter => (
+    is => 'ro',
+    default => sub { Language::Expr::Interpreter::Default->new });
 
-=head2 varenumer
+=head2 compiler => OBJ
+
+The Language::Expr::Compiler::Perl instance.
+
+=cut
+
+has compiler => (
+    is => 'ro',
+    default => sub { Language::Expr::Compiler::Perl->new });
+
+=head2 varenumer => OBJ
 
 The Language::Expr::Interpreter::VarEnumer instance.
 
 =cut
 
-has varenumer => (is => 'ro', default => sub { Language::Expr::Interpreter::VarEnumer->new });
+has varenumer => (
+    is => 'ro',
+    default => sub { Language::Expr::Interpreter::VarEnumer->new });
+
 
 =head1 METHODS
 
@@ -94,14 +119,15 @@ sub func {
 =head2 eval(STR) => RESULT
 
 Evaluate expression in STR and return the result. Will die if there is
-a parsing or runtime error.
+a parsing or runtime error. By default it uses the compiler unless you
+set C<interpreted> to 1.
 
 =cut
 
 sub eval {
     my ($self, $str) = @_;
-    my $itp = $self->interpreter;
-    Language::Expr::Parser::parse_expr($str, $itp);
+    my $evaluator = $self->interpreted ? $self->interpreter : $self->compiler;
+    $evaluator->eval($str);
 }
 
 =head2 enum_vars(STR) => ARRAYREF
@@ -113,9 +139,7 @@ Enumerate variables mentioned in expression STR. Return empty arrayref
 
 sub enum_vars {
     my ($self, $str) = @_;
-    my $v = $self->varenumer;
-    Language::Expr::Parser::parse_expr($str, $v);
-    $v->result;
+    $self->varenumer->eval($str)->result;
 }
 
 

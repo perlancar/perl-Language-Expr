@@ -3,8 +3,7 @@ package Language::Expr::Interpreter::Dummy;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
-
-require Language::Expr::Parser;
+extends 'Language::Expr::Evaluator';
 
 =head1 DESCRIPTION
 
@@ -12,7 +11,7 @@ This interpreter does nothing. It is used only for testing the parser.
 
 =head1 ATTRIBUTES
 
-=head2 METHODS
+=head1 METHODS
 
 =for Pod::Coverage ^(rule|expr)_.+
 

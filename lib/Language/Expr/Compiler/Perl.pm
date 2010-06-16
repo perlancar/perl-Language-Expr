@@ -3,8 +3,9 @@ package Language::Expr::Compiler::Perl;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
+extends 'Language::Expr::Evaluator';
 
-require Language::Expr::Interpreter::Default;
+use UUID::Tiny ':std';
 
 =head1 DESCRIPTION
 
@@ -26,9 +27,22 @@ because it translates to $foo::bar).
 You can subclass and override rule_var() if you want to provide your
 own variables.
 
+=item * Functions by default simply use Perl functions.
+
 =back
 
-=head2 METHODS
+=head1 ATTRIBUTES
+
+=head2 todo => HASHREF
+
+Used to remember which subexpression need to be parsed later.
+
+=cut
+
+has todo => (is => 'rw', default => sub { {} });
+
+
+=head1 METHODS
 
 =for Pod::Coverage ^((rule|expr)_.+|quote)$
 
@@ -293,12 +307,7 @@ sub rule_func {
     my $match = $args{match};
     my $f = $match->{func_name};
     my $args = $match->{args};
-    my $res;
-    if ($self->funcs->{$f}) {
-        return $self->funcs->{$f}->(@$args);
-    } else {
-        die "Unknown function $f";
-    }
+    "$f(".join(", ", @$args).")";
 }
 
 sub _map_grep_usort {
@@ -306,38 +315,11 @@ sub _map_grep_usort {
     my $match = $args{match};
     my $ary = $match->{array};
     my $expr = $match->{expr};
-    die "Second argument to map/grep/usort must be an array"
-        unless ref($ary) eq 'ARRAY';
-    local $self->{level} = $self->{level}+1;
-    print "DEBUG: _map_grep_usort: level=$self->{level}, expr=`$expr`, array=[".join(",", @$ary),"]\n";
-    my $res;
-    if ($which eq 'map') {
-        $res = [];
-        local $self->{vars}{_};
-        for (@$ary) {
-            $self->{vars}{_} = $_;
-            push @$res, Language::Expr::Parser::parse_expr($expr, $self,
-                                                           $self->level);
-            push @$res, $_;
-        }
-    } elsif ($which eq 'grep') {
-        local $self->{vars}{_};
-        $res = [ grep {
-            $self->{vars}{_} = $_;
-            $self->Language::Expr::Parser::parse_expr($expr, $self,
-                                                      $self->level)
-        } @$ary];
-    } elsif ($which eq 'usort') {
-        local $self->{vars}{a};
-        local $self->{vars}{b};
-        $res = [ sort {
-            $self->{vars}{a} = $a;
-            $self->{vars}{b} = $b;
-            Language::Expr::Parser::parse_expr($expr, $self,
-                                               $self->level)
-        } @$ary];
-    }
-    $res;
+
+    my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
+    my $todoid = uuidgen(); # yes, this is not proper
+    $self->todo->{$todoid} = $expr;
+    "[$perlop({ TODO-$todoid } \@{$ary})]";
 }
 
 sub rule_func_map {
@@ -378,6 +360,27 @@ sub quote {
         else { push @c, sprintf("\\x%02x", $o) }
     }
     "'" . join("", @c) . "'";
+}
+
+sub uuidgen {
+    UUID::Tiny::create_uuid_as_string(UUID_V4);
+}
+
+sub perl {
+    my ($self, $expr) = @_;
+    my $res = Language::Expr::Parser::parse_expr($expr, $self);
+    for my $todoid (keys %{ $self->todo }) {
+        my $subexpr = $self->todo->{$todoid};
+        my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
+        $res =~ s/TODO-$todoid/$subres/;
+    }
+    $self->todo({});
+    $res;
+}
+
+sub eval {
+    my ($self, $expr) = @_;
+    eval $self->perl($expr);
 }
 
 __PACKAGE__->meta->make_immutable;

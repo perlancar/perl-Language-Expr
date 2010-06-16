@@ -3,8 +3,7 @@ package Language::Expr::Interpreter::VarEnumer;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
-
-require Language::Expr::Parser;
+extends 'Language::Expr::Evaluator';
 
 =head1 ATTRIBUTES
 
@@ -16,7 +15,7 @@ Store the list of variables seen during parsing.
 
 has result => (is => 'rw');
 
-=head2 METHODS
+=head1 METHODS
 
 =for Pod::Coverage ^(rule|expr)_.+
 

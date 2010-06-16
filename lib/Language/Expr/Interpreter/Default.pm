@@ -3,6 +3,7 @@ package Language::Expr::Interpreter::Default;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
+extends 'Language::Expr::Evaluator';
 use List::Util 'reduce';
 
 =head1 ATTRIBUTES
@@ -32,7 +33,7 @@ Current recursion level.
 has level => (is => 'rw', default => 0);
 
 
-=head2 METHODS
+=head1 METHODS
 
 =for Pod::Coverage ^(rule|expr)_.+
 

@@ -12,27 +12,27 @@ my @data = (
     {category=>'array', text=>'[]', result=>[]},
     {category=>'array', text=>'[1,2]', result=>[1, 2]},
     {category=>'array', text=>'[1, 2, 3+4]', result=>[1, 2, 7]},
-    {category=>'array', error=>qr/invalid syntax/i, text=>'['},
-    {category=>'array', error=>qr/invalid syntax/i, text=>']'},
-    {category=>'array', error=>qr/invalid syntax/i, text=>'[,]'},
-    {category=>'array', error=>qr/invalid syntax/i, text=>'[1,]'},
-    {category=>'array', error=>qr/invalid syntax/i, text=>'[1 2]'},
-    {category=>'array', error=>qr/invalid syntax/i, text=>'[a]'},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'['},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>']'},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[,]'},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[1,]'},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[1 2]'},
+    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[a]'},
 
     # hash
     {category=>'hash', text=>'{}', result=>{}},
     {category=>'hash', text=>'{a=>1}', result=>{a=>1}},
     {category=>'hash', text=>q[{'a'=>1}], result=>{a=>1}},
     {category=>'hash', text=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{=>}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{a=>}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{=>1}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{a, 1}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{a=>1, }'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'{1=>a}'},
-    {category=>'hash', error=>qr/invalid syntax/i, text=>'a=>1'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{=>}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a=>}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{=>1}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a, 1}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a=>1, }'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{1=>a}'},
+    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'a=>1'},
 
     # comparison equal
     {category=>'comparison equal num', text=>'1 == 2', result=>''},
@@ -71,11 +71,11 @@ my @data = (
     {category=>'comparison less_greater chained', text=>'2 > 3 > 1', result=>''},
     {category=>'comparison less_greater chained', text=>'2 > 3 < 1', result=>''},
 
-    {category=>'comparison less_greater', error=>qr/invalid syntax/i, text=>'>'},
-    {category=>'comparison less_greater', error=>qr/invalid syntax/i, text=>'1 >'},
-    {category=>'comparison less_greater', error=>qr/invalid syntax/i, text=>'> 1'},
-    #{category=>'comparison less_greater', error=>qr/invalid syntax/i, text=>'1 > 0 >'}, # RG bug? causes subsequent parsing to fail
-    {category=>'comparison less_greater', error=>qr/invalid syntax/i, text=>'< 1 < 2'},
+    {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'>'},
+    {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'1 >'},
+    {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'> 1'},
+    #{category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'1 > 0 >'}, # RG bug? causes subsequent parsing to fail
+    {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'< 1 < 2'},
 
     # and
     {category=>'and', text=>'1 && 2', result=>'2'},
@@ -172,15 +172,53 @@ my @data = (
     {category=>'subscripting', text => '({a=>10, b=>20, "c 2" => 30})["c 2"]', result=>'30'},
     {category=>'subscripting', text => '({a=>10, b=>20, "c 2" => 30})["x"]', result=>undef},
     {category=>'subscripting', text => '{a=>[10, 20]}["a"][1]', result=>20},
-    #{category=>'subscripting', error=>qr/subscript/i, text => '1[1]'}, # currently doesn't work, RG bug?
+    #{category=>'subscripting', parse_error=>qr/subscript/i, text => '1[1]'}, # currently doesn't work, RG bug?
 
     {category=>'func', text=>'length("str")', result=>'3'},
-    {category=>'func', error=>qr/invalid syntax/i, text => 'length'},
-    {category=>'func', error=>qr/invalid syntax/i, text => 'length "str"'},
+    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'length'},
+    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'length "str"'},
     {category=>'func', text=>'length("s" . "tr")', result=>'3'},
     {category=>'func', text=>'ceil(rand())+floor(rand()*rand())', result=>'1'},
     {category=>'func', error => qr/unknown func/i, text=>'foo(1)', result=>'1'},
 
+    # map
+    {category=>'map', has_subexpr=>1, text=>'map {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
+    {category=>'map', has_subexpr=>1, text=>'map({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
+
+    {category=>'map', has_subexpr=>1, text=>'map()'}, # lack arguments. won't be parsed as map(), but ok
+    {category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok
+    {category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok
+
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})'}, # although doesn't make sense, parses
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [])'},
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [1,2,3])'},
+    {category=>'map', has_subexpr=>1, text=>'map({ map({$_[0]}, [$_]) }, [1,2,3])'}, # nested map
+
+    # grep
+    {category=>'grep', has_subexpr=>1, text=>'grep {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
+    {category=>'grep', has_subexpr=>1, text=>'grep({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
+
+    {category=>'grep', has_subexpr=>1,  text=>'grep()'}, # lack arguments. won't be parsed as grep(), but ok
+    {category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
+    {category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
+
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, {})'}, # although doesn't make sense, parses
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [])'},
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [1,2,3])'},
+    {category=>'grep', has_subexpr=>1, text=>'grep({ grep({$_[0] > 1}, [$_])[0] }, [1,2,3])'}, # nested grep
+
+    # usort
+    {category=>'usort', has_subexpr=>1, text=>'usort {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
+    {category=>'usort', has_subexpr=>1, text=>'usort({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
+
+    {category=>'usort', has_subexpr=>1, text=>'usort()'}, # lack arguments. won't be parsed as usort(), but ok
+    {category=>'usort', has_subexpr=>1, text=>'usort({}, [])'}, # empty subexpression. won't be parsed as usort(), but ok
+    {category=>'usort', has_subexpr=>1, text=>'usort(1, [])'}, # not subexpression. won't be parsed as usort(), but ok
+
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, {})'}, # although doesn't make sense, parses
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [])'},
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [1,2,3])'},
+    {category=>'usort', has_subexpr=>1, text=>'usort({ usort({rand()}, [$_, $_+1, $_+2]) }, [1,2,3])'}, # nested usort
 );
 
 my $le = new Language::Expr;
@@ -192,13 +230,26 @@ $le->func(
     'ceil'   => sub { POSIX::ceil(shift) },
 );
 
-for (@data) {
-    if ($_->{error}) {
-        throws_ok { $le->eval($_->{text}) } $_->{error},
-            "$_->{category} ($_->{text}) (error: $_->{error})";
+for my $t (@data) {
+    my @use_itp;
+
+    # currently interpreter doesn't support subexpr yet
+    if ($t->{has_subexpr}) {
+        @use_itp = (0);
     } else {
-        is_deeply( $le->eval($_->{text}), $_->{result},
-                   "$_->{category} ($_->{text})" );
+        @use_itp = (0, 1);
+
+    }
+
+    for my $use_itp (@use_itp) {
+        $le->interpreted($use_itp);
+        if ($t->{parse_error}) {
+            throws_ok { $le->eval($t->{text}) } $t->{parse_error},
+                "$t->{category} ($t->{text}) (error: $t->{parse_error})";
+        } else {
+            is_deeply( $le->eval($t->{text}), $t->{result},
+                       "$t->{category} ($t->{text})" );
+        }
     }
 }
 
