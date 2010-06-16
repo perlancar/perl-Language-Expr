@@ -248,7 +248,7 @@ for my $t (@data) {
                 "$t->{category} ($t->{text}) (parse error: $t->{parse_error})";
         } else {
             is_deeply( $le->eval($t->{text}), $t->{result},
-                       "$t->{category} ($t->{text})" );
+                       "$t->{category} ($t->{text}) (perl=".($le->compiler->perl($t->{text})).")" );
         }
     }
 }

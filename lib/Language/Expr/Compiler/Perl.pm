@@ -224,9 +224,10 @@ sub rule_unary {
     push @res, $match->{operand};
     for my $op (reverse @{$match->{op}//=[]}) {
         last unless $op;
-        if    ($op eq '!') { unshift @res, "!" }
-        if    ($op eq '-') { unshift @res, "-" }
-        if    ($op eq '~') { unshift @res, "~" }
+        # use paren because --x or ++x is interpreted as pre-decrement/increment
+        if    ($op eq '!') { @res = ("!(", @res, ")") }
+        if    ($op eq '-') { @res = ("-(", @res, ")") }
+        if    ($op eq '~') { @res = ("~(", @res, ")") }
     }
     join "", grep {defined} @res;
 }
@@ -380,7 +381,9 @@ sub perl {
 
 sub eval {
     my ($self, $expr) = @_;
-    eval $self->perl($expr);
+    my $res = eval $self->perl($expr);
+    die $@ if $@;
+    $res;
 }
 
 __PACKAGE__->meta->make_immutable;
