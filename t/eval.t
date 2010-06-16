@@ -245,7 +245,7 @@ for my $t (@data) {
         $le->interpreted($use_itp);
         if ($t->{parse_error}) {
             throws_ok { $le->eval($t->{text}) } $t->{parse_error},
-                "$t->{category} ($t->{text}) (error: $t->{parse_error})";
+                "$t->{category} ($t->{text}) (parse error: $t->{parse_error})";
         } else {
             is_deeply( $le->eval($t->{text}), $t->{result},
                        "$t->{category} ($t->{text})" );
