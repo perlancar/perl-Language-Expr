@@ -120,7 +120,6 @@ sub parse_expr {
           | <MATCH=bool0>
           | <MATCH=array>
           | <MATCH=hash>
-          | sub \{ <answer> \}
           | \( <answer> \)
             (?{ $MATCH = $obj->rule_parenthesis(match=>%MATCH) // $MATCH{answer} })
 
