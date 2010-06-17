@@ -44,7 +44,7 @@ has todo => (is => 'rw', default => sub { [] });
 
 =head1 METHODS
 
-=for Pod::Coverage ^((rule|expr)_.+|quote)$
+=for Pod::Coverage ^(rule|expr)_.+
 
 =cut
 
@@ -277,11 +277,11 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
+    __quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
 }
 
 sub rule_dquotestr {
-    quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
+    __quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
 }
 
 sub rule_bool {
@@ -319,7 +319,7 @@ sub _map_grep_usort {
     my $expr = $match->{expr};
 
     my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
-    my $todoid = uuidgen(); # yes, this is not proper
+    my $todoid = __uuidgen(); # yes, this is not proper
     push @{ $self->todo }, [$todoid, $expr];
     "[$perlop({ TODO-$todoid } \@{$ary})]";
 }
@@ -352,7 +352,7 @@ sub expr_postprocess {
 
 # can't use regex here (perl segfaults), at least in 5.10.1, because
 # we are in one big re::gr regex.
-sub quote {
+sub __quote {
     my @c;
     for my $c (split '', $_[0]) {
         my $o = ord($c);
@@ -366,9 +366,16 @@ sub quote {
     '"' . join("", @c) . '"';
 }
 
-sub uuidgen {
+sub __uuidgen {
     UUID::Tiny::create_uuid_as_string(UUID_V4);
 }
+
+=head2 perl($expr) => $perl_code
+
+Convert Language::Expr expression into Perl code. Dies if there is
+syntax error in expression.
+
+=cut
 
 sub perl {
     my ($self, $expr) = @_;
