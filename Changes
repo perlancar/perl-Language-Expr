@@ -1,5 +1,13 @@
 Revision history for Language-Expr
 
+0.04    2010-06-17
+
+        Add Perl emitter (supports map/grep/usort) (now used by
+        default).
+
+        Reorganize modules.
+
+
 0.03    2010-06-11
 
         Add map(), grep(), and usort() (but so far only working in
