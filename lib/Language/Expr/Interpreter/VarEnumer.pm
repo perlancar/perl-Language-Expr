@@ -89,15 +89,12 @@ sub rule_var {
 sub rule_func { }
 
 sub rule_func_map {
-    die "Subexpression not yet supported";
 }
 
 sub rule_func_grep {
-    die "Subexpression not yet supported";
 }
 
 sub rule_func_usort {
-    die "Subexpression not yet supported";
 }
 
 sub rule_parenthesis {}
@@ -109,9 +106,15 @@ sub expr_preprocess {
 
 sub expr_postprocess {}
 
+sub eval {
+    my ($self, $expr) = @_;
+    my $res = Language::Expr::Parser::parse_expr($expr, $self);
+    $self->result;
+}
+
 =head1 BUGS/TODOS
 
-Currently subexpression (map/grep/usort) doesn't work yet.
+Currently $_ in map/grep variables and $a & $b in usort are counted.
 
 =cut
 

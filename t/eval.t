@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 132;
+use Test::More tests => 154*2 - (7+7+7);
 use Test::Exception;
 use Language::Expr;
 use POSIX;
@@ -147,6 +147,8 @@ my @data = (
     {category=>'squotestr escape sequence', text=>q('\\\\'), result=>'\\'},
     {category=>'squotestr escape sequence', text=>q('\\n'), result=>'\n'},
     {category=>'dquotestr escape sequence', text=>q("\\n"), result=>"\n"},
+    {category=>'squotestr', text=>q('@b'), result=>'@b'}, # to test compiler properly escaping "@foo"
+    {category=>'dquotestr', text=>'"@b"', result=>'@b'}, # to test compiler properly escaping "@foo"
     # XXX more escape sequences
     {category=>'squotestr interpolate var', text=>q('$a'), result=>'$a'},
     #{category=>'dquotestr interpolate var', text=>q("$a"), result=>1},   # currently causes segfault, RG bug?
@@ -161,7 +163,7 @@ my @data = (
 
     # term:var
     {category=>'var', text=>'$b', result=>'2'},
-    {category=>'var', text=>q[${a b}], result=>'3'},
+    {category=>'var', text=>q[${a b}], result=>'3', compiler_run_error=>qr/syntax error/i},
     {category=>'var', text=>'$a+2*$b', result=>'5'},
 
     # term:subscript
@@ -179,56 +181,63 @@ my @data = (
     {category=>'func', parse_error=>qr/invalid syntax/i, text => 'length "str"'},
     {category=>'func', text=>'length("s" . "tr")', result=>'3'},
     {category=>'func', text=>'ceil(rand())+floor(rand()*rand())', result=>'1'},
-    {category=>'func', error => qr/unknown func/i, text=>'foo(1)', result=>'1'},
+    #{category=>'func', run_error => qr/unknown func|undefined sub/i, text=>'foo(1)', result=>'1'}, # BUG in RG? causes error: Can't use an undefined value as an ARRAY reference at (re_eval 252) line 2.
 
-    # map
+    # map=7
     {category=>'map', has_subexpr=>1, text=>'map {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'map', has_subexpr=>1, text=>'map({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'map', has_subexpr=>1, text=>'map()'}, # lack arguments. won't be parsed as map(), but ok
-    {category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok
-    {category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok
+    {category=>'map', has_subexpr=>1, text=>'map()', compiler_run_error=>qr/not enough arg/i},
+    #{category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok.
+    #{category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok. but in perl result will be 1.
 
-    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})'}, # although doesn't make sense, parses
-    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [])'},
-    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [1,2,3])'},
-    {category=>'map', has_subexpr=>1, text=>'map({ map({$_[0]}, [$_]) }, [1,2,3])'}, # nested map
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})', compiler_run_error=>qr/syntax error/i}, # although doesn't make sense, parses
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [])', result=>[]},
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [1,2,3])', result=>[2, 4, 6]},
+    {category=>'map', has_subexpr=>1, text=>'map({ map({$_+1}, [$_])[0] }, [1,2,3])', result=>[2, 3, 4]}, # nested map
 
-    # grep
+    # grep=7
     {category=>'grep', has_subexpr=>1, text=>'grep {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'grep', has_subexpr=>1, text=>'grep({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'grep', has_subexpr=>1,  text=>'grep()'}, # lack arguments. won't be parsed as grep(), but ok
-    {category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
-    {category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
+    {category=>'grep', has_subexpr=>1,  text=>'grep()', compiler_run_error=>qr/not enough arg/i}, # lack arguments. won't be parsed as grep(), but ok
+    #{category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
+    #{category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
 
-    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, {})'}, # although doesn't make sense, parses
-    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [])'},
-    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [1,2,3])'},
-    {category=>'grep', has_subexpr=>1, text=>'grep({ grep({$_[0] > 1}, [$_])[0] }, [1,2,3])'}, # nested grep
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, {})', compiler_run_error=>qr/syntax error/}, # although doesn't make sense, parses
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [])', result=>[]},
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [1,2,3])', result=>[2, 3]},
+    {category=>'grep', has_subexpr=>1, text=>'grep({ grep({$_ > 1}, [$_])[0] }, [1,2,3])', result=>[2, 3]}, # nested grep
 
-    # usort
+    # usort=7
     {category=>'usort', has_subexpr=>1, text=>'usort {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'usort', has_subexpr=>1, text=>'usort({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'usort', has_subexpr=>1, text=>'usort()'}, # lack arguments. won't be parsed as usort(), but ok
-    {category=>'usort', has_subexpr=>1, text=>'usort({}, [])'}, # empty subexpression. won't be parsed as usort(), but ok
-    {category=>'usort', has_subexpr=>1, text=>'usort(1, [])'}, # not subexpression. won't be parsed as usort(), but ok
+    {category=>'usort', has_subexpr=>1, text=>'usort()', compiler_run_error=>qr/undefined sub.+usort/i}, # lack arguments. won't be parsed as usort(), but ok
+    #{category=>'usort', has_subexpr=>1, text=>'usort({}, [])'}, # empty subexpression. won't be parsed as usort(), but ok
+    #{category=>'usort', has_subexpr=>1, text=>'usort(1, [])'}, # not subexpression. won't be parsed as usort(), but ok
 
-    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, {})'}, # although doesn't make sense, parses
-    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [])'},
-    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [1,2,3])'},
-    {category=>'usort', has_subexpr=>1, text=>'usort({ usort({rand()}, [$_, $_+1, $_+2]) }, [1,2,3])'}, # nested usort
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, {})', compiler_run_error=>qr/syntax error/i}, # although doesn't make sense, parses
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [])', result=>[]},
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, ["B", "a", "C"])', result=>["a", "B", "C"]},
+    {category=>'usort', has_subexpr=>1, text=>'usort({ usort({$b <=> $a}, [$a])[0] <=> usort({$b<=>$a}, [$b])[0] }, [3, 2, 1])', result=>[1, 2, 3]}, # nested usort
 );
 
 my $le = new Language::Expr;
+$Language::Expr::Compiler::Perl::a = 1;
+$Language::Expr::Compiler::Perl::b = 2;
 $le->var(a => 1, b => 2, 'a b' => 3);
+
 $le->func(
     'length' => sub { length(shift) },
     'rand'   => sub { rand() },
     'floor'  => sub { POSIX::floor(shift) },
     'ceil'   => sub { POSIX::ceil(shift) },
 );
+package Language::Expr::Compiler::Perl;
+sub floor { POSIX::floor(shift) }
+sub ceil { POSIX::ceil(shift) }
+package main;
 
 for my $t (@data) {
     my @use_itp;
@@ -237,18 +246,33 @@ for my $t (@data) {
     if ($t->{has_subexpr}) {
         @use_itp = (0);
     } else {
-        @use_itp = (0, 1);
+        @use_itp = (1, 0);
 
     }
 
     for my $use_itp (@use_itp) {
         $le->interpreted($use_itp);
+        my $tname = "category=$t->{category} $t->{text} (".
+            ($use_itp ? "interpreted" : "compiled");
         if ($t->{parse_error}) {
-            throws_ok { $le->eval($t->{text}) } $t->{parse_error},
-                "$t->{category} ($t->{text}) (parse error: $t->{parse_error})";
+            $tname .= ", parse error: $t->{parse_error})";
+            throws_ok { $le->eval($t->{text}) } $t->{parse_error}, $tname;
         } else {
-            is_deeply( $le->eval($t->{text}), $t->{result},
-                       "$t->{category} ($t->{text}) (perl=".($le->compiler->perl($t->{text})).")" );
+            $tname .= ", perl=q{".$le->compiler->perl($t->{text})."}"
+                unless $use_itp;
+            if ($t->{run_error}) {
+                $tname .= ", run error: $t->{run_error})";
+                throws_ok { $le->eval($t->{text}) } $t->{run_error}, $tname;
+            } elsif (!$use_itp && $t->{compiler_run_error}) {
+                $tname .= ", run error: $t->{compiler_run_error})";
+                throws_ok { $le->eval($t->{text}) } $t->{compiler_run_error}, $tname;
+            } elsif ($use_itp && $t->{itp_run_error}) {
+                $tname .= ", run error: $t->{itp_run_error})";
+                throws_ok { $le->eval($t->{text}) } $t->{itp_run_error}, $tname;
+            } else {
+                $tname .= ")";
+                is_deeply( $le->eval($t->{text}), $t->{result}, $tname );
+            }
         }
     }
 }

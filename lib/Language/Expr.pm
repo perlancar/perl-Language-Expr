@@ -139,7 +139,7 @@ Enumerate variables mentioned in expression STR. Return empty arrayref
 
 sub enum_vars {
     my ($self, $str) = @_;
-    $self->varenumer->eval($str)->result;
+    $self->varenumer->eval($str);
 }
 
 

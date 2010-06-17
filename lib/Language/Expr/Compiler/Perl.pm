@@ -33,13 +33,13 @@ own variables.
 
 =head1 ATTRIBUTES
 
-=head2 todo => HASHREF
+=head2 todo => ARRAYREF
 
 Used to remember which subexpression need to be parsed later.
 
 =cut
 
-has todo => (is => 'rw', default => sub { {} });
+has todo => (is => 'rw', default => sub { [] });
 
 
 =head1 METHODS
@@ -246,17 +246,18 @@ sub rule_power {
 sub rule_subscripting {
     my ($self, %args) = @_;
     my $match = $args{match};
-    my @res;
     my $opd = $match->{operand};
     my @ss = @{$match->{subscript}//=[]};
     return $opd unless @ss;
+    my $res;
     for my $s (@ss) {
-        push @res, qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
-            qq!if (ref(\$v)) eq 'HASH') { \$v->{\$s} } !.
+        $opd = $res if defined($res);
+        $res = qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
+            qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
                 qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
                     qq!die "Invalid subscript \$s for \$v" } })!;
     }
-    join "", grep {defined} @res;
+    $res;
 }
 
 sub rule_array {
@@ -319,7 +320,7 @@ sub _map_grep_usort {
 
     my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
     my $todoid = uuidgen(); # yes, this is not proper
-    $self->todo->{$todoid} = $expr;
+    push @{ $self->todo }, [$todoid, $expr];
     "[$perlop({ TODO-$todoid } \@{$ary})]";
 }
 
@@ -355,12 +356,14 @@ sub quote {
     my @c;
     for my $c (split '', $_[0]) {
         my $o = ord($c);
-        if    ($c eq "'") { push @c, "\\'" }
+        if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
+        elsif ($c eq '$') { push @c, "\\\$" }
+        elsif ($c eq '@') { push @c, '\\@' }
         elsif ($o >= 32 && $o <= 127) { push @c, $c }
         else { push @c, sprintf("\\x%02x", $o) }
     }
-    "'" . join("", @c) . "'";
+    '"' . join("", @c) . '"';
 }
 
 sub uuidgen {
@@ -370,12 +373,13 @@ sub uuidgen {
 sub perl {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
-    for my $todoid (keys %{ $self->todo }) {
-        my $subexpr = $self->todo->{$todoid};
+    for my $todo (@{ $self->todo }) {
+        my $todoid = $todo->[0];
+        my $subexpr = $todo->[1];
         my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
-        $res =~ s/TODO-$todoid/$subres/;
+        $res =~ s/TODO-$todoid/$subres/g;
     }
-    $self->todo({});
+    $self->todo([]);
     $res;
 }
 
