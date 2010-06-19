@@ -19,6 +19,7 @@ $le->func(
     'length' => sub { length(shift) },
     'floor'  => sub { POSIX::floor(shift) },
     'ceil'   => sub { POSIX::ceil(shift) },
+    'rand'   => sub { rand(shift) },
 );
 package Language::Expr::Compiler::Perl;
 sub floor { POSIX::floor(shift) }
