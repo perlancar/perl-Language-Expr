@@ -361,7 +361,8 @@ sub __quote {
         elsif ($c eq '$') { push @c, "\\\$" }
         elsif ($c eq '@') { push @c, '\\@' }
         elsif ($o >= 32 && $o <= 127) { push @c, $c }
-        else { push @c, sprintf("\\x%02x", $o) }
+        elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
+        else  { push @c, sprintf("\\x%02x", $o) }
     }
     '"' . join("", @c) . '"';
 }
