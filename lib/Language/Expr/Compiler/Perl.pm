@@ -13,6 +13,11 @@ Compiles Language::Expr expression to Perl code. Some notes:
 
 =over 4
 
+=item * Emitted Perl code requires 5.10
+
+For example, it translates "//" directly with Perl's "//" defined-or
+operator.
+
 =item * Currently strings are rudimentary escaped.
 
 Data dumping modules can't be used currently due to segfaults (at
