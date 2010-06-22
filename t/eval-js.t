@@ -4,6 +4,7 @@ use 5.010;
 
 our $JavaScript_available;
 our $JE_available;
+our $JS_bin;
 
 BEGIN {
     {
@@ -13,12 +14,33 @@ BEGIN {
             say "# Using JavaScript Perl module for testing JS emitter";
             last;
         }
+
         eval { require JE };
         unless ($@) {
             $JE_available++;
             say "# Using JE Perl module for testing JS emitter";
             last;
         }
+
+        eval {
+            require File::Which;
+            my @paths = File::Which::which("js");
+            ($ENV{PATH}) = /(.*)/;
+            for (@paths) {
+                #print "# Testing $_ ...\n";
+                ($_) = /(.*)/;
+                my $output = qx($_ -e 'print(JSON.stringify([1+1]))') or die;
+                #print "# Output: $output\n";
+                if ($output =~ /\A\[2\]$/m) {
+                    $JS_bin = $_;
+                    say "# Using $_ for testing JS emitter";
+                    last;
+                }
+            }
+        };
+        #$@ and die $@;
+        last if $JS_bin;
+
         require Test::More;
         Test::More::plan(skip_all => "no JavaScript engine available");
     }

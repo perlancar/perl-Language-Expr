@@ -26,7 +26,9 @@ are invalid in JavaScript, e.g. $.. or ${foo/bar}.
 You can subclass and override rule_var() if you want to provide your
 own variables.
 
-=item * Functions by default simply use Perl functions.
+=item * Functions by default simply use Javascript functions.
+
+Except those mentioned in B<func_mapping>.
 
 =back
 
@@ -40,6 +42,13 @@ Used to remember which subexpression need to be parsed later.
 
 has todo => (is => 'rw', default => sub { [] });
 
+=head2 func_mapping => HASHREF
+
+Mapping from Expr function to JavaScript functions.
+
+=cut
+
+has func_mapping => (is => 'rw', default => sub { {} });
 
 =head1 METHODS
 
@@ -50,7 +59,7 @@ has todo => (is => 'rw', default => sub { [] });
 sub rule_pair {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "$match->{key} => $match->{value}";
+    "$match->{key}:$match->{value}";
 }
 
 sub rule_or_xor {
@@ -62,9 +71,12 @@ sub rule_or_xor {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
         if    ($op eq '||') { push @res, " || $term" }
-        elsif ($op eq '//') { push @res, " // $term" }
-        # add parenthesis because perl's xor precendence is low
-        elsif ($op eq '^^') { @res = ("(", @res, " xor $term)") }
+        elsif ($op eq '//') { @res = ("(function() { let x = (",
+                                      @res, "); return x==null ? (",
+                                      $term, ") : x })()") }
+        elsif ($op eq '//') { @res = ("(function() { let a = (",
+                                      @res, "); let b = ($term); ",
+                                      "return a&&!b || !a&&b ? a : b })()") }
     }
     join "", grep {defined} @res;
 }
@@ -272,7 +284,7 @@ sub rule_hash {
 }
 
 sub rule_undef {
-    "undef";
+    "null";
 }
 
 sub rule_squotestr {
@@ -357,10 +369,9 @@ sub __quote {
         my $o = ord($c);
         if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
-        elsif ($c eq '$') { push @c, "\\\$" }
-        elsif ($c eq '@') { push @c, '\\@' }
         elsif ($o >= 32 && $o <= 127) { push @c, $c }
-        else { push @c, sprintf("\\x%02x", $o) }
+        elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
+        else  { push @c, sprintf("\\x%02x", $o) }
     }
     '"' . join("", @c) . '"';
 }
