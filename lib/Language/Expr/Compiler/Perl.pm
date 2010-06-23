@@ -11,7 +11,7 @@ use boolean;
 =head1 SYNOPSIS
 
  use Language::Expr::Compiler::Perl;
- my $plc = Language::Expr::Compiler::Perl;
+ my $plc = Language::Expr::Compiler::Perl->new;
  print $plc->perl('1 ^^ 2'); # prints '1 xor 2'
 
 =head1 DESCRIPTION

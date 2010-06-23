@@ -12,7 +12,7 @@ use Language::Expr::Interpreter::Default;
 =head1 SYNOPSIS
 
  use Language::Expr::Compiler::JS;
- my $jsc = Language::Expr::Compiler::JS;
+ my $jsc = Language::Expr::Compiler::JS->new;
  print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints '[1, 2, 3].map(function(_){ Math.pow(_, 2) })'
 
 =head1 DESCRIPTION
