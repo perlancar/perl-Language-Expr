@@ -140,6 +140,61 @@ along with their associativity.
  left     hash[s], array[i]
  left     term (variable, str/num literals, (paren), func())
 
+=head2 Pair
+
+ left     =>
+
+=head2 Logical or, defined-or, logical xor
+
+ left     || // ^^
+
+=head2 Logical and
+
+ left     &&
+
+=head2 Bitwise or, bitwise xor
+
+ left     | ^
+
+=head2 Bitwise and
+
+ left     &
+
+=head2 Comparison operators
+
+ left     == != <=> cmp eq ne < > <= >= ge gt le lt
+
+=head2 Tri-valued comparison
+
+ nonassoc <=> cmp
+
+=head2 Bitwise shift left & right
+
+ left     << >>
+
+=head2 Numeric addition, subtraction, string concatenation
+
+ left     + - .
+
+=head2 Numeric multiplication, division, modulus, string repetition
+
+ left     * / % x
+
+=head2 Logical not, bitwise not, unary plus, unary minus (numeric negation)
+
+ right    ! ~ unary+ unary-
+
+=head2 Numeric power
+
+ right    **
+
+=head2 Hash and array subscript
+
+ left     hash[s], array[i]
+
+=head2 Term
+
+ left     term (variable, str/num literals, (paren), func())
 
 =head1 VARIABLES
 
