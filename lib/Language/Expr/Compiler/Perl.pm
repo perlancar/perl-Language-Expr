@@ -20,6 +20,13 @@ Emitted Perl code requires Perl 5.10 (it uses 5.10's "//" defined-or
 operator) and also the L<boolean> module (it uses 'true' and 'false'
 objects).
 
+=item * Perliness
+
+The emitted Perl code will follow Perl's notion of true and false,
+e.g. the expression '"" || "0" || 2' will result to 2 since Perl
+thinks that "" and "0" are false. It is also weakly typed like Perl,
+i.e. allows '1 + "2"' to become 3.
+
 =item * Currently strings are rudimentary escaped.
 
 Data dumping modules can't be used currently due to segfaults (at
