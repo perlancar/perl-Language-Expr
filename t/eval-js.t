@@ -134,7 +134,8 @@ for my $t (@stdtests) {
             throws_ok { eval_in_js($js, $t->{text}) } $t->{compiler_run_error}, $tname;
         } else {
             $tname .= ")";
-            is_deeply( eval_in_js($js, $t->{text}), $t->{result}, $tname );
+            my $res = exists($t->{js_result}) ? $t->{js_result} : $t->{result};
+            is_deeply( eval_in_js($js, $t->{text}), $res, $tname );
         }
     }
 }

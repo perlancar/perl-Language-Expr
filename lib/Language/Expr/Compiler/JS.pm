@@ -239,7 +239,7 @@ sub rule_add {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '.') { push @res, " . $term" }
+        if    ($op eq '.') { @res = ("'' + ", @res, " + $term") }
         if    ($op eq '+') { push @res, " + $term" }
         if    ($op eq '-') { push @res, " - $term" }
     }
@@ -257,7 +257,7 @@ sub rule_mult {
         if    ($op eq '*') { push @res, " * $term" }
         if    ($op eq '/') { push @res, " / $term" }
         if    ($op eq '%') { push @res, " % $term" }
-        if    ($op eq 'x') { push @res, " x $term" }
+        if    ($op eq 'x') { @res = ("(new Array(1 + $term).join(", @res, "))") }
     }
     join "", grep {defined} @res;
 }
@@ -281,9 +281,9 @@ sub rule_power {
     my ($self, %args) = @_;
     my $match = $args{match};
     my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        push @res, " ** $term";
+    push @res, pop @{$match->{operand}};
+    for my $term (reverse @{$match->{operand}}) {
+        @res = ("Math.pow($term, ", @res, ")");
     }
     join "", grep {defined} @res;
 }
@@ -297,10 +297,7 @@ sub rule_subscripting {
     my $res;
     for my $s (@ss) {
         $opd = $res if defined($res);
-        $res = qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
-            qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
-                qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
-                    qq!die "Invalid subscript \$s for \$v" } })!;
+        $res = $opd . "[$s]";
     }
     $res;
 }
@@ -332,14 +329,14 @@ sub rule_dquotestr {
 sub rule_bool {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if ($match->{bool} eq 'true') { 1 } else { "''" }
+    if ($match->{bool} eq 'true') { "true" } else { "false" }
 }
 
 sub rule_num {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if    ($match->{num} eq 'inf') { '"Inf"' }
-    elsif ($match->{num} eq 'nan') { '"NaN"' }
+    if    ($match->{num} eq 'inf') { 'Infinity' }
+    elsif ($match->{num} eq 'nan') { 'NaN' }
     else                           { $match->{num}+0 }
 }
 
