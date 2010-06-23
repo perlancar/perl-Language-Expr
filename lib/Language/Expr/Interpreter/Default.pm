@@ -139,18 +139,18 @@ sub rule_comparison {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '==' ) { return false unless $res = ($last_term == $term ? 1:'') }
-        elsif ($op eq '!=' ) { return false unless $res = ($last_term != $term ? 1:'') }
-        elsif ($op eq 'eq' ) { return false unless $res = ($last_term eq $term ? 1:'') }
-        elsif ($op eq 'ne' ) { return false unless $res = ($last_term ne $term ? 1:'') }
-        elsif ($op eq '<'  ) { return false unless $res = ($last_term <  $term ? 1:'') }
-        elsif ($op eq '<=' ) { return false unless $res = ($last_term <= $term ? 1:'') }
-        elsif ($op eq '>'  ) { return false unless $res = ($last_term >  $term ? 1:'') }
-        elsif ($op eq '>=' ) { return false unless $res = ($last_term >= $term ? 1:'') }
-        elsif ($op eq 'lt' ) { return false unless $res = ($last_term lt $term ? 1:'') }
-        elsif ($op eq 'gt' ) { return false unless $res = ($last_term gt $term ? 1:'') }
-        elsif ($op eq 'le' ) { return false unless $res = ($last_term le $term ? 1:'') }
-        elsif ($op eq 'ge' ) { return false unless $res = ($last_term ge $term ? 1:'') }
+        if    ($op eq '==' ) { return false unless $res = ($last_term == $term ? true:false) }
+        elsif ($op eq '!=' ) { return false unless $res = ($last_term != $term ? true:false) }
+        elsif ($op eq 'eq' ) { return false unless $res = ($last_term eq $term ? true:false) }
+        elsif ($op eq 'ne' ) { return false unless $res = ($last_term ne $term ? true:false) }
+        elsif ($op eq '<'  ) { return false unless $res = ($last_term <  $term ? true:false) }
+        elsif ($op eq '<=' ) { return false unless $res = ($last_term <= $term ? true:false) }
+        elsif ($op eq '>'  ) { return false unless $res = ($last_term >  $term ? true:false) }
+        elsif ($op eq '>=' ) { return false unless $res = ($last_term >= $term ? true:false) }
+        elsif ($op eq 'lt' ) { return false unless $res = ($last_term lt $term ? true:false) }
+        elsif ($op eq 'gt' ) { return false unless $res = ($last_term gt $term ? true:false) }
+        elsif ($op eq 'le' ) { return false unless $res = ($last_term le $term ? true:false) }
+        elsif ($op eq 'ge' ) { return false unless $res = ($last_term ge $term ? true:false) }
         $last_term = $term;
     }
     $res ? true : false;

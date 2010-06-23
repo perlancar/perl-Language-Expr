@@ -48,7 +48,7 @@ use Test::Exception;
 use Data::Walk;
 use JSON;
 use Language::Expr::Compiler::JS;
-use POSIX;
+use String::ShellQuote;
 use lib "./t";
 require "stdtests.pl";
 
@@ -84,7 +84,7 @@ sub eval_in_js($$) {
     #    state $je = JE->new;
     #    return $je->eval($str);
     } elsif ($js_engine eq 'bin') {
-        my $cmd = qq($JS_bin -e 'print(JSON.stringify($str))' 2>&1);
+        my $cmd = qq($JS_bin -e ).shell_quote(qq(print(JSON.stringify($str)))).qq( 2>&1);
         #print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);

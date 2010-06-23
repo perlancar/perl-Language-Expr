@@ -153,7 +153,6 @@ sub rule_comparison {
         elsif ($op eq '!=' ) { push @ops, '!='  }
         elsif ($op eq 'eq' ) { push @ops, 'eq'  }
         elsif ($op eq 'ne' ) { push @ops, 'ne'  }
-        elsif ($op eq 'ne' ) { push @ops, 'ne'  }
         elsif ($op eq '<'  ) { push @ops, '<'   }
         elsif ($op eq '<=' ) { push @ops, '<='  }
         elsif ($op eq '>'  ) { push @ops, '>'   }

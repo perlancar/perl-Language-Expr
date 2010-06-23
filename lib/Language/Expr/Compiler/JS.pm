@@ -1,6 +1,7 @@
 package Language::Expr::Compiler::JS;
 # Compile Language::Expr expression to JS
 
+use 5.010;
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
@@ -156,6 +157,19 @@ sub rule_comparison3 {
     join "", grep {defined} @res;
 }
 
+sub _comparison1 {
+    my ($opd1, $op, $opd2) = @_;
+    given ($op) {
+        when ('eq') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 == $opd2 })()" }
+        when ('ne') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 != $opd2 })()" }
+        when ('lt') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 <  $opd2 })()" }
+        when ('le') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 <= $opd2 })()" }
+        when ('gt') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 >  $opd2 })()" }
+        when ('ge') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 >= $opd2 })()" }
+        default { return "($opd1 $op $opd2)" }
+    }
+}
+
 sub rule_comparison {
     my ($self, %args) = @_;
     my $match = $args{match};
@@ -170,7 +184,6 @@ sub rule_comparison {
         if    ($op eq '==' ) { push @ops, '=='  }
         elsif ($op eq '!=' ) { push @ops, '!='  }
         elsif ($op eq 'eq' ) { push @ops, 'eq'  }
-        elsif ($op eq 'ne' ) { push @ops, 'ne'  }
         elsif ($op eq 'ne' ) { push @ops, 'ne'  }
         elsif ($op eq '<'  ) { push @ops, '<'   }
         elsif ($op eq '<=' ) { push @ops, '<='  }
@@ -195,9 +208,9 @@ sub rule_comparison {
             $opd1 = pop @opds;
         }
         if (@res) {
-            @res = ("(($opd1 $op $opd2) ? ", @res, " : '')");
+            @res = ("("._comparison1($opd1, $op, $opd2)." ? ", @res, " : false)");
         } else {
-            push @res, "($opd1 $op $opd2)";
+            push @res, _comparison1($opd1, $op, $opd2);
         }
         $lastopd = $opd1;
     }
