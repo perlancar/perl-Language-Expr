@@ -34,7 +34,7 @@ sub parse_expr {
     # results in segfault/bus error.
 
     state $grammars = [ map { qr{
-        ^<answer>$
+        ^\s*<answer>\s*$
 
         <rule: answer>
             <MATCH=or_xor>
