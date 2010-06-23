@@ -146,8 +146,12 @@ sub rule_comparison3 {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '<=>') { push @res, " <=> $term" }
-        elsif ($op eq 'cmp') { push @res, " cmp $term" }
+        if    ($op eq '<=>') { @res = ("(function() { let a = (",
+                                      @res, "); let b = ($term); ",
+                                      "return a > b ? 1 : (a < b ? -1 : 0) })()") }
+        elsif ($op eq 'cmp') { @res = ("(function() { let a = (",
+                                      @res, ") + ''; let b = ($term) + ''; ",
+                                      "return a > b ? 1 : (a < b ? -1 : 0) })()") }
     }
     join "", grep {defined} @res;
 }
