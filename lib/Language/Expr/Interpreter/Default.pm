@@ -5,6 +5,24 @@ use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 use List::Util 'reduce';
+use boolean;
+
+=head1 DESCRIPTION
+
+Interprets Language::Expr expression. Some notes:
+
+=over 4
+
+=item * Uses L<boolean> module.
+
+Comparison like '1 > 1' and '
+
+=item * Follows Perl's notion of true and false.
+
+That is, this expression ' "" || "0" || 2 ' will result to 2 because
+Perl thinks "" and "0" are false.
+
+=back
 
 =head1 ATTRIBUTES
 
@@ -66,7 +84,7 @@ sub rule_and {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '&&') { $res &&= $term }
+        if    ($op eq '&&') { $res = $res && $term || false }
     }
     $res;
 }
@@ -121,21 +139,21 @@ sub rule_comparison {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '==' ) { return '' unless $res = ($last_term == $term ? 1:'') }
-        elsif ($op eq '!=' ) { return '' unless $res = ($last_term != $term ? 1:'') }
-        elsif ($op eq 'eq' ) { return '' unless $res = ($last_term eq $term ? 1:'') }
-        elsif ($op eq 'ne' ) { return '' unless $res = ($last_term ne $term ? 1:'') }
-        elsif ($op eq '<'  ) { return '' unless $res = ($last_term <  $term ? 1:'') }
-        elsif ($op eq '<=' ) { return '' unless $res = ($last_term <= $term ? 1:'') }
-        elsif ($op eq '>'  ) { return '' unless $res = ($last_term >  $term ? 1:'') }
-        elsif ($op eq '>=' ) { return '' unless $res = ($last_term >= $term ? 1:'') }
-        elsif ($op eq 'lt' ) { return '' unless $res = ($last_term lt $term ? 1:'') }
-        elsif ($op eq 'gt' ) { return '' unless $res = ($last_term gt $term ? 1:'') }
-        elsif ($op eq 'le' ) { return '' unless $res = ($last_term le $term ? 1:'') }
-        elsif ($op eq 'ge' ) { return '' unless $res = ($last_term ge $term ? 1:'') }
+        if    ($op eq '==' ) { return false unless $res = ($last_term == $term ? 1:'') }
+        elsif ($op eq '!=' ) { return false unless $res = ($last_term != $term ? 1:'') }
+        elsif ($op eq 'eq' ) { return false unless $res = ($last_term eq $term ? 1:'') }
+        elsif ($op eq 'ne' ) { return false unless $res = ($last_term ne $term ? 1:'') }
+        elsif ($op eq '<'  ) { return false unless $res = ($last_term <  $term ? 1:'') }
+        elsif ($op eq '<=' ) { return false unless $res = ($last_term <= $term ? 1:'') }
+        elsif ($op eq '>'  ) { return false unless $res = ($last_term >  $term ? 1:'') }
+        elsif ($op eq '>=' ) { return false unless $res = ($last_term >= $term ? 1:'') }
+        elsif ($op eq 'lt' ) { return false unless $res = ($last_term lt $term ? 1:'') }
+        elsif ($op eq 'gt' ) { return false unless $res = ($last_term gt $term ? 1:'') }
+        elsif ($op eq 'le' ) { return false unless $res = ($last_term le $term ? 1:'') }
+        elsif ($op eq 'ge' ) { return false unless $res = ($last_term ge $term ? 1:'') }
         $last_term = $term;
     }
-    $res;
+    $res ? true : false;
 }
 
 sub rule_bit_shift {
@@ -186,7 +204,7 @@ sub rule_unary {
     my $res = $match->{operand};
     if ($match->{op}) {
         for my $op (reverse @{$match->{op}}) {
-            if    ($op eq '!') { $res = !$res }
+            if    ($op eq '!') { $res = $res ? false : true }
             elsif ($op eq '-') { $res = -$res }
             elsif ($op eq '~') { $res = ~($res+0) }
         }
@@ -271,7 +289,7 @@ sub rule_dquotestr {
 sub rule_bool {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if ($match->{bool} eq 'true') { 1 } else { '' }
+    if ($match->{bool} eq 'true') { true } else { false }
 }
 
 sub rule_num {

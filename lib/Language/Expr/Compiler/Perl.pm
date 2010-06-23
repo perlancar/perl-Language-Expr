@@ -6,6 +6,7 @@ with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
 use UUID::Tiny ':std';
+use boolean;
 
 =head1 DESCRIPTION
 
@@ -13,10 +14,11 @@ Compiles Language::Expr expression to Perl code. Some notes:
 
 =over 4
 
-=item * Emitted Perl code requires 5.10
+=item * Emitted Perl code version
 
-For example, it translates "//" directly with Perl's "//" defined-or
-operator.
+Emitted Perl code requires Perl 5.10 (it uses 5.10's "//" defined-or
+operator) and also the L<boolean> module (it uses 'true' and 'false'
+objects).
 
 =item * Currently strings are rudimentary escaped.
 
@@ -83,7 +85,7 @@ sub rule_and {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '&&') { push @res, " && $term" }
+        if    ($op eq '&&') { @res = ("((", @res, " && $term) || false)") }
     }
     join "", grep {defined} @res;
 }
@@ -168,9 +170,9 @@ sub rule_comparison {
             $opd1 = pop @opds;
         }
         if (@res) {
-            @res = ("(($opd1 $op $opd2) ? ", @res, " : '')");
+            @res = ("(($opd1 $op $opd2) ? ", @res, " : false)");
         } else {
-            push @res, "($opd1 $op $opd2)";
+            push @res, "($opd1 $op $opd2 ? true:false)";
         }
         $lastopd = $opd1;
     }
@@ -230,7 +232,7 @@ sub rule_unary {
     for my $op (reverse @{$match->{op}//=[]}) {
         last unless $op;
         # use paren because --x or ++x is interpreted as pre-decrement/increment
-        if    ($op eq '!') { @res = ("!(", @res, ")") }
+        if    ($op eq '!') { @res = ("(", @res, " ? false:true)") }
         if    ($op eq '-') { @res = ("-(", @res, ")") }
         if    ($op eq '~') { @res = ("~(", @res, ")") }
     }
@@ -292,7 +294,7 @@ sub rule_dquotestr {
 sub rule_bool {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if ($match->{bool} eq 'true') { 1 } else { "''" }
+    if ($match->{bool} eq 'true') { "true" } else { "false" }
 }
 
 sub rule_num {

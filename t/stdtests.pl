@@ -1,3 +1,5 @@
+use boolean;
+
 sub stdtests {
     return (
     # array
@@ -27,41 +29,41 @@ sub stdtests {
     {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'a=>1'},
 
     # comparison equal
-    {category=>'comparison equal num', text=>'1 == 2', result=>''},
-    {category=>'comparison equal num', text=>'1 == 1', result=>'1'},
-    {category=>'comparison equal num', text=>'1 != 2', result=>'1'},
-    {category=>'comparison equal num', text=>'1 != 1', result=>''},
-    {category=>'comparison equal num', text=>'0 == 0', result=>'1'},
-    {category=>'comparison equal num', text=>'3 <=> 4', result=>'-1'},
-    {category=>'comparison equal num', text=>'4 <=> 3', result=>'1'},
-    {category=>'comparison equal num', text=>'3 <=> 3', result=>'0'},
-    {category=>'comparison equal num', text=>'3 <=> 3', result=>'0'},
+    {category=>'comparison equal num', text=>'1 == 2', result=>false},
+    {category=>'comparison equal num', text=>'1 == 1', result=>true},
+    {category=>'comparison equal num', text=>'1 != 2', result=>true},
+    {category=>'comparison equal num', text=>'1 != 1', result=>false},
+    {category=>'comparison equal num', text=>'0 == 0', result=>true},
+    {category=>'comparison equal num', text=>'3 <=> 4', result=>-1},
+    {category=>'comparison equal num', text=>'4 <=> 3', result=>1},
+    {category=>'comparison equal num', text=>'3 <=> 3', result=>0},
+    {category=>'comparison equal num', text=>'3 <=> 3', result=>0},
 
-    {category=>'comparison equal chained', text=>"0 == 1 == 0", result=>''},
-    {category=>'comparison equal chained', text=>"2 == 2 == 2", result=>'1'},
-    {category=>'comparison equal chained', text=>"0 eq 1 eq ''", result=>''},
-    {category=>'comparison equal chained', text=>"2 != 3 != 1", result=>'1'},
+    {category=>'comparison equal chained', text=>"0 == 1 == 0", result=>false},
+    {category=>'comparison equal chained', text=>"2 == 2 == 2", result=>true},
+    {category=>'comparison equal chained', text=>"0 eq 1 eq ''", result=>false},
+    {category=>'comparison equal chained', text=>"2 != 3 != 1", result=>true},
 
-    {category=>'comparison equal str', text=>'"" eq ""', result=>'1'},
-    {category=>'comparison equal str', text=>'"aa" cmp "ab"', result=>'-1'},
+    {category=>'comparison equal str', text=>'"" eq ""', result=>true},
+    {category=>'comparison equal str', text=>'"aa" cmp "ab"', result=>-1},
 
     # comparison less_greater
-    {category=>'comparison less_greater', text=>'1<2', result=>'1'},
-    {category=>'comparison less_greater', text=>'2<2', result=>''},
-    {category=>'comparison less_greater', text=>'3<2', result=>''},
-    {category=>'comparison less_greater', text=>'1 <= 2', result=>'1'},
-    {category=>'comparison less_greater', text=>'1 <= 1', result=>'1'},
-    {category=>'comparison less_greater', text=>'3 <= 2', result=>''},
-    {category=>'comparison less_greater', text=>'1>2', result=>''},
-    {category=>'comparison less_greater', text=>'2>2', result=>''},
-    {category=>'comparison less_greater', text=>'3>2', result=>'1'},
-    {category=>'comparison less_greater', text=>'1 >= 2', result=>''},
-    {category=>'comparison less_greater', text=>'1 >= 1', result=>'1'},
-    {category=>'comparison less_greater', text=>'3 >= 2', result=>'1'},
+    {category=>'comparison less_greater', text=>'1<2', result=>true},
+    {category=>'comparison less_greater', text=>'2<2', result=>false},
+    {category=>'comparison less_greater', text=>'3<2', result=>false},
+    {category=>'comparison less_greater', text=>'1 <= 2', result=>true},
+    {category=>'comparison less_greater', text=>'1 <= 1', result=>true},
+    {category=>'comparison less_greater', text=>'3 <= 2', result=>false},
+    {category=>'comparison less_greater', text=>'1>2', result=>false},
+    {category=>'comparison less_greater', text=>'2>2', result=>false},
+    {category=>'comparison less_greater', text=>'3>2', result=>true},
+    {category=>'comparison less_greater', text=>'1 >= 2', result=>false},
+    {category=>'comparison less_greater', text=>'1 >= 1', result=>true},
+    {category=>'comparison less_greater', text=>'3 >= 2', result=>true},
 
-    {category=>'comparison less_greater chained', text=>'3 > 2 > 1', result=>'1'},
-    {category=>'comparison less_greater chained', text=>'2 > 3 > 1', result=>''},
-    {category=>'comparison less_greater chained', text=>'2 > 3 < 1', result=>''},
+    {category=>'comparison less_greater chained', text=>'3 > 2 > 1', result=>true},
+    {category=>'comparison less_greater chained', text=>'2 > 3 > 1', result=>false},
+    {category=>'comparison less_greater chained', text=>'2 > 3 < 1', result=>false},
 
     {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'>'},
     {category=>'comparison less_greater', parse_error=>qr/invalid syntax/i, text=>'1 >'},
@@ -72,17 +74,17 @@ sub stdtests {
     # and
     {category=>'and', text=>'1 && 2', result=>'2'},
     {category=>'and', text=>'1 && 0', result=>'0'},
-    {category=>'and', text=>'1 > 1 && 1 >= 1', result=>''},
-    {category=>'and chained', text=>'1 > 1 && 1 > 1', result=>''},
+    {category=>'and', text=>'1 > 1 && 1 >= 1', result=>false},
+    {category=>'and chained', text=>'1 > 1 && 1 > 1', result=>false},
 
     # or & xor
-    {category=>'or_xor', text=>'1 || 2', result=>'1'},
-    {category=>'or_xor', text=>'1 || 0', result=>'1'},
-    {category=>'or_xor', text=>'1 > 1 || 1 >= 1', result=>'1'},
-    {category=>'or_xor', text=>'1 > 1 || 1 > 1', result=>''},
-    {category=>'or_xor', text=>'1 // 2', result=>'1'},
-    {category=>'or_xor', text=>'1 // undef', result=>'1'},
-    {category=>'or_xor', text=>'undef // 2', result=>'2'},
+    {category=>'or_xor', text=>'1 || 2', result=>true},
+    {category=>'or_xor', text=>'1 || 0', result=>true},
+    {category=>'or_xor', text=>'1 > 1 || 1 >= 1', result=>true},
+    {category=>'or_xor', text=>'1 > 1 || 1 > 1', result=>false},
+    {category=>'or_xor', text=>'1 // 2', result=>1},
+    {category=>'or_xor', text=>'1 // undef', result=>1},
+    {category=>'or_xor', text=>'undef // 2', result=>2},
     {category=>'or_xor', text=>'undef // undef', result=>undef},
 
     # add
@@ -110,9 +112,9 @@ sub stdtests {
     {category=>'power', text=>'2**4**2', result=>'65536'},
 
     # unary
-    {category=>'unary', text=>'!2', result=>''},
-    {category=>'unary', text=>'!!2', result=>'1'},
-    {category=>'unary', text=>'!!2', result=>'1'},
+    {category=>'unary', text=>'!2', result=>false},
+    {category=>'unary', text=>'!!2', result=>true},
+    {category=>'unary', text=>'!!2', result=>true},
     {category=>'unary', text=>'--2', result=>2},
     {category=>'unary', text=>'---2', result=>-2},
     {category=>'unary', text=>'~2', result=>~2},
@@ -129,8 +131,8 @@ sub stdtests {
 
     # term:literal
     {category=>'undef', text=>'undef', result=>undef},
-    {category=>'true', text=>'true', result=>1},
-    {category=>'false', text=>'false', result=>''},
+    {category=>'true', text=>'true', result=>true},
+    {category=>'false', text=>'false', result=>false},
     {category=>'num', text=>'1', result=>'1'},
     {category=>'num', text=>'1.1', result=>'1.1'},
     {category=>'dquotestr', text=>q("satu ' dua"), result=>"satu ' dua"},
