@@ -13,7 +13,12 @@ use Language::Expr::Interpreter::Default;
 
  use Language::Expr::Compiler::JS;
  my $jsc = Language::Expr::Compiler::JS->new;
- print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints '[1, 2, 3].map(function(_){ Math.pow(_, 2) })'
+ print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints: [1, 2, 3].map(function(_){ Math.pow(_, 2) })
+
+ # map Expr function to JS function/method
+ $jsc->func_mapping->{ceil} = 'Math.ceil';
+ $jsc->func_mapping->{uc} = '.toUpperCase';
+ print $jsc->js(q{uc("party like it's ") . ceil(1998.9)}); # prints: "party like it's ".toUpperCase() + Math.ceil(1998.9)
 
 =head1 DESCRIPTION
 
