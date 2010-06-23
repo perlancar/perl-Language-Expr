@@ -6,12 +6,29 @@ with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
 use UUID::Tiny ':std';
+use Language::Expr::Interpreter::Default;
 
 =head1 DESCRIPTION
 
 Compiles Language::Expr expression to JS code. Some notes:
 
 =over 4
+
+=item * JavaScript version
+
+This compiler emits JavaScript 1.8.1 code (it uses 'let' lexical
+variables [supported since JavaScript 1.7 / Firefox 2] and native JSON
+[supported since JavaScript 1.8.1 / Firefox 3.5]).
+
+Currently to test emitted JavaScript code, we use Spidermonkey 1.9.1+
+JavaScript interpreter (typically located in /usr/bin/js) as the
+L<JavaScript> and L<JE> modules are still not up to par.
+
+=item * JavaScript-ness
+
+The emitted JS code will follow JavaScript's weak typing and coercion
+rules, e.g. Expr '1+"2"' will simply be translated to JavaScript
+'1+"2"' and will result in "12".
 
 =item * Currently strings are rudimentary escaped.
 
@@ -387,7 +404,7 @@ syntax error in expression.
 
 =cut
 
-sub perl {
+sub js {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
     for my $todo (@{ $self->todo }) {
@@ -402,7 +419,7 @@ sub perl {
 
 sub eval {
     my ($self, $expr) = @_;
-    my $res = eval $self->perl($expr);
+    my $res = eval $self->js($expr);
     die $@ if $@;
     $res;
 }

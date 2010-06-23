@@ -1,74 +1,106 @@
 #!perl -T
 
 use 5.010;
+use strict;
+use warnings;
 
-our $JavaScript_available;
-our $JE_available;
+our $JavaScript_pm_available;
+our $JE_pm_available;
 our $JS_bin;
 
 BEGIN {
     {
         eval { require JavaScript };
-        unless ($@) {
-            $JavaScript_available++;
-            say "# Using JavaScript Perl module for testing JS emitter";
-            last;
-        }
+        $JavaScript_pm_available++ unless $@;
 
         eval { require JE };
-        unless ($@) {
-            $JE_available++;
-            say "# Using JE Perl module for testing JS emitter";
-            last;
-        }
+        $JE_pm_available++ unless $@;
 
         eval {
             require File::Which;
             my @paths = File::Which::which("js");
-            ($ENV{PATH}) = /(.*)/;
+            ($ENV{PATH}) = $ENV{PATH} =~ /(.*)/;
             for (@paths) {
-                #print "# Testing $_ ...\n";
+                #print "# DEBUG Testing $_ ...\n";
                 ($_) = /(.*)/;
                 my $output = qx($_ -e 'print(JSON.stringify([1+1]))') or die;
-                #print "# Output: $output\n";
+                #print "# DEBUG Output: $output\n";
                 if ($output =~ /\A\[2\]$/m) {
                     $JS_bin = $_;
-                    say "# Using $_ for testing JS emitter";
                     last;
                 }
             }
         };
-        #$@ and die $@;
+        $@ and die $@;
+
+        # JavaScript.pm && JE.pm are not good/compatible enough: no
+        # JSON object, etc.
+        #last if $JavaScript_pm_available || $JE_pm_available || $JS_bin;
         last if $JS_bin;
 
         require Test::More;
-        Test::More::plan(skip_all => "no JavaScript engine available");
+        Test::More::plan(skip_all => "no usable JavaScript engines available");
     }
 }
 
-sub eval_js {
-    my ($str) = @_;
-
-    if ($JavaScript_available) {
-        state $rt = JavaScript::Runtime->new;
-        state $cx = $rt->create_context;
-        return $cx->eval($str);
-    } elsif ($JE_available) {
-        state $je = JE->new;
-        return $je->eval($str);
-    } else {
-        die "BUG: no Javascript engine available";
-    }
-}
-
-use strict;
-use warnings;
-use Test::More tests => 1; #154*2 - (7+7+7);
+use Test::More tests => 154 - (7+7+7);
 use Test::Exception;
+use Data::Walk;
+use JSON;
 use Language::Expr::Compiler::JS;
 use POSIX;
 use lib "./t";
 require "stdtests.pl";
+
+sub eval_in_js($$) {
+    my ($js, $str) = @_;
+
+    $str = Language::Expr::Parser::parse_expr($str, $js);
+
+    state $js_engine;
+
+    if (!$js_engine) {
+        if ($ENV{TEST_JS_ENGINE}) {
+            $js_engine = $ENV{TEST_JS_ENGINE};
+        } else {
+            if ($JS_bin || $ENV{TEST_JS_ENGINE_BIN}) {
+                $js_engine = "bin";
+                $JS_bin = $ENV{TEST_JS_ENGINE_BIN} if $ENV{TEST_JS_ENGINE_BIN};
+            } elsif ($JavaScript_pm_available) {
+                $js_engine = "JavaScript.pm";
+            } elsif ($JE_pm_available) {
+                $js_engine = "JS.pm";
+            }
+        }
+        print "# Choosing $js_engine".($js_engine eq 'bin' ? " ($JS_bin)": '')." as JavaScript engine\n";
+    }
+
+    if (0) {
+    #if ($js_engine eq 'JavaScript.pm') {
+    #    state $rt = JavaScript::Runtime->new;
+    #    state $cx = $rt->create_context;
+    #    return $cx->eval($str);
+    #} elsif ($js_engine eq 'JE.pm') {
+    #    state $je = JE->new;
+    #    return $je->eval($str);
+    } elsif ($js_engine eq 'bin') {
+        my $cmd = qq($JS_bin -e 'print(JSON.stringify($str))' 2>&1);
+        #print "# DEBUG: $cmd\n";
+        my $output;
+        $output = qx($cmd);
+        $output =~ /syntax ?error/i and die "syntax error/invalid syntax: $output";
+        $? and die "Can't execute $cmd successfully: $! ($?)";
+        return convert_json_booleans(JSON->new->allow_nonref->decode($output));
+    } else {
+        die "BUG: Can't test yet with JS engine `$js_engine`!";
+    }
+}
+
+sub convert_json_booleans {
+    my $arg = shift;
+    walk sub { bless $_, 'boolean' if ref($_) eq 'JSON::PP::Boolean' }, $arg;
+    $arg;
+}
 
 my $js = new Language::Expr::Compiler::JS;
 #$le->var(a => 1, b => 2, 'a b' => 3);
@@ -82,24 +114,27 @@ my $js = new Language::Expr::Compiler::JS;
 #sub ceil { POSIX::ceil(shift) }
 #package main;
 
-for my $t (@{[]}) {
-    my @use_itp;
+my @stdtests = stdtests();
+#my @stdtests = (
+#    {category=>'test', text=>'1+1', result=>2},
+#);
 
+for my $t (@stdtests) {
     my $tname = "category=$t->{category} $t->{text}";
     if ($t->{parse_error}) {
         $tname .= ", parse error: $t->{parse_error})";
-        throws_ok { eval_js($t->{text}) } $t->{parse_error}, $tname;
+        throws_ok { eval_in_js($js, $t->{text}) } $t->{parse_error}, $tname;
     } else {
         $tname .= ", js=q{".$js->js($t->{text})."}";
         if ($t->{run_error}) {
             $tname .= ", run error: $t->{run_error})";
-            throws_ok { eval_js($t->{text}) } $t->{run_error}, $tname;
+            throws_ok { eval_in_js($js, $t->{text}) } $t->{run_error}, $tname;
         } elsif ($t->{compiler_run_error}) {
             $tname .= ", run error: $t->{compiler_run_error})";
-            throws_ok { eval_js($t->{text}) } $t->{compiler_run_error}, $tname;
+            throws_ok { eval_in_js($js, $t->{text}) } $t->{compiler_run_error}, $tname;
         } else {
             $tname .= ")";
-            is_deeply( eval_js($t->{text}), $t->{result}, $tname );
+            is_deeply( eval_in_js($js, $t->{text}), $t->{result}, $tname );
         }
     }
 }
