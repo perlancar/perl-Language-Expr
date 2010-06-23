@@ -16,10 +16,8 @@ $Language::Expr::Compiler::Perl::b = 2;
 $le->var(a => 1, b => 2, 'a b' => 3);
 
 $le->func(
-    'length' => sub { length(shift) },
     'floor'  => sub { POSIX::floor(shift) },
     'ceil'   => sub { POSIX::ceil(shift) },
-    'rand'   => sub { rand(shift) },
 );
 package Language::Expr::Compiler::Perl;
 sub floor { POSIX::floor(shift) }

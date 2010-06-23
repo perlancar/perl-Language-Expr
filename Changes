@@ -1,5 +1,12 @@
 Revision history for Language-Expr
 
+0.06    2010-06-23
+
+        JavaScript compiler/emitter.
+
+        Small fixes & additional documentation.
+
+
 0.05    2010-06-19
 
         Fix tests for FreeBSD [reported by cpantesters].

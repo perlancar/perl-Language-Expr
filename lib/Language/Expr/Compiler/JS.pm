@@ -9,6 +9,12 @@ extends 'Language::Expr::Evaluator';
 use UUID::Tiny ':std';
 use Language::Expr::Interpreter::Default;
 
+=head1 SYNOPSIS
+
+ use Language::Expr::Compiler::JS;
+ my $jsc = Language::Expr::Compiler::JS;
+ print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints '[1, 2, 3].map(function(_){ Math.pow(_, 2) })'
+
 =head1 DESCRIPTION
 
 Compiles Language::Expr expression to JS code. Some notes:
@@ -433,10 +439,10 @@ sub __uuidgen {
     UUID::Tiny::create_uuid_as_string(UUID_V4);
 }
 
-=head2 perl($expr) => $perl_code
+=head2 js($expr) => $js_code
 
-Convert Language::Expr expression into Perl code. Dies if there is
-syntax error in expression.
+Convert Language::Expr expression into JavaScript code. Dies if there
+is syntax error in expression.
 
 =cut
 
