@@ -43,7 +43,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 154 - (7+7+7);
+use Test::More tests => 137;
 use Test::Exception;
 use Data::Walk;
 use JSON;
@@ -84,11 +84,13 @@ sub eval_in_js($$) {
     #    state $je = JE->new;
     #    return $je->eval($str);
     } elsif ($js_engine eq 'bin') {
-        my $cmd = qq($JS_bin -e ).shell_quote(qq(print(JSON.stringify($str)))).qq( 2>&1);
+        my $cmd = qq($JS_bin -e ).shell_quote(qq($js->{_jscode_prefix}print(JSON.stringify($str)))).qq( 2>&1);
         #print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
+        $output = "null" if $output =~ /\Aundefined\s*\z/s;
         $output =~ /syntax ?error/i and die "syntax error/invalid syntax: $output";
+        $output =~ /\b([A-Z]\w+Error)\b/i and die "javascript error: $1: $output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
@@ -103,7 +105,10 @@ sub convert_json_booleans {
 }
 
 my $js = new Language::Expr::Compiler::JS;
-#$le->var(a => 1, b => 2, 'a b' => 3);
+$js->{_jscode_prefix} = "let a=1; let b=2; ";
+$js->func_mapping->{floor} = 'Math.floor';
+$js->func_mapping->{ceil}  = 'Math.ceil';
+
 #$le->func(
 #    'length' => sub { length(shift) },
 #    'floor'  => sub { POSIX::floor(shift) },
@@ -125,10 +130,13 @@ for my $t (@stdtests) {
         $tname .= ", parse error: $t->{parse_error})";
         throws_ok { eval_in_js($js, $t->{text}) } $t->{parse_error}, $tname;
     } else {
-        $tname .= ", js=q{".$js->js($t->{text})."}";
+        $tname .= ", js=q{".$js->{_jscode_prefix}.$js->js($t->{text})."}";
         if ($t->{run_error}) {
             $tname .= ", run error: $t->{run_error})";
             throws_ok { eval_in_js($js, $t->{text}) } $t->{run_error}, $tname;
+        } elsif ($t->{js_compiler_run_error}) {
+            $tname .= ", run error: $t->{js_compiler_run_error})";
+            throws_ok { eval_in_js($js, $t->{text}) } $t->{js_compiler_run_error}, $tname;
         } elsif ($t->{compiler_run_error}) {
             $tname .= ", run error: $t->{compiler_run_error})";
             throws_ok { eval_in_js($js, $t->{text}) } $t->{compiler_run_error}, $tname;

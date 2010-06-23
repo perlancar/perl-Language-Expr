@@ -170,18 +170,18 @@ sub stdtests {
     {category=>'subscripting', text => '{a=>[10, 20]}["a"][1]', result=>20},
     #{category=>'subscripting', parse_error=>qr/subscript/i, text => '1[1]'}, # currently doesn't work, RG bug?
 
-    {category=>'func', text=>'length("str")', result=>'3'},
-    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'length'},
-    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'length "str"'},
-    {category=>'func', text=>'length("s" . "tr")', result=>'3'},
-    {category=>'func', text=>'ceil(rand())+floor(rand()*rand())', result=>'1'},
+    {category=>'func', text=>'floor(3.6)', result=>'3'},
+    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'floor'},
+    {category=>'func', parse_error=>qr/invalid syntax/i, text => 'floor 3.6'},
+    {category=>'func', text=>'floor(3.6 + 0.4)', result=>4},
+    {category=>'func', text=>'ceil(0.7)+floor(0.3+0.6)', result=>1},
     #{category=>'func', run_error => qr/unknown func|undefined sub/i, text=>'foo(1)', result=>'1'}, # BUG in RG? causes error: Can't use an undefined value as an ARRAY reference at (re_eval 252) line 2.
 
     # map=7
     {category=>'map', has_subexpr=>1, text=>'map {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'map', has_subexpr=>1, text=>'map({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'map', has_subexpr=>1, text=>'map()', compiler_run_error=>qr/not enough arg/i},
+    {category=>'map', has_subexpr=>1, text=>'map()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i},
     #{category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok.
     #{category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok. but in perl result will be 1.
 
@@ -194,7 +194,7 @@ sub stdtests {
     {category=>'grep', has_subexpr=>1, text=>'grep {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'grep', has_subexpr=>1, text=>'grep({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'grep', has_subexpr=>1,  text=>'grep()', compiler_run_error=>qr/not enough arg/i}, # lack arguments. won't be parsed as grep(), but ok
+    {category=>'grep', has_subexpr=>1,  text=>'grep()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i}, # lack arguments. won't be parsed as grep(), but ok
     #{category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
     #{category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
 
@@ -207,7 +207,7 @@ sub stdtests {
     {category=>'usort', has_subexpr=>1, text=>'usort {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'usort', has_subexpr=>1, text=>'usort({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'usort', has_subexpr=>1, text=>'usort()', compiler_run_error=>qr/undefined sub.+usort/i}, # lack arguments. won't be parsed as usort(), but ok
+    {category=>'usort', has_subexpr=>1, text=>'usort()', compiler_run_error=>qr/undefined sub.+usort/i, js_compiler_run_error=>qr/javascript error/i}, # lack arguments. won't be parsed as usort(), but ok
     #{category=>'usort', has_subexpr=>1, text=>'usort({}, [])'}, # empty subexpression. won't be parsed as usort(), but ok
     #{category=>'usort', has_subexpr=>1, text=>'usort(1, [])'}, # not subexpression. won't be parsed as usort(), but ok
 

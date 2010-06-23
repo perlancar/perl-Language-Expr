@@ -38,7 +38,7 @@ least in 5.10.1).
 
 =item * Variables by default simply use JavaScript variables.
 
-E.g. $a becomes $a, and so on. Be careful not to make variables which
+E.g. $a becomes a, and so on. Be careful not to make variables which
 are invalid in JavaScript, e.g. $.. or ${foo/bar}.
 
 You can subclass and override rule_var() if you want to provide your
@@ -46,7 +46,12 @@ own variables.
 
 =item * Functions by default simply use Javascript functions.
 
-Except those mentioned in B<func_mapping>.
+foo() becomes foo(). Except those mentioned in B<func_mapping>
+(e.g. rand() becomes Math.rand() if func_mapping->{rand} is
+'Math.rand').
+
+Or you can subclass and override rule_func() for more translation
+freedom.
 
 =back
 
@@ -343,13 +348,15 @@ sub rule_num {
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "\$$match->{var}";
+    "$match->{var}";
 }
 
 sub rule_func {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $f = $match->{func_name};
+    my $fmap = $self->func_mapping->{$f};
+    $f = $fmap if $fmap;
     my $args = $match->{args};
     "$f(".join(", ", @$args).")";
 }
