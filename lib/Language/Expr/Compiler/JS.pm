@@ -1,5 +1,5 @@
 package Language::Expr::Compiler::JS;
-# Compile Language::Expr expression to JS
+# ABSTRACT: Compile Language::Expr expression to JS
 
 use 5.010;
 use Any::Moose;

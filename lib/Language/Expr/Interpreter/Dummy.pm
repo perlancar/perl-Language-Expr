@@ -1,5 +1,5 @@
 package Language::Expr::Interpreter::Dummy;
-# Dummy interpreter for Language::Expr (used for testing)
+# ABSTRACT: Dummy interpreter for Language::Expr (used for testing)
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';

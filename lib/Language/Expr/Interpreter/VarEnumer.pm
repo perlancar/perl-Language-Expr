@@ -1,5 +1,5 @@
 package Language::Expr::Interpreter::VarEnumer;
-# Enumerate variables mentioned in Language::Expr expression
+# ABSTRACT: Enumerate variables mentioned in Language::Expr expression
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';

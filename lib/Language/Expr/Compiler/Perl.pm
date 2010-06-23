@@ -1,5 +1,5 @@
 package Language::Expr::Compiler::Perl;
-# Compile Language::Expr expression to Perl
+# ABSTRACT: Compile Language::Expr expression to Perl
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';

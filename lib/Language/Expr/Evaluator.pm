@@ -1,5 +1,5 @@
 package Language::Expr::Evaluator;
-# Base class for Language::Expr compilers and interpreters
+# ABSTRACT: Base class for Language::Expr compilers and interpreters
 
 use Any::Moose;
 require Language::Expr::Parser;
