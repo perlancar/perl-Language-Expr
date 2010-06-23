@@ -17,9 +17,10 @@ Compiles Language::Expr expression to JS code. Some notes:
 
 =item * JavaScript version
 
-This compiler emits JavaScript 1.8.1 code (it uses 'let' lexical
-variables [supported since JavaScript 1.7 / Firefox 2] and native JSON
-[supported since JavaScript 1.8.1 / Firefox 3.5]).
+This compiler emits JavaScript 1.8.1 code (it uses several Array
+methods like map() and filter() [supported since JavaScript 1.6],
+'let' lexical variables [supported since JavaScript 1.7 / Firefox 2]
+and native JSON [supported since JavaScript 1.8.1 / Firefox 3.5]).
 
 Currently to test emitted JavaScript code, we use Spidermonkey 1.9.1+
 JavaScript interpreter (typically located in /usr/bin/js) as the
@@ -67,7 +68,11 @@ has todo => (is => 'rw', default => sub { [] });
 
 =head2 func_mapping => HASHREF
 
-Mapping from Expr function to JavaScript functions.
+Mapping from Expr function to JavaScript functions/methods. Example:
+
+ { ceil => 'Math.ceil',
+   uc   => '.toUpperCase',
+ }
 
 =cut
 
@@ -94,12 +99,12 @@ sub rule_or_xor {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
         if    ($op eq '||') { push @res, " || $term" }
-        elsif ($op eq '//') { @res = ("(function() { let x = (",
-                                      @res, "); return x==null ? (",
-                                      $term, ") : x })()") }
-        elsif ($op eq '//') { @res = ("(function() { let a = (",
-                                      @res, "); let b = ($term); ",
-                                      "return a&&!b || !a&&b ? a : b })()") }
+        elsif ($op eq '//') { @res = ("(function() { let _x = (",
+                                      @res, "); return _x==null ? (",
+                                      $term, ") : _x })()") }
+        elsif ($op eq '//') { @res = ("(function() { let _a = (",
+                                      @res, "); let _b = ($term); ",
+                                      "return _a&&!_b || !_a&&_b ? _a : _b })()") }
     }
     join "", grep {defined} @res;
 }
@@ -152,12 +157,12 @@ sub rule_comparison3 {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '<=>') { @res = ("(function() { let a = (",
-                                      @res, "); let b = ($term); ",
-                                      "return a > b ? 1 : (a < b ? -1 : 0) })()") }
-        elsif ($op eq 'cmp') { @res = ("(function() { let a = (",
-                                      @res, ") + ''; let b = ($term) + ''; ",
-                                      "return a > b ? 1 : (a < b ? -1 : 0) })()") }
+        if    ($op eq '<=>') { @res = ("(function() { let _a = (",
+                                      @res, "); let _b = ($term); ",
+                                      "return _a > _b ? 1 : (_a < _b ? -1 : 0) })()") }
+        elsif ($op eq 'cmp') { @res = ("(function() { let _a = (",
+                                      @res, ") + ''; let _b = ($term) + ''; ",
+                                      "return _a > _b ? 1 : (_a < _b ? -1 : 0) })()") }
     }
     join "", grep {defined} @res;
 }
@@ -165,12 +170,12 @@ sub rule_comparison3 {
 sub _comparison1 {
     my ($opd1, $op, $opd2) = @_;
     given ($op) {
-        when ('eq') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 == $opd2 })()" }
-        when ('ne') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 != $opd2 })()" }
-        when ('lt') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 <  $opd2 })()" }
-        when ('le') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 <= $opd2 })()" }
-        when ('gt') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 >  $opd2 })()" }
-        when ('ge') { return "(function() { let a = ($opd1) + ''; let b = ($opd2) + ''; return $opd1 >= $opd2 })()" }
+        when ('eq') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 == $opd2 })()" }
+        when ('ne') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 != $opd2 })()" }
+        when ('lt') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 <  $opd2 })()" }
+        when ('le') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 <= $opd2 })()" }
+        when ('gt') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 >  $opd2 })()" }
+        when ('ge') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 >= $opd2 })()" }
         default { return "($opd1 $op $opd2)" }
     }
 }
@@ -358,7 +363,12 @@ sub rule_func {
     my $fmap = $self->func_mapping->{$f};
     $f = $fmap if $fmap;
     my $args = $match->{args};
-    "$f(".join(", ", @$args).")";
+    if (substr($f, 0, 1) eq '.') {
+        my $invoc = shift @$args;
+        return "($invoc)$f(".join(", ", @$args).")";
+    } else {
+        return "$f(".join(", ", @$args).")";
+    }
 }
 
 sub _map_grep_usort {
@@ -367,10 +377,15 @@ sub _map_grep_usort {
     my $ary = $match->{array};
     my $expr = $match->{expr};
 
-    my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
     my $todoid = __uuidgen(); # yes, this is not proper
     push @{ $self->todo }, [$todoid, $expr];
-    "[$perlop({ TODO-$todoid } \@{$ary})]";
+    if ($which eq 'map') {
+        return "($ary).map(function(_){ return (TODO-$todoid); })";
+    } elsif ($which eq 'grep') {
+        return "($ary).filter(function(_){ return (TODO-$todoid); })";
+    } elsif ($which eq 'usort') {
+        return "($ary).map(function(x) x).sort(function(a, b){ return (TODO-$todoid); })";
+    }
 }
 
 sub rule_func_map {

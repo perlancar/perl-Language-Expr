@@ -43,7 +43,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 137;
+use Test::More tests => 155;
 use Test::Exception;
 use Data::Walk;
 use JSON;
@@ -55,7 +55,7 @@ require "stdtests.pl";
 sub eval_in_js($$) {
     my ($js, $str) = @_;
 
-    $str = Language::Expr::Parser::parse_expr($str, $js);
+    $str = $js->js($str);
 
     state $js_engine;
 
@@ -89,8 +89,8 @@ sub eval_in_js($$) {
         my $output;
         $output = qx($cmd);
         $output = "null" if $output =~ /\Aundefined\s*\z/s;
-        $output =~ /syntax ?error/i and die "syntax error/invalid syntax: $output";
-        $output =~ /\b([A-Z]\w+Error)\b/i and die "javascript error: $1: $output";
+        $output =~ /syntax ?error/i and die "syntax error/invalid syntax: cmd=$cmd, output=$output";
+        $output =~ /\b([A-Z]\w+Error)\b/i and die "javascript error: $1: cmd=$cmd, output=$output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
@@ -108,6 +108,7 @@ my $js = new Language::Expr::Compiler::JS;
 $js->{_jscode_prefix} = "let a=1; let b=2; ";
 $js->func_mapping->{floor} = 'Math.floor';
 $js->func_mapping->{ceil}  = 'Math.ceil';
+$js->func_mapping->{uc}  = '.toUpperCase';
 
 #$le->func(
 #    'length' => sub { length(shift) },

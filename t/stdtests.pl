@@ -185,7 +185,7 @@ sub stdtests {
     #{category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok.
     #{category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok. but in perl result will be 1.
 
-    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})', compiler_run_error=>qr/syntax error|unmatched right/i}, # although doesn't make sense, parses
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})', compiler_run_error=>qr/syntax error|unmatched right/i, js_compiler_run_error=>qr/javascript error/i}, # although doesn't make sense, parses
     {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [])', result=>[]},
     {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [1,2,3])', result=>[2, 4, 6]},
     {category=>'map', has_subexpr=>1, text=>'map({ map({$_+1}, [$_])[0] }, [1,2,3])', result=>[2, 3, 4]}, # nested map
@@ -198,7 +198,7 @@ sub stdtests {
     #{category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
     #{category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
 
-    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, {})', compiler_run_error=>qr/syntax error|unmatched right/i}, # although doesn't make sense, parses
+    {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, {})', compiler_run_error=>qr/syntax error|unmatched right/i, js_compiler_run_error=>qr/javascript error/i}, # although doesn't make sense, parses
     {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [])', result=>[]},
     {category=>'grep', has_subexpr=>1, text=>'grep({$_>1}, [1,2,3])', result=>[2, 3]},
     {category=>'grep', has_subexpr=>1, text=>'grep({ grep({$_ > 1}, [$_])[0] }, [1,2,3])', result=>[2, 3]}, # nested grep
@@ -211,7 +211,7 @@ sub stdtests {
     #{category=>'usort', has_subexpr=>1, text=>'usort({}, [])'}, # empty subexpression. won't be parsed as usort(), but ok
     #{category=>'usort', has_subexpr=>1, text=>'usort(1, [])'}, # not subexpression. won't be parsed as usort(), but ok
 
-    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, {})', compiler_run_error=>qr/syntax error|unmatched right/i}, # although doesn't make sense, parses
+    {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, {})', compiler_run_error=>qr/syntax error|unmatched right/i, js_compiler_run_error=>qr/javascript error/i}, # although doesn't make sense, parses
     {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, [])', result=>[]},
     {category=>'usort', has_subexpr=>1, text=>'usort({uc($a) cmp uc($b)}, ["B", "a", "C"])', result=>["a", "B", "C"]},
     {category=>'usort', has_subexpr=>1, text=>'usort({ usort({$b <=> $a}, [$a])[0] <=> usort({$b<=>$a}, [$b])[0] }, [3, 2, 1])', result=>[1, 2, 3]}, # nested usort
