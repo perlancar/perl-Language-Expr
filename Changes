@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.07    2010-06-25
+
+        Adjust for new Regexp::Grammars 1.005.
+
+
 0.06    2010-06-23
 
         JavaScript compiler/emitter.
