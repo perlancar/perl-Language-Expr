@@ -46,70 +46,69 @@ sub parse_expr {
 # precedence level  2: left     =>
         <rule: pair>
             <key> =\> <value=answer>
-            (?{ $MATCH = $obj->rule_pair(match=>%MATCH) })
-            # yeah, weird. it should've been match=>\%MATCH
+            (?{ $MATCH = $obj->rule_pair(match=>\%MATCH) })
 
 # precedence level  3: left     || // ^^
         <rule: or_xor>
             <[operand=and]> ** <[op=(\|\||//|\^\^)]>
-            (?{ $MATCH = $obj->rule_or_xor(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_or_xor(match=>\%MATCH) })
 
 # precedence level  4: left     &&
         <rule: and>
             <[operand=bit_or_xor]> ** <[op=(&&)]>
-            (?{ $MATCH = $obj->rule_and(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_and(match=>\%MATCH) })
 
 # precedence level  5: left     | ^
         <rule: bit_or_xor>
             <[operand=bit_and]> ** <[op=(\||\^)]>
-            (?{ $MATCH = $obj->rule_bit_or_xor(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH) })
 
 # precedence level  6: left     &
         <rule: bit_and>
             <[operand=comparison3]> ** <[op=(&)]>
-            (?{ $MATCH = $obj->rule_bit_and(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_bit_and(match=>\%MATCH) })
 
             # NOTE: \x3c = "<", \x3e = ">"
 
 # precedence level  7: nonassoc (currently the grammar says assoc) <=> cmp
         <rule: comparison3>
             <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
-            (?{ $MATCH = $obj->rule_comparison3(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_comparison3(match=>\%MATCH) })
 
 # precedence level  8: left == != eq ne < > <= >= ge gt le lt
         <rule: comparison>
             <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
-            (?{ $MATCH = $obj->rule_comparison(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_comparison(match=>\%MATCH) })
 
 # precedence level  9: left     << >>
         <rule: bit_shift>
             <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
-            (?{ $MATCH = $obj->rule_bit_shift(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_bit_shift(match=>\%MATCH) })
 
 # precedence level 10: left     + - .
         <rule: add>
             <[operand=mult]> ** <[op=(\+|-|\.)]>
-            (?{ $MATCH = $obj->rule_add(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_add(match=>\%MATCH) })
 
 # precedence level 11: left     * / % x
         <rule: mult>
             <[operand=unary]> ** <[op=(\*|/|%|x)]>
-            (?{ $MATCH = $obj->rule_mult(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_mult(match=>\%MATCH) })
 
 # precedence level 12: right    ! ~ unary+ unary-
         <rule: unary>
             <[op=(!|~|\+|-)]>* <operand=power>
-            (?{ $MATCH = $obj->rule_unary(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_unary(match=>\%MATCH) })
 
 # precedence level 13: right    **
         <rule: power>
             <[operand=subscripting]> ** <[op=(\*\*)]>
-            (?{ $MATCH = $obj->rule_power(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_power(match=>\%MATCH) })
 
 # precedence level 14: left    hash[s], array[i]
         <rule: subscripting>
             <operand=term> <[subscript]>*
-            (?{ $MATCH = $obj->rule_subscripting(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_subscripting(match=>\%MATCH) })
 
         <rule: subscript>
               \[ <MATCH=term> \]
@@ -125,19 +124,19 @@ sub parse_expr {
           | <MATCH=array>
           | <MATCH=hash>
           | \( <answer> \)
-            (?{ $MATCH = $obj->rule_parenthesis(match=>%MATCH) // $MATCH{answer} })
+            (?{ $MATCH = $obj->rule_parenthesis(match=>\%MATCH) // $MATCH{answer} })
 
         <rule: array>
             \[ \]
             (?{ $MATCH = $obj->rule_array(match=>{element=>[]}) })
           | \[ <[element=answer]> ** (,) \]
-            (?{ $MATCH = $obj->rule_array(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_array(match=>\%MATCH) })
 
         <rule: hash>
             \{ \}
             (?{ $MATCH = $obj->rule_hash(match=>{pair=>[]}) })
           | \{ <[pair]> ** (,) \}
-            (?{ $MATCH = $obj->rule_hash(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_hash(match=>\%MATCH) })
 
         <rule: key>
             <MATCH=(\w+)>
@@ -149,7 +148,7 @@ sub parse_expr {
 
         <token: bool0>
             <bool=(true|false)>
-            (?{ $MATCH = $obj->rule_bool(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_bool(match=>\%MATCH) })
 
         <token: num0>
             <num=( [+-]? \d++ (?: \. \d++ )?+ | inf | nan )>
@@ -161,18 +160,18 @@ sub parse_expr {
 
         <token: squotestr>
             '<[part=(\\\\|\\'|\\|[^\\']+)]>*'
-            (?{ $MATCH = $obj->rule_squotestr(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_squotestr(match=>\%MATCH) })
 
         <token: dquotestr>
             "<[part=([^"\044\\]|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
 #                              ^ can't add + here, segfaults (perl/RG bug?)
-            (?{ $MATCH = $obj->rule_dquotestr(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
 
         <rule: var0>
             \$ <var=(\.\.?|\w+)>
-            (?{ $MATCH = $obj->rule_var(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
           | \$ \{ <var=([^\}]+)> \}
-            (?{ $MATCH = $obj->rule_var(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
 
         <rule: func>
             <func_name=([A-Za-z_]\w*)> \( \)
@@ -181,7 +180,7 @@ sub parse_expr {
             (?{ my $meth = "rule_func_$MATCH{func_name}";
                 $MATCH = $obj->$meth(match=>{expr=>pop(@$subexpr_stack), array=>$MATCH{input_array}}) })
           | <func_name=([A-Za-z_]\w*)> \( <[args=answer]> ** (,) \)
-            (?{ $MATCH = $obj->rule_func(match=>%MATCH) })
+            (?{ $MATCH = $obj->rule_func(match=>\%MATCH) })
 
     }xms } 0..($MAX_LEVELS-1)];
 
