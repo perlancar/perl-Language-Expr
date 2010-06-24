@@ -6,6 +6,10 @@ use feature 'state';
 #use strict;
 #use warnings;
 
+require Exporter;
+our @ISA = qw(Exporter);
+our @EXPORT_OK = qw(parse_expr);
+
 my $MAX_LEVELS = 3;
 
 =head1 METHODS
