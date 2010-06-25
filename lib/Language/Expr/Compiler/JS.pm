@@ -464,13 +464,6 @@ sub js {
     $res;
 }
 
-sub eval {
-    my ($self, $expr) = @_;
-    my $res = eval $self->js($expr);
-    die $@ if $@;
-    $res;
-}
-
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;
 1;
