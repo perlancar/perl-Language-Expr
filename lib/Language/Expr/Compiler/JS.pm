@@ -113,7 +113,7 @@ sub rule_or_xor {
         elsif ($op eq '//') { @res = ("(function() { let _x = (",
                                       @res, "); return _x==null ? (",
                                       $term, ") : _x })()") }
-        elsif ($op eq '//') { @res = ("(function() { let _a = (",
+        elsif ($op eq '^^') { @res = ("(function() { let _a = (",
                                       @res, "); let _b = ($term); ",
                                       "return _a&&!_b || !_a&&_b ? _a : _b })()") }
     }
