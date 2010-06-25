@@ -117,7 +117,7 @@ sub stdtests {
     {category=>'unary', text=>'!!2', result=>true},
     {category=>'unary', text=>'--2', result=>2},
     {category=>'unary', text=>'---2', result=>-2},
-    {category=>'unary', text=>'~2', result=>~2, js_result=>(-(2)-1)}, # js's bitwise NOT is a bit peculiar
+    {category=>'unary', text=>'~2', result=>~2, js_result=>(-(2)-1), php_result=>(-(2)-1)},
 
     # bitwise
     {category=>'bit', text=>'3|5', result=>'7'},

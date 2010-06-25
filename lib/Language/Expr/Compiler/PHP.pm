@@ -101,13 +101,13 @@ sub rule_or_xor {
         last unless $op;
         if    ($op eq '||') { @res = ('call_user_func(function() { $_x = (',
                                       @res, '); ',
-                                      'return $_x ? $_x : ($term) || })') }
-        elsif ($op eq '//') { @res = ('(function() { $_x = (',
-                                      @res, '); return isset($_x) ? (',
-                                      $term, ') : $_x })()') }
+                                      'return $_x ? $_x : (', $term, '); })') }
+        elsif ($op eq '//') { @res = ('call_user_func(function() { $_x = (',
+                                      @res, '); return isset($_x) ? $_x : (',
+                                      $term, '); })') }
         elsif ($op eq '^^') { @res = ('call_user_func(function() { $_a = (',
-                                      @res, '); $_b = ($term); ',
-                                      'return $_a&&!$_b || !$_a&&$_b ? $_a : $_b })') }
+                                      @res, '); $_b = (', $term, '); ',
+                                      'return $_a&&!$_b || !$_a&&$_b ? $_a : $_b; })') }
     }
     join "", grep {defined} @res;
 }
@@ -120,7 +120,9 @@ sub rule_and {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '&&') { push @res, " && $term" }
+        if    ($op eq '&&') { @res = ('call_user_func(function() { $_a = (',
+                                      @res, '); $_b = (', $term, '); ',
+                                      'return $_a && $_b ? $_b : $_a; })') }
     }
     join "", grep {defined} @res;
 }
@@ -160,25 +162,29 @@ sub rule_comparison3 {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '<=>') { @res = ("(function() { let _a = (",
-                                      @res, "); let _b = ($term); ",
-                                      "return _a > _b ? 1 : (_a < _b ? -1 : 0) })()") }
-        elsif ($op eq 'cmp') { @res = ("(function() { let _a = (",
-                                      @res, ") + ''; let _b = ($term) + ''; ",
-                                      "return _a > _b ? 1 : (_a < _b ? -1 : 0) })()") }
+        # in php, str COMP int is compared numerically, so we only
+        # need to convert one to int
+        if    ($op eq '<=>') { @res = ('call_user_func(function() { $_a = (',
+                                      @res, ')+0; $_b = (', $term, '); ',
+                                      'return $_a > $_b ? 1 : ($_a < $_b ? -1 : 0); })') }
+        elsif ($op eq 'cmp') { @res = ('strcmp(', @res, ', ', $term, ')') }
     }
     join "", grep {defined} @res;
 }
 
+# in php, str COMP int is compared numerically, and so is str COMP str
+# if both strings look like number. so we only need to use strcmp for
+# Expr string comparison operators.
+
 sub _comparison1 {
     my ($opd1, $op, $opd2) = @_;
     given ($op) {
-        when ('eq') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 == $opd2 })()" }
-        when ('ne') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 != $opd2 })()" }
-        when ('lt') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 <  $opd2 })()" }
-        when ('le') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 <= $opd2 })()" }
-        when ('gt') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 >  $opd2 })()" }
-        when ('ge') { return "(function() { let _a = ($opd1) + ''; let _b = ($opd2) + ''; return $opd1 >= $opd2 })()" }
+        when ('eq') { return "(strcmp($opd1, $opd2) == 0)" }
+        when ('ne') { return "(strcmp($opd1, $opd2) != 0)" }
+        when ('lt') { return "(strcmp($opd1, $opd2) <= 0)" }
+        when ('le') { return "(strcmp($opd1, $opd2) <  0)" }
+        when ('gt') { return "(strcmp($opd1, $opd2) >= 0)" }
+        when ('ge') { return "(strcmp($opd1, $opd2) >  0)" }
         default { return "($opd1 $op $opd2)" }
     }
 }
@@ -270,7 +276,7 @@ sub rule_mult {
         if    ($op eq '*') { push @res, " * $term" }
         if    ($op eq '/') { push @res, " / $term" }
         if    ($op eq '%') { push @res, " % $term" }
-        if    ($op eq 'x') { @res = ("(new Array(1 + $term).join(", @res, "))") }
+        if    ($op eq 'x') { @res = ("str_repeat(", @res, ", $term)") }
     }
     join "", grep {defined} @res;
 }
@@ -296,7 +302,7 @@ sub rule_power {
     my @res;
     push @res, pop @{$match->{operand}};
     for my $term (reverse @{$match->{operand}}) {
-        @res = ("Math.pow($term, ", @res, ")");
+        @res = ("pow($term, ", @res, ")");
     }
     join "", grep {defined} @res;
 }
@@ -318,13 +324,13 @@ sub rule_subscripting {
 sub rule_array {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "[" . join(", ", @{ $match->{element} }) . "]";
+    "array(" . join(", ", @{ $match->{element} }) . ")";
 }
 
 sub rule_hash {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "{" . join(", ", @{ $match->{pair} }). "}";
+    "array(" . join(", ", @{ $match->{pair} }). ")";
 }
 
 sub rule_undef {
@@ -348,15 +354,15 @@ sub rule_bool {
 sub rule_num {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if    ($match->{num} eq 'inf') { 'Infinity' }
-    elsif ($match->{num} eq 'nan') { 'NaN' }
+    if    ($match->{num} eq 'inf') { 'INF' }
+    elsif ($match->{num} eq 'nan') { 'NAN' }
     else                           { $match->{num}+0 }
 }
 
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "$match->{var}";
+    "\$$match->{var}";
 }
 
 sub rule_func {
@@ -366,12 +372,7 @@ sub rule_func {
     my $fmap = $self->func_mapping->{$f};
     $f = $fmap if $fmap;
     my $args = $match->{args};
-    if (substr($f, 0, 1) eq '.') {
-        my $invoc = shift @$args;
-        return "($invoc)$f(".join(", ", @$args).")";
-    } else {
-        return "$f(".join(", ", @$args).")";
-    }
+    return "$f(".join(", ", @$args).")";
 }
 
 sub _map_grep_usort {
@@ -383,11 +384,11 @@ sub _map_grep_usort {
     my $todoid = __uuidgen(); # yes, this is not proper
     push @{ $self->todo }, [$todoid, $expr];
     if ($which eq 'map') {
-        return "($ary).map(function(_){ return (TODO-$todoid); })";
+        return "array_map(function(\$_) { return (TODO-$todoid); }, $ary)";
     } elsif ($which eq 'grep') {
-        return "($ary).filter(function(_){ return (TODO-$todoid); })";
+        return "array_filter(function(\$_) { return (TODO-$todoid); }, $ary)";
     } elsif ($which eq 'usort') {
-        return "($ary).map(function(x) x).sort(function(a, b){ return (TODO-$todoid); })";
+        return "call_user_func(function() { \$_x = $ary; usort(function(\$a, \$b) { return (TODO-$todoid); }, \$_x); return \$_x; })";
     }
 }
 
@@ -425,8 +426,10 @@ sub __quote {
         my $o = ord($c);
         if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
+        elsif ($c eq '$') { push @c, "\\\$" }
         elsif ($o >= 32 && $o <= 127) { push @c, $c }
-        elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
+        #elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
+        elsif ($o > 255) { die "Unicode escape sequence is currently not supported in PHP" }
         else  { push @c, sprintf("\\x%02x", $o) }
     }
     '"' . join("", @c) . '"';
