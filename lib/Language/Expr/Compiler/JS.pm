@@ -1,5 +1,5 @@
 package Language::Expr::Compiler::JS;
-# ABSTRACT: Compile Language::Expr expression to JS
+# ABSTRACT: Compile Language::Expr expression to JavaScript
 
 use 5.010;
 use Any::Moose;
@@ -22,7 +22,7 @@ use Language::Expr::Interpreter::Default;
 
 =head1 DESCRIPTION
 
-Compiles Language::Expr expression to JS code. Some notes:
+Compiles Language::Expr expression to JavaScript code. Some notes:
 
 =over 4
 
