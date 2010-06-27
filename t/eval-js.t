@@ -50,6 +50,7 @@ use JSON;
 use Language::Expr::Compiler::JS;
 use String::ShellQuote;
 use lib "./t";
+require "testlib.pl";
 require "stdtests.pl";
 
 sub eval_in_js($$) {
@@ -96,12 +97,6 @@ sub eval_in_js($$) {
     } else {
         die "BUG: Can't test yet with JS engine `$js_engine`!";
     }
-}
-
-sub convert_json_booleans {
-    my $arg = shift;
-    walk sub { bless $_, 'boolean' if ref($_) eq 'JSON::PP::Boolean' }, $arg;
-    $arg;
 }
 
 my $js = new Language::Expr::Compiler::JS;

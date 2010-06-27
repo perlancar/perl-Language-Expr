@@ -46,11 +46,11 @@ BEGIN {
 
 use Test::More tests => 155;
 use Test::Exception;
-use Data::Walk;
 use JSON;
 use Language::Expr::Compiler::PHP;
 use String::ShellQuote;
 use lib "./t";
+require "testlib.pl";
 require "stdtests.pl";
 
 sub eval_in_php($$) {
@@ -87,18 +87,12 @@ sub eval_in_php($$) {
         my $output;
         $output = qx($cmd);
         $output =~ /(parse|syntax) error/i and die "syntax error/invalid syntax: cmd=$cmd, output=$output";
-        #$output =~ /\b([A-Z]\w+Error)\b/i and die "javascript error: $1: cmd=$cmd, output=$output";
+        #$output =~ /\b([A-Z]\w+Error)\b/i and die "php error: $1: cmd=$cmd, output=$output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
         die "BUG: Can't test yet with PHP interpreter `$php_itp`!";
     }
-}
-
-sub convert_json_booleans {
-    my $arg = shift;
-    walk sub { bless $_, 'boolean' if ref($_) eq 'JSON::PP::Boolean' }, $arg;
-    $arg;
 }
 
 my $phpcomp = new Language::Expr::Compiler::PHP;
