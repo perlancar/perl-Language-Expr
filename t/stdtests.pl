@@ -14,7 +14,7 @@ sub stdtests {
     {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[a]'},
 
     # hash
-    {category=>'hash', text=>'{}', result=>{}},
+    {category=>'hash', text=>'{}', result=>{}, php_result=>[]}, # due to ambiguity of php arrays
     {category=>'hash', text=>'{a=>1}', result=>{a=>1}},
     {category=>'hash', text=>q[{'a'=>1}], result=>{a=>1}},
     {category=>'hash', text=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}},

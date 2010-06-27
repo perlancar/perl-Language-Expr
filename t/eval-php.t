@@ -83,7 +83,7 @@ sub eval_in_php($$) {
     #    ...
     } elsif ($php_itp eq 'bin') {
         my $cmd = qq($PHP_bin -r ).shell_quote(qq($phpcomp->{_phpcode_prefix}echo json_encode($str);)).qq( 2>&1);
-        #print "# DEBUG: $cmd\n";
+        print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
         $output =~ /(parse|syntax) error/i and die "syntax error/invalid syntax: cmd=$cmd, output=$output";
