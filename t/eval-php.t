@@ -44,7 +44,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 157;
+use Test::More tests => 159;
 use Test::Exception;
 use JSON;
 use Language::Expr::Compiler::PHP;
@@ -96,7 +96,7 @@ sub eval_in_php($$) {
 }
 
 my $phpcomp = new Language::Expr::Compiler::PHP;
-$phpcomp->{_phpcode_prefix} = '$a=1; $b=2; ';
+$phpcomp->{_phpcode_prefix} = '$a=1; $b=2; $ary1 = array("one","two","three"); $hash1=array("one"=>1,"two"=>2,"three"=>3);';
 $phpcomp->func_mapping->{uc}  = 'strtoupper';
 
 my @stdtests = stdtests();

@@ -268,7 +268,12 @@ sub rule_power {
     join "", grep {defined} @res;
 }
 
-sub rule_subscripting {
+sub rule_subscripting_var {
+    my ($self, %args) = @_;
+    $self->rule_subscripting_expr(%args);
+}
+
+sub rule_subscripting_expr {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $opd = $match->{operand};
@@ -421,6 +426,7 @@ sub perl {
 
 sub eval {
     my ($self, $expr) = @_;
+    no strict;
     my $res = eval $self->perl($expr);
     die $@ if $@;
     $res;

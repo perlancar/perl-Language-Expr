@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 156*2 - (7+7+7);
+use Test::More tests => 158*2 - (7+7+7);
 use Test::Exception;
 use Language::Expr;
 use POSIX;
@@ -13,7 +13,9 @@ require "stdtests.pl";
 my $le = new Language::Expr;
 $Language::Expr::Compiler::Perl::a = 1;
 $Language::Expr::Compiler::Perl::b = 2;
-$le->var(a => 1, b => 2, 'a b' => 3);
+$Language::Expr::Compiler::Perl::ary1 = ["one", "two", "three"];
+$Language::Expr::Compiler::Perl::hash1 = {one=>1, two=>2, three=>3};
+$le->var(stdvars());
 
 $le->func(
     'floor'  => sub { POSIX::floor(shift) },

@@ -43,7 +43,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 157;
+use Test::More tests => 159;
 use Test::Exception;
 use Data::Walk;
 use JSON;
@@ -100,7 +100,7 @@ sub eval_in_js($$) {
 }
 
 my $js = new Language::Expr::Compiler::JS;
-$js->{_jscode_prefix} = "let a=1; let b=2; ";
+$js->{_jscode_prefix} = "let a=1; let b=2; let ary1=['one','two','three']; let hash1={one:1, two:2, three:3};";
 $js->func_mapping->{floor} = 'Math.floor';
 $js->func_mapping->{ceil}  = 'Math.ceil';
 $js->func_mapping->{uc}  = '.toUpperCase';

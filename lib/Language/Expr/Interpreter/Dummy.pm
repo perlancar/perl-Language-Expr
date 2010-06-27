@@ -30,7 +30,8 @@ sub rule_add { }
 sub rule_mult { }
 sub rule_unary { }
 sub rule_power { }
-sub rule_subscripting { }
+sub rule_subscripting_var { }
+sub rule_subscripting_expr { }
 sub rule_array { }
 sub rule_hash { }
 sub rule_undef { }

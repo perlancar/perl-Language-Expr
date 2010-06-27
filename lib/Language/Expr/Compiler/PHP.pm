@@ -313,7 +313,7 @@ sub rule_power {
     join "", grep {defined} @res;
 }
 
-sub rule_subscripting {
+sub rule_subscripting_var {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $opd = $match->{operand};
@@ -325,6 +325,21 @@ sub rule_subscripting {
         $res = $opd . "[$s]";
     }
     $res;
+}
+
+sub rule_subscripting_expr {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    my $opd = $match->{operand};
+    my @ss = @{$match->{subscript}//=[]};
+    return $opd unless @ss;
+    my $res;
+    for my $s (@ss) {
+        $opd = $res if defined($res);
+        $res = qq!call_user_func(function() { \$v = $opd; \$s = $s; if (isset(\$v[\$s])) return \$v[\$s]; else return null; })!;
+    }
+    $res;
+
 }
 
 sub rule_array {

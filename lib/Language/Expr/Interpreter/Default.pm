@@ -224,7 +224,12 @@ sub rule_power {
     reduce { $b ** $a } reverse @{$match->{operand}};
 }
 
-sub rule_subscripting {
+sub rule_subscripting_var {
+    my ($self, %args) = @_;
+    $self->rule_subscripting_expr(%args);
+}
+
+sub rule_subscripting_expr {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $res = $match->{operand};

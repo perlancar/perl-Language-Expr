@@ -1,5 +1,15 @@
 use boolean;
 
+sub stdvars {
+    return (
+        a => 1,
+        b => 2,
+        'a b' => 3,
+        ary1 => [qw/one two three/],
+        hash1 => {one=>1, two=>2, three=>3},
+    );
+}
+
 sub stdtests {
     return (
     # array
@@ -163,6 +173,8 @@ sub stdtests {
     {category=>'var', text=>'$a+2*$b', result=>'5'},
 
     # term:subscript
+    {category=>'subscripting', text => '$ary1[1]', result=>'two'},
+    {category=>'subscripting', text => '$hash1["two"]', result=>'2'},
     {category=>'subscripting', text => '([10, 20, 30])[0]', result=>'10'},
     {category=>'subscripting', text => '([10, 20, 30])[2]', result=>'30'},
     {category=>'subscripting', text => '([1, 2, 3])[3]', result=>undef},
