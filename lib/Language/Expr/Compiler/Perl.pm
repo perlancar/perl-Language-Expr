@@ -338,7 +338,7 @@ sub rule_func {
 }
 
 sub _map_grep_usort {
-    my ($which, $self, %args) = @_;
+    my ($self, $which, %args) = @_;
     my $match = $args{match};
     my $ary = $match->{array};
     my $expr = $match->{expr};
@@ -350,15 +350,18 @@ sub _map_grep_usort {
 }
 
 sub rule_func_map {
-    _map_grep_usort('map', @_);
+    my ($self, %args) = @_;
+    $self->_map_grep_usort('map', %args);
 }
 
 sub rule_func_grep {
-    _map_grep_usort('grep', @_);
+    my ($self, %args) = @_;
+    $self->_map_grep_usort('grep', %args);
 }
 
 sub rule_func_usort {
-    _map_grep_usort('usort', @_);
+    my ($self, %args) = @_;
+    $self->_map_grep_usort('usort', %args);
 }
 
 sub rule_parenthesis {
