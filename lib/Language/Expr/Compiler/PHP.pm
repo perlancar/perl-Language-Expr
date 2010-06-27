@@ -128,7 +128,7 @@ sub rule_and {
         last unless $op;
         if    ($op eq '&&') { @res = ('call_user_func(function() { $_a = (',
                                       @res, '); $_b = (', $term, '); ',
-                                      'return $_a && $_b ? $_b : $_a; })') }
+                                      'return $_a && $_b ? $_b : ($_a ? $_b : $_a); })') }
     }
     join "", grep {defined} @res;
 }
