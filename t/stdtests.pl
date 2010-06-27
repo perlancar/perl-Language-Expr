@@ -17,6 +17,8 @@ sub stdtests {
     {category=>'hash', text=>'{}', result=>{}, php_result=>[]}, # due to ambiguity of php arrays
     {category=>'hash', text=>'{a=>1}', result=>{a=>1}},
     {category=>'hash', text=>q[{'a'=>1}], result=>{a=>1}},
+    {category=>'hash', text=>q[{"a b"=>1}], result=>{"a b"=>1}},
+    {category=>'hash', text=>'{("a"."b")=>1}', parse_error=>qr/invalid syntax/i, xresult=>{ab=>1}}, # many languages (e.g. php and js) don't support expression before "=>", so we disallow them for the moment
     {category=>'hash', text=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}},
     {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{'},
     {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'}'},

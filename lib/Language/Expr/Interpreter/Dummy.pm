@@ -17,7 +17,8 @@ This interpreter does nothing. It is used only for testing the parser.
 
 =cut
 
-sub rule_pair { }
+sub rule_pair_simple { }
+sub rule_pair_string { }
 sub rule_or_xor { }
 sub rule_and { }
 sub rule_bit_or_xor { }

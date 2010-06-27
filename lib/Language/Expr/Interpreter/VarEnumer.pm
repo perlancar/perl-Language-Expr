@@ -32,7 +32,9 @@ sub add_var {
     push @{$self->result}, $v unless $v ~~ @{$self->result};
 }
 
-sub rule_pair { }
+sub rule_pair_simple { }
+
+sub rule_pair_string { }
 
 sub rule_or_xor { }
 

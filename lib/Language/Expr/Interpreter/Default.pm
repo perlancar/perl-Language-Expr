@@ -57,7 +57,13 @@ has level => (is => 'rw', default => 0);
 
 =cut
 
-sub rule_pair {
+sub rule_pair_simple {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    [$match->{key}, $match->{value}];
+}
+
+sub rule_pair_string {
     my ($self, %args) = @_;
     my $match = $args{match};
     [$match->{key}, $match->{value}];

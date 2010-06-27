@@ -1,5 +1,15 @@
 Revision history for Language-Expr
 
+0.08    2010-06-27
+
+        PHP compiler/emitter.
+
+        Language change: because many target languages (including PHP
+        and JavaScript) don't support expression before "=>", only
+        bareword \w+ and string literals are now allowed in left side
+        of pair.
+
+
 0.07    2010-06-25
 
         Adjust for new Regexp::Grammars 1.005.

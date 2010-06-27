@@ -45,8 +45,12 @@ sub parse_expr {
 
 # precedence level  2: left     =>
         <rule: pair>
-            <key> =\> <value=answer>
-            (?{ $MATCH = $obj->rule_pair(match=>\%MATCH) })
+            <key=(\w+)> =\> <value=answer>
+            (?{ $MATCH = $obj->rule_pair_simple(match=>\%MATCH) })
+          | <key=squotestr> =\> <value=answer>
+            (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
+          | <key=dquotestr> =\> <value=answer>
+            (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
 
 # precedence level  3: left     || // ^^
         <rule: or_xor>
@@ -137,10 +141,6 @@ sub parse_expr {
             (?{ $MATCH = $obj->rule_hash(match=>{pair=>[]}) })
           | \{ <[pair]> ** (,) \}
             (?{ $MATCH = $obj->rule_hash(match=>\%MATCH) })
-
-        <rule: key>
-            <MATCH=(\w+)>
-          | <MATCH=answer>
 
         <token: undef>
             undef

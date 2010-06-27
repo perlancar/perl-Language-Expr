@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 154*2 - (7+7+7);
+use Test::More tests => 156*2 - (7+7+7);
 use Test::Exception;
 use Language::Expr;
 use POSIX;
