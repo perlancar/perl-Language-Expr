@@ -264,7 +264,7 @@ sub rule_add {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '.') { @res = ("'' + ", @res, " + $term") }
+        if    ($op eq '.') { push @res, " . $term" }
         if    ($op eq '+') { push @res, " + $term" }
         if    ($op eq '-') { push @res, " - $term" }
     }
