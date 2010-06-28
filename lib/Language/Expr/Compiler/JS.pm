@@ -15,9 +15,10 @@ use Language::Expr::Interpreter::Default;
  my $jsc = Language::Expr::Compiler::JS->new;
  print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints: [1, 2, 3].map(function(_){ Math.pow(_, 2) })
 
- # map Expr function to JS function/method
+ # map Expr function to JS function/method/property
  $jsc->func_mapping->{ceil} = 'Math.ceil';
  $jsc->func_mapping->{uc} = '.toUpperCase';
+ $jsc->func_mapping->{length} = ':length';
  print $jsc->js(q{uc("party like it's ") . ceil(1998.9)}); # prints: "party like it's ".toUpperCase() + Math.ceil(1998.9)
 
 =head1 DESCRIPTION
@@ -79,10 +80,12 @@ has todo => (is => 'rw', default => sub { [] });
 
 =head2 func_mapping => HASHREF
 
-Mapping from Expr function to JavaScript functions/methods. Example:
+Mapping from Expr function to JavaScript
+function/method/property. Example:
 
- { ceil => 'Math.ceil',
-   uc   => '.toUpperCase',
+ { ceil   => 'Math.ceil',
+   uc     => '.toUpperCase',
+   length => ':length',
  }
 
 =cut
@@ -385,9 +388,14 @@ sub rule_func {
     my $fmap = $self->func_mapping->{$f};
     $f = $fmap if $fmap;
     my $args = $match->{args};
-    if (substr($f, 0, 1) eq '.') {
+    my $fc = substr($f, 0, 1);
+    if ($fc eq '.') {
         my $invoc = shift @$args;
         return "($invoc)$f(".join(", ", @$args).")";
+    } elsif ($fc eq ':') {
+        my $invoc = shift @$args;
+        my $prop = substr($f, 1, length($f)-1);
+        return "($invoc).$prop";
     } else {
         return "$f(".join(", ", @$args).")";
     }
