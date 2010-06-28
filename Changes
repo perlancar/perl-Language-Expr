@@ -1,13 +1,20 @@
 Revision history for Language-Expr
 
-0.08    2010-06-27
+0.08    2010-06-xx
 
         PHP compiler/emitter.
 
-        Language change: because many target languages (including PHP
-        and JavaScript) don't support expression before "=>", only
+        Parser: Split rule_subscripting into
+        rule_subscripting_{var,expr} to accomodate PHP's limitation
+        (can't subscript against expression).
+
+        Language: because many target languages (including PHP and
+        JavaScript) don't support expression before "=>", only
         bareword \w+ and string literals are now allowed in left side
         of pair.
+
+        JS: Now allows mapping Expr function to JS property
+        (e.g. func_mapping->{length} = ':length').
 
 
 0.07    2010-06-25
