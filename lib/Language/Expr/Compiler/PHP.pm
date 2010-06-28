@@ -8,6 +8,7 @@ extends 'Language::Expr::Evaluator';
 
 use UUID::Tiny ':std';
 use Language::Expr::Interpreter::Default;
+use List::MoreUtils qw(uniq);
 
 =head1 SYNOPSIS
 
@@ -404,12 +405,17 @@ sub _map_grep_usort {
 
     my $todoid = __uuidgen(); # yes, this is not proper
     push @{ $self->todo }, [$todoid, $expr];
+
+    # USE... markers are used to insert use(...) PHP statements in
+    # inner lambda functions because PHP requires variables from outer
+    # scope to be explicitly defined.
+
     if ($which eq 'map') {
-        return "array_map(function(\$_) { return (TODO-$todoid); }, $ary)";
+        return "USEBEGIN(_)-$todoid array_map(function(\$_)USE()-$todoid { return (TODO-$todoid); }, $ary)USEEND-$todoid";
     } elsif ($which eq 'grep') {
-        return "array_filter(function(\$_) { return (TODO-$todoid); }, $ary)";
+        return "USEBEGIN(_)-$todoid array_filter(function(\$_)USE()-$todoid { return (TODO-$todoid); }, $ary)USEEND-$todoid";
     } elsif ($which eq 'usort') {
-        return "call_user_func(function() { \$_x = $ary; usort(function(\$a, \$b) { return (TODO-$todoid); }, \$_x); return \$_x; })";
+        return "USEBEGIN(a,b)-$todoid call_user_func(function() { \$_x = $ary; usort(function(\$a, \$b)USE()-$todoid { return (TODO-$todoid); }, \$_x); return \$_x; })USEEND-$todoid";
     }
 }
 
@@ -480,7 +486,31 @@ sub php {
         $res =~ s/TODO-$todoid/$subres/g;
     }
     $self->todo([]);
+
+    print "intermediate result: $res\n\n";
+    $res = $self->_prepare_use($res);
+    $res = $self->_substitute_use($res);
     $res;
+}
+
+sub _prepare_use {
+    my ($self, $str, $markerid, $vars) = @_;
+    no warnings; print "Entering _prepare_use($str, $markerid, $vars)\n";
+    if ($markerid) {
+        print "before _prepare_use for $markerid: $str\n";
+        my $status = $str =~ s/USE\(([^)]*)\)-([0-9a-f-]{36})/$2 ne $markerid ? "USE($1,**$vars**$markerid)-$2" : "USE($1)-$2"/eg;
+        print "after  _prepare_use for $markerid: $str\n" if $status;
+    } else {
+        $str =~ s/USEBEGIN\((\w+(?:,\w+)*)\)-([0-9a-f-]{36}) (.+)USEEND-\2/$self->_prepare_use($self->_prepare_use($3), $2, $1)/eg;
+    }
+    $str;
+}
+
+sub _substitute_use {
+    my ($self, $str) = @_;
+    $str =~ s/USE\(([^)]*)\)-[0-9a-f-]{36}/
+              my @v = uniq(grep {length} split(m!,!, $1)); if (@v) { " use (".join(", ", map {"\$$_"} @v).")" } else { "" }/eg;
+    $str;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -178,7 +178,7 @@ sub parse_expr {
         <rule: func>
             <func_name=([A-Za-z_]\w*)> \( \)
             (?{ $MATCH = $obj->rule_func(match=>{func_name=>$MATCH{func_name}, args=>[]}) })
-          | <func_name=(map|grep|usort)> \( \{ <expr=answer> \} (?{ push @$subexpr_stack, $CONTEXT; }), <input_array=answer> \)
+          | <func_name=(map|grep|usort)> \( \{ <expr=answer> \} (?{ push @$subexpr_stack, $CONTEXT }), <input_array=answer> \)
             (?{ my $meth = "rule_func_$MATCH{func_name}";
                 $MATCH = $obj->$meth(match=>{expr=>pop(@$subexpr_stack), array=>$MATCH{input_array}}) })
           | <func_name=([A-Za-z_]\w*)> \( <[args=answer]> ** (,) \)

@@ -195,11 +195,11 @@ sub stdtests {
     {category=>'map', has_subexpr=>1, text=>'map {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'map', has_subexpr=>1, text=>'map({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'map', has_subexpr=>1, text=>'map()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i},
+    {category=>'map', has_subexpr=>1, text=>'map()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i, php_compiler_run_error=>qr/undefined function map/i},
     #{category=>'map', has_subexpr=>1, text=>'map({}, [])'}, # empty subexpression. won't be parsed as map(), but ok.
     #{category=>'map', has_subexpr=>1, text=>'map(1, [])'}, # not subexpression. won't be parsed as map(), but ok. but in perl result will be 1.
 
-    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})', compiler_run_error=>qr/syntax error|unmatched right/i, js_compiler_run_error=>qr/javascript error/i}, # although doesn't make sense, parses
+    {category=>'map', has_subexpr=>1, text=>'map({$_*2}, {})', compiler_run_error=>qr/syntax error|unmatched right/i, js_compiler_run_error=>qr/javascript error/i, php_result=>[]}, # although doesn't make sense, parses. in php {} will become array() == [].
     {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [])', result=>[]},
     {category=>'map', has_subexpr=>1, text=>'map({$_*2}, [1,2,3])', result=>[2, 4, 6]},
     {category=>'map', has_subexpr=>1, text=>'map({ map({$_+1}, [$_])[0] }, [1,2,3])', result=>[2, 3, 4]}, # nested map
@@ -208,7 +208,7 @@ sub stdtests {
     {category=>'grep', has_subexpr=>1, text=>'grep {}, []', parse_error=>qr/invalid syntax/i}, # lack parenthesis
     {category=>'grep', has_subexpr=>1, text=>'grep({1<}, [])', parse_error=>qr/invalid syntax/i}, # invalid subexpression
 
-    {category=>'grep', has_subexpr=>1,  text=>'grep()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i}, # lack arguments. won't be parsed as grep(), but ok
+    {category=>'grep', has_subexpr=>1,  text=>'grep()', compiler_run_error=>qr/not enough arg/i, js_compiler_run_error=>qr/javascript error/i, php_compiler_run_error=>qr/undefined function grep/i}, # lack arguments. won't be parsed as grep(), but ok
     #{category=>'grep', has_subexpr=>1, text=>'grep({}, [])'}, # empty subexpression. won't be parsed as grep(), but ok
     #{category=>'grep', has_subexpr=>1, text=>'grep(1, [])'}, # not subexpression. won't be parsed as grep(), but ok
 

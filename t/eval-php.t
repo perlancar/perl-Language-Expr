@@ -86,8 +86,7 @@ sub eval_in_php($$) {
         print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
-        $output =~ /(parse|syntax) error/i and die "syntax error/invalid syntax: cmd=$cmd, output=$output";
-        #$output =~ /\b([A-Z]\w+Error)\b/i and die "php error: $1: cmd=$cmd, output=$output";
+        $output =~ /PHP (\w+) error/i and die "php error: $1: cmd=$cmd, output=$output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
@@ -114,10 +113,10 @@ for my $t (@stdtests) {
         if ($t->{run_error}) {
             $tname .= ", run error: $t->{run_error})";
             throws_ok { eval_in_php($phpcomp, $t->{text}) } $t->{run_error}, $tname;
-        } elsif ($t->{php_compiler_run_error}) {
+        } elsif ($t->{php_compiler_run_error} && !exists($t->{php_result})) {
             $tname .= ", run error: $t->{php_compiler_run_error})";
             throws_ok { eval_in_php($phpcomp, $t->{text}) } $t->{php_compiler_run_error}, $tname;
-        } elsif ($t->{compiler_run_error}) {
+        } elsif ($t->{compiler_run_error} && !exists($t->{php_result})) {
             $tname .= ", run error: $t->{compiler_run_error})";
             throws_ok { eval_in_php($phpcomp, $t->{text}) } $t->{compiler_run_error}, $tname;
         } else {
