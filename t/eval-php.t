@@ -83,7 +83,7 @@ sub eval_in_php($$) {
     #    ...
     } elsif ($php_itp eq 'bin') {
         my $cmd = qq($PHP_bin -r ).shell_quote(qq($phpcomp->{_phpcode_prefix}echo json_encode($str);)).qq( 2>&1);
-        print "# DEBUG: $cmd\n";
+        #print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
         $output =~ /(?:PHP )?(\w+ error|Warning|Notice): /mi and die "php error/warning: cmd=$cmd, output=$output";

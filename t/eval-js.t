@@ -31,7 +31,7 @@ BEGIN {
                 }
             }
         };
-        $@ and die $@;
+        #$@ and die $@;
 
         # JavaScript.pm && JE.pm are not good/compatible enough: no
         # JSON object, etc.
