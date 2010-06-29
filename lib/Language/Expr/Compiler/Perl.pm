@@ -3,9 +3,8 @@ package Language::Expr::Compiler::Perl;
 
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Evaluator';
+extends 'Language::Expr::Compiler::Base';
 
-use UUID::Tiny ':std';
 use boolean;
 
 =head1 SYNOPSIS
@@ -49,18 +48,11 @@ own variables.
 
 =item * Functions by default simply use Perl functions.
 
+Unless those specified in func_mapping. For example, if
+$compiler->func_mapping->{foo} = "Foo::do_it", then the expression
+'foo(1)' will be compiled into 'Foo::do_it(1)'.
+
 =back
-
-=head1 ATTRIBUTES
-
-=head2 todo => ARRAYREF
-
-Used to remember which subexpression need to be parsed later.
-
-=cut
-
-has todo => (is => 'rw', default => sub { [] });
-
 
 =head1 METHODS
 
@@ -307,11 +299,11 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    __quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
+    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
 }
 
 sub rule_dquotestr {
-    __quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
+    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
 }
 
 sub rule_bool {
@@ -338,6 +330,8 @@ sub rule_func {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $f = $match->{func_name};
+    my $fmap = $self->func_mapping->{$f};
+    $f = $fmap if $fmap;
     my $args = $match->{args};
     "$f(".join(", ", @$args).")";
 }
@@ -349,9 +343,8 @@ sub _map_grep_usort {
     my $expr = $match->{expr};
 
     my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
-    my $todoid = __uuidgen(); # yes, this is not proper
-    push @{ $self->todo }, [$todoid, $expr];
-    "[$perlop({ TODO-$todoid } \@{$ary})]";
+    my $uuid = $self->new_marker('subexpr', $expr);
+    "[$perlop({ TODO-$uuid } \@{$ary})]";
 }
 
 sub rule_func_map {
@@ -385,9 +378,10 @@ sub expr_postprocess {
 
 # can't use regex here (perl segfaults), at least in 5.10.1, because
 # we are in one big re::gr regex.
-sub __quote {
+sub _quote {
+    my ($self, $str) = @_;
     my @c;
-    for my $c (split '', $_[0]) {
+    for my $c (split '', $str) {
         my $o = ord($c);
         if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
@@ -400,10 +394,6 @@ sub __quote {
     '"' . join("", @c) . '"';
 }
 
-sub __uuidgen {
-    UUID::Tiny::create_uuid_as_string(UUID_V4);
-}
-
 =head2 perl($expr) => $perl_code
 
 Convert Language::Expr expression into Perl code. Dies if there is
@@ -414,13 +404,15 @@ syntax error in expression.
 sub perl {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
-    for my $todo (@{ $self->todo }) {
-        my $todoid = $todo->[0];
-        my $subexpr = $todo->[1];
+    for my $m (@{ $self->markers }) {
+        my $type = $m->[0];
+        next unless $type eq 'subexpr';
+        my $uuid = $m->[1];
+        my $subexpr = $m->[2];
         my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
-        $res =~ s/TODO-$todoid/$subres/g;
+        $res =~ s/TODO-$uuid/$subres/g;
     }
-    $self->todo([]);
+    $self->markers([]);
     $res;
 }
 

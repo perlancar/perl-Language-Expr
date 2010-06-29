@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 158*2 - (7+7+7);
+use Test::More tests => 298;
 use Test::Exception;
 use Language::Expr;
 use POSIX;
@@ -20,10 +20,14 @@ $le->var(stdvars());
 $le->func(
     'floor'  => sub { POSIX::floor(shift) },
     'ceil'   => sub { POSIX::ceil(shift) },
+    # uc
+    # length
 );
 package Language::Expr::Compiler::Perl;
 sub floor { POSIX::floor(shift) }
 sub ceil { POSIX::ceil(shift) }
+# uc
+# length
 package main;
 
 for my $t (stdtests()) {

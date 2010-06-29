@@ -43,7 +43,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 159;
+use Test::More tests => 162;
 use Test::Exception;
 use Data::Walk;
 use JSON;
@@ -104,16 +104,7 @@ $js->{_jscode_prefix} = "let a=1; let b=2; let ary1=['one','two','three']; let h
 $js->func_mapping->{floor} = 'Math.floor';
 $js->func_mapping->{ceil}  = 'Math.ceil';
 $js->func_mapping->{uc}  = '.toUpperCase';
-
-#$le->func(
-#    'length' => sub { length(shift) },
-#    'floor'  => sub { POSIX::floor(shift) },
-#    'ceil'   => sub { POSIX::ceil(shift) },
-#);
-#package Language::Expr::Compiler::Perl;
-#sub floor { POSIX::floor(shift) }
-#sub ceil { POSIX::ceil(shift) }
-#package main;
+$js->func_mapping->{length}  = ':length';
 
 my @stdtests = stdtests();
 #my @stdtests = (

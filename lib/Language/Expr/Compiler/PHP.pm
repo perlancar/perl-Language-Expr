@@ -4,10 +4,8 @@ package Language::Expr::Compiler::PHP;
 use 5.010;
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Evaluator';
+extends 'Language::Expr::Compiler::Base';
 
-use UUID::Tiny ':std';
-use Language::Expr::Interpreter::Default;
 use List::MoreUtils qw(uniq);
 
 =head1 SYNOPSIS
@@ -45,40 +43,13 @@ Perl).
 E.g. $a becomes $a, and so on. Be careful not to make variables which
 are invalid in PHP, e.g. $.. or ${foo/bar}.
 
-You can subclass and override rule_var() if you want to provide your
-own variables.
-
 =item * Functions by default simply use PHP functions.
 
 foo() becomes foo(). Except those mentioned in B<func_mapping>
 (e.g. uc() becomes strtoupper() if func_mapping->{uc} is
 'strtoupper').
 
-Or you can subclass and override rule_func() for more translation
-freedom.
-
 =back
-
-=head1 ATTRIBUTES
-
-=head2 todo => ARRAYREF
-
-Used to remember which subexpression need to be parsed later.
-
-=cut
-
-has todo => (is => 'rw', default => sub { [] });
-
-=head2 func_mapping => HASHREF
-
-Mapping from Expr function to PHP functions. Example:
-
- { uc => 'strtoupper',
- }
-
-=cut
-
-has func_mapping => (is => 'rw', default => sub { {} });
 
 =head1 METHODS
 
@@ -106,13 +77,14 @@ sub rule_or_xor {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '||') { @res = ('call_user_func(function() { $_x = (',
+        my $uuid = $self->new_marker('use');
+        if    ($op eq '||') { @res = ('call_user_func(function()USE()-',$uuid,' { $_x = (',
                                       @res, '); ',
                                       'return $_x ? $_x : (', $term, '); })') }
-        elsif ($op eq '//') { @res = ('call_user_func(function() { $_x = (',
+        elsif ($op eq '//') { @res = ('call_user_func(function()USE()-',$uuid,' { $_x = (',
                                       @res, '); return isset($_x) ? $_x : (',
                                       $term, '); })') }
-        elsif ($op eq '^^') { @res = ('call_user_func(function() { $_a = (',
+        elsif ($op eq '^^') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
                                       @res, '); $_b = (', $term, '); ',
                                       'return $_a&&!$_b || !$_a&&$_b ? $_a : $_b; })') }
     }
@@ -127,7 +99,8 @@ sub rule_and {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        if    ($op eq '&&') { @res = ('call_user_func(function() { $_a = (',
+        my $uuid = $self->new_marker('use');
+        if    ($op eq '&&') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
                                       @res, '); $_b = (', $term, '); ',
                                       'return $_a && $_b ? $_b : ($_a ? $_b : $_a); })') }
     }
@@ -169,9 +142,10 @@ sub rule_comparison3 {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
+        my $uuid = $self->new_marker('use');
         # in php, str COMP int is compared numerically, so we only
         # need to convert one to int
-        if    ($op eq '<=>') { @res = ('call_user_func(function() { $_a = (',
+        if    ($op eq '<=>') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
                                       @res, ')+0; $_b = (', $term, '); ',
                                       'return $_a > $_b ? 1 : ($_a < $_b ? -1 : 0); })') }
         elsif ($op eq 'cmp') { @res = ('strcmp(', @res, ', ', $term, ')') }
@@ -337,7 +311,8 @@ sub rule_subscripting_expr {
     my $res;
     for my $s (@ss) {
         $opd = $res if defined($res);
-        $res = qq!call_user_func(function() { \$v = $opd; \$s = $s; if (isset(\$v[\$s])) return \$v[\$s]; else return null; })!;
+        my $uuid = $self->new_marker('use');
+        $res = qq!call_user_func(function()USE()-$uuid { \$v = $opd; \$s = $s; if (isset(\$v[\$s])) return \$v[\$s]; else return null; })!;
     }
     $res;
 
@@ -360,11 +335,11 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    __quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
+    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
 }
 
 sub rule_dquotestr {
-    __quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
+    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
 }
 
 sub rule_bool {
@@ -394,7 +369,7 @@ sub rule_func {
     my $fmap = $self->func_mapping->{$f};
     $f = $fmap if $fmap;
     my $args = $match->{args};
-    return "$f(".join(", ", @$args).")";
+    "$f(".join(", ", @$args).")";
 }
 
 sub _map_grep_usort {
@@ -403,19 +378,17 @@ sub _map_grep_usort {
     my $ary = $match->{array};
     my $expr = $match->{expr};
 
-    my $todoid = __uuidgen(); # yes, this is not proper
-    push @{ $self->todo }, [$todoid, $expr];
-
-    # USE... markers are used to insert use(...) PHP statements in
-    # inner lambda functions because PHP requires variables from outer
-    # scope to be explicitly defined.
+    my $uuid = $self->new_marker('subexpr', $expr);
 
     if ($which eq 'map') {
-        return "USEBEGIN(_)-$todoid array_map(function(\$_)USE()-$todoid { return (TODO-$todoid); }, $ary)USEEND-$todoid";
+        return "USEBEGIN(_)-$uuid array_map(function(\$_)USE()-$uuid { return (TODO-$uuid); }, $ary)USEEND-$uuid";
     } elsif ($which eq 'grep') {
-        return "USEBEGIN(_)-$todoid array_filter(function(\$_)USE()-$todoid { return (TODO-$todoid); }, $ary)USEEND-$todoid";
+        return "USEBEGIN(_)-$uuid call_user_func(function()USE()-$uuid { ".
+            "\$_f = function(\$_)USE()-$uuid { return (TODO-$uuid); }; ".
+            "\$_x = array(); foreach($ary as \$_i) { if (\$_f(\$_i)) \$_x[] = \$_i; }; return \$_x; })USEEND-$uuid";
     } elsif ($which eq 'usort') {
-        return "USEBEGIN(a,b)-$todoid call_user_func(function() { \$_x = $ary; usort(function(\$a, \$b)USE()-$todoid { return (TODO-$todoid); }, \$_x); return \$_x; })USEEND-$todoid";
+        return "USEBEGIN(a,b)-$uuid call_user_func(function()USE()-$uuid { ".
+            "\$_x = $ary; usort(\$_x, function(\$a, \$b)USE()-$uuid { return (TODO-$uuid); }); return \$_x; })USEEND-$uuid";
     }
 }
 
@@ -450,9 +423,10 @@ sub expr_postprocess {
 
 # can't use regex here (perl segfaults), at least in 5.10.1, because
 # we are in one big re::gr regex.
-sub __quote {
+sub _quote {
+    my ($self, $str) = @_;
     my @c;
-    for my $c (split '', $_[0]) {
+    for my $c (split '', $str) {
         my $o = ord($c);
         if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
@@ -465,10 +439,6 @@ sub __quote {
     '"' . join("", @c) . '"';
 }
 
-sub __uuidgen {
-    UUID::Tiny::create_uuid_as_string(UUID_V4);
-}
-
 =head2 php($expr) => $php_code
 
 Convert Language::Expr expression into PHP code. Dies if there is
@@ -479,37 +449,53 @@ syntax error in expression.
 sub php {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
-    for my $todo (@{ $self->todo }) {
-        my $todoid = $todo->[0];
-        my $subexpr = $todo->[1];
-        my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
-        $res =~ s/TODO-$todoid/$subres/g;
-    }
-    $self->todo([]);
 
-    print "intermediate result: $res\n\n";
+    for my $m (@{ $self->markers }) {
+        my $type = $m->[0];
+        next unless $type eq 'subexpr';
+        my $uuid = $m->[1];
+        my $subexpr = $m->[2];
+        my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
+        $res =~ s/TODO-$uuid/$subres/g;
+    }
+
+    #print "DEBUG: intermediate result: $res\n\n";
+    #print "DEBUG: markers: ", join(", ", map { "[".join(", ", grep {defined} @$_)."]" } $self->markers ), "\n\n";
+
     $res = $self->_prepare_use($res);
     $res = $self->_substitute_use($res);
+
+    $self->markers([]);
+    #print "DEBUG: final result: $res\n\n";
     $res;
 }
 
+sub _prepare_use2 {
+    my ($self, $marker_ids_re, $str, $marker_id, $vars) = @_;
+    $str =~ s/USE\(([^)]*)\)-($marker_ids_re)/$2 ne $marker_id ? "USE($1,$vars)-$2" : "USE($1)-$2"/eg;
+    $str;
+}
+
 sub _prepare_use {
-    my ($self, $str, $markerid, $vars) = @_;
-    no warnings; print "Entering _prepare_use($str, $markerid, $vars)\n";
-    if ($markerid) {
-        print "before _prepare_use for $markerid: $str\n";
-        my $status = $str =~ s/USE\(([^)]*)\)-([0-9a-f-]{36})/$2 ne $markerid ? "USE($1,**$vars**$markerid)-$2" : "USE($1)-$2"/eg;
-        print "after  _prepare_use for $markerid: $str\n" if $status;
-    } else {
-        $str =~ s/USEBEGIN\((\w+(?:,\w+)*)\)-([0-9a-f-]{36}) (.+)USEEND-\2/$self->_prepare_use($self->_prepare_use($3), $2, $1)/eg;
+    my ($self, $str) = @_;
+    if (@{ $self->markers }) {
+        my $marker_ids_re = $self->marker_ids_re;
+        while (1) {
+            last unless $str =~ s{USEBEGIN\((\w+(?:,\w+)*)\)-($marker_ids_re) (.+)USEEND-\2}
+                                 {$self->_prepare_use2($marker_ids_re, $3, $2, $1)}eg;
+        }
     }
     $str;
 }
 
 sub _substitute_use {
     my ($self, $str) = @_;
-    $str =~ s/USE\(([^)]*)\)-[0-9a-f-]{36}/
-              my @v = uniq(grep {length} split(m!,!, $1)); if (@v) { " use (".join(", ", map {"\$$_"} @v).")" } else { "" }/eg;
+    if (@{ $self->markers }) {
+        my $marker_ids_re = $self->marker_ids_re;
+        $str =~ s/USE\(([^)]*)\)-($marker_ids_re)/
+            my @v = uniq(grep {length} split(m!,!, $1));
+            if (@v) { " use (".join(", ", map {"\$$_"} @v).")" } else { "" }/eg;
+    }
     $str;
 }
 

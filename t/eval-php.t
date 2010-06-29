@@ -96,7 +96,10 @@ sub eval_in_php($$) {
 
 my $phpcomp = new Language::Expr::Compiler::PHP;
 $phpcomp->{_phpcode_prefix} = '$a=1; $b=2; $ary1 = array("one","two","three"); $hash1=array("one"=>1,"two"=>2,"three"=>3);';
+# floor
+# ceil
 $phpcomp->func_mapping->{uc}  = 'strtoupper';
+$phpcomp->func_mapping->{length}  = 'strlen';
 
 my @stdtests = stdtests();
 #my @stdtests = (
