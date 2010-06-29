@@ -86,7 +86,7 @@ sub eval_in_php($$) {
         print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
-        $output =~ /(?:PHP )?(\w+) error: /mi and die "php error: $1: cmd=$cmd, output=$output";
+        $output =~ /(?:PHP )?(\w+ error|Warning|Notice): /mi and die "php error/warning: cmd=$cmd, output=$output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
@@ -107,6 +107,7 @@ my @stdtests = stdtests();
 #);
 
 for my $t (@stdtests) {
+    next if $t->{php_skip};
     my $tname = "category=$t->{category} $t->{text}";
     if ($t->{parse_error}) {
         $tname .= ", parse error: $t->{parse_error})";
