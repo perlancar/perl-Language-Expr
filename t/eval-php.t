@@ -86,7 +86,7 @@ sub eval_in_php($$) {
         print "# DEBUG: $cmd\n";
         my $output;
         $output = qx($cmd);
-        $output =~ /PHP (\w+) error/i and die "php error: $1: cmd=$cmd, output=$output";
+        $output =~ /(?:PHP )?(\w+) error: /mi and die "php error: $1: cmd=$cmd, output=$output";
         $? and die "Can't execute $cmd successfully: $! ($?)";
         return convert_json_booleans(JSON->new->allow_nonref->decode($output));
     } else {
