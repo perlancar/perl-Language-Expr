@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.09    2010-07-01
+
+        Require List::MoreUtils.
+
+
 0.08    2010-06-29
 
         PHP compiler/emitter.
