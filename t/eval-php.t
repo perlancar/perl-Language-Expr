@@ -24,7 +24,7 @@ BEGIN {
             for (@paths) {
                 #print "# DEBUG Testing $_ ...\n";
                 ($_) = /(.*)/;
-                my $output = qx($_ -r 'echo json_encode(call_user_func(function() { return array(1+1); }));') or die;
+                my $output = qx($_ -r 'echo json_encode(call_user_func(function() { return array(1+1); }));');
                 #print "# DEBUG Output: $output\n";
                 if ($output =~ /\A\[2\]$/m) {
                     $PHP_bin = $_;
@@ -32,7 +32,6 @@ BEGIN {
                 }
             }
         };
-        $@ and die $@;
 
         # I haven't tested with PHP or PHP::Interpreter, but last time
         # I checked one of them is still at PHP 5.1. Also the lack of
