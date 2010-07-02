@@ -19,7 +19,8 @@ BEGIN {
         eval {
             require File::Which;
             my @paths = File::Which::which("php");
-            ($ENV{PATH}) = $ENV{PATH} =~ /(.*)/;
+            #($ENV{PATH}) = $ENV{PATH} =~ /(.*)/;
+            $ENV{PATH} = "";
             for (@paths) {
                 #print "# DEBUG Testing $_ ...\n";
                 ($_) = /(.*)/;
@@ -44,7 +45,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 159;
+use Test::More tests => 158;
 use Test::Exception;
 use JSON;
 use Language::Expr::Compiler::PHP;
@@ -131,4 +132,3 @@ for my $t (@stdtests) {
     }
 }
 
-ok(1);

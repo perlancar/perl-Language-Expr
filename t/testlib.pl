@@ -2,6 +2,12 @@ use boolean;
 use Data::Walk;
 use Clone qw/clone/;
 
+sub prepare_testing {
+}
+
+sub end_testing {
+}
+
 sub convert_json_booleans {
     #my $arg = shift;
 
