@@ -46,7 +46,6 @@ BEGIN {
 
 use Test::More tests => 161;
 use Test::Exception;
-use Data::Walk;
 use JSON;
 use Language::Expr::Compiler::JS;
 use String::ShellQuote;
