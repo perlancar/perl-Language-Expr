@@ -17,8 +17,7 @@ sub convert_json_booleans {
 
     my $arg = clone(shift);
     #use Data::Dump qw(dump); print "# BEFORE: ", dump($arg), "\n";
-    rmap_all { bless $_, 'boolean' if ref($_) =~ /^JSON::(PP|XS)::Boolean$/ }
-        $arg;
+    rmap_all { $_ = $_ ? true : false if JSON::is_bool($_) } $arg;
     #print "# AFTER: ", dump($arg), "\n";
     $arg;
 }
