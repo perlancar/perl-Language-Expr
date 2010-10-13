@@ -54,6 +54,20 @@ $compiler->func_mapping->{foo} = "Foo::do_it", then the expression
 
 =back
 
+=head1 ATTRIBUTES
+
+=head2 hook_var
+
+Can be set to a coderef that will be called during parsing whenever variable is
+encountered. The coderef is expected to return Perl code to handle the variable.
+By default, if this attribute is not set, variable in expression is returned as
+is (e.g. '$foo' becomes '$foo' in Perl), which means some will result in error
+(e.g. '${name that contains some symbols that makes it invalid Perl)').
+
+=cut
+
+has hook_var => (is => 'rw');
+
 =head1 METHODS
 
 =for Pod::Coverage ^(rule|expr)_.+
@@ -323,7 +337,11 @@ sub rule_num {
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "\$$match->{var}";
+    if ($self->hook_var) {
+        return $self->hook_var->($match->{var});
+    } else {
+        return "\$$match->{var}";
+    }
 }
 
 sub rule_func {

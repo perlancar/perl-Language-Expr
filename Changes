@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.10    2010-10-13
+
+        Add hook_var property to Language::Expr::Compiler::Perl.
+
+
 0.09    2010-07-01
 
         Require List::MoreUtils.
