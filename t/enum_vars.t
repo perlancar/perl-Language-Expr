@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Test::Exception;
 use Language::Expr;
 use POSIX;
@@ -17,8 +17,7 @@ my @data = (
 
     {category=>'repeat', text=>'$b+$b*$b', result=>['b']},
 
-    #{category=>'dquotestr', text=>q("$a"), result=>['a']},   # currently causes segfault, RG bug?
-    #{category=>'dquotestr', text=>q("$(a)"), result=>['a']},   # currently causes segfault, RG bug?
+    {category=>'quotestr', text=>q("${a b} $c" . '$d'), result=>['a b', 'c']},
 
     {category=>'func', text=>'length($a)', result=>['a']},
 
