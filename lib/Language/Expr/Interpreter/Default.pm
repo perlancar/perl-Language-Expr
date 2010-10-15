@@ -269,13 +269,19 @@ sub rule_squotestr {
     } @{ $match->{part} };
 }
 
+my $asis = sub { shift; $_[0] };
+
 sub rule_dquotestr {
     my ($self, %args) = @_;
     my $match = $args{match};
+    my $qf = $args{qm} || $asis;
 
     #return join(", ", map {"[$_]"} @{$match->{part}}); #DEBUG
 
     join "", map {
+        my $s01 = substr($_, 0, 1);
+        my $s02 = substr($_, 0, 2);
+        my $l = length();
         $_ eq "\\'" ? "'" :
         $_ eq "\\\"" ? '"' :
         $_ eq "\\\\" ? "\\" :
@@ -287,11 +293,11 @@ sub rule_dquotestr {
         $_ eq "\\a" ? "\a" :
         $_ eq "\\e" ? "\e" :
         $_ eq "\\e" ? "\e" :
-        /^\\([0-7]{1,3})$/ ? chr(oct($1)) :
-        /^\\x([0-9A-Fa-f]{1,2})$/ ? chr(hex($1)) :
-        /^\\x\{([0-9A-Fa-f]{1,4})\}$/ ? chr(hex($1)) :
-        /^\$(\w+)$/ ? $self->vars->{$1} :
-        /^\$\((.+)\)$/ ? $self->vars->{$1} :
+        $l >= 2 && $l <= 4 && $s01 eq "\\" && substr($_, 1, 1) >= "0" && substr($_, 1, 1) <= "7" ? chr(oct(substr($_, 1))) : # \000 octal
+        $l >= 3 && $l <= 4 && $s02 eq "\\x" ? chr(hex(substr($_, 1))) : # \xFF hex
+        $l >= 5 && $l <= 8 && substr($_, 0, 3) eq "\\x{" ? chr(hex(substr($_, 3, length()-4))) : # \x{1234} wide hex
+        $s02 eq '${' ? $self->rule_var(match=>{var=>substr($_, 2, length()-3)}) : # ${var}
+        $s01 eq '$' ? $self->rule_var(match=>{var=>substr($_, 1, length()-1)}) :  # $var
         $_ eq "\\" ? "" :
         $_
     } @{ $match->{part} };
