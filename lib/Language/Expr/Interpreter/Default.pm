@@ -1,6 +1,7 @@
 package Language::Expr::Interpreter::Default;
 # ABSTRACT: A default interpreter for Language::Expr
 
+use 5.010;
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';

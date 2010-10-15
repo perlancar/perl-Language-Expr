@@ -1,6 +1,7 @@
 package Language::Expr::Compiler::Perl;
 # ABSTRACT: Compile Language::Expr expression to Perl
 
+use 5.010;
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Compiler::Base';
