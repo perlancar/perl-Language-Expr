@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.11    2010-10-16
+
+        Fix handling of quoted string.
+
+
 0.10    2010-10-13
 
         Add hook_var property to Language::Expr::Compiler::Perl.

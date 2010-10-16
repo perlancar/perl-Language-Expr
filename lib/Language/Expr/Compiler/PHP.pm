@@ -335,11 +335,22 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_squotestr(@_));
+    my ($self, %args) = @_;
+    join(" . ",
+         map { $self->_quote($_->{value}) }
+             @{ $self->parse_squotestr($args{match}{part}) });
 }
 
 sub rule_dquotestr {
-    $_[0]->_quote(Language::Expr::Interpreter::Default::rule_dquotestr(@_));
+    my ($self, %args) = @_;
+    "(" .
+    join(" . ",
+         map { $_->{type} eq 'VAR' ?
+                   $self->rule_var(match=>{var=>$_->{value}}) :
+                   $self->_quote($_->{value})
+               }
+             @{ $self->parse_dquotestr($args{match}{part}) }) .
+    ")";
 }
 
 sub rule_bool {

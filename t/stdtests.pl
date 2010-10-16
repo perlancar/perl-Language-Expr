@@ -150,15 +150,26 @@ sub stdtests {
     {category=>'dquotestr', text=>q("satu ' dua"), result=>"satu ' dua"},
     {category=>'squotestr', text=>q('satu " dua'), result=>'satu " dua'},
     {category=>'squotestr escape sequence', text=>q('\\''), result=>'\''},
+    {category=>'squotestr escape sequence', text=>q('\\"'), result=>'\\"'},
     {category=>'squotestr escape sequence', text=>q('\\\\'), result=>'\\'},
     {category=>'squotestr escape sequence', text=>q('\\n'), result=>'\n'},
+
+    {category=>'dquotestr escape sequence', text=>q("\\'"), result=>'\''},
+    {category=>'dquotestr escape sequence', text=>q("\\""), result=>'"'},
+    {category=>'dquotestr escape sequence', text=>q("\\\\"), result=>'\\'},
+    {category=>'dquotestr escape sequence', text=>q("\\$"), result=>'$'},
+    {category=>'dquotestr escape sequence', text=>q("\\t"), result=>"\t"},
     {category=>'dquotestr escape sequence', text=>q("\\n"), result=>"\n"},
-    {category=>'squotestr', text=>q('@b'), result=>'@b'}, # to test compiler properly escaping "@foo"
-    {category=>'dquotestr', text=>'"@b"', result=>'@b'}, # to test compiler properly escaping "@foo"
-    # XXX more escape sequences
+    {category=>'dquotestr escape sequence', text=>q("\\f"), result=>"\f"},
+    {category=>'dquotestr escape sequence', text=>q("\\b"), result=>"\b"},
+    {category=>'dquotestr escape sequence', text=>q("\\a"), result=>"\a"},
+    {category=>'dquotestr escape sequence', text=>q("\\e"), result=>"\e"},
+    {category=>'squotestr', text=>q('@b'), result=>'@b'}, # to test perl compiler properly escaping "@foo"
+    {category=>'dquotestr', text=>'"@b"', result=>'@b'}, # to test perl compiler properly escaping "@foo"
     {category=>'squotestr interpolate var', text=>q('$a'), result=>'$a'},
-    #{category=>'dquotestr interpolate var', text=>q("$a"), result=>1},   # currently causes segfault, RG bug?
-    #{category=>'dquotestr interpolate var', text=>q("$(a)"), result=>1}, # currently causes segfault, RG bug?
+    {category=>'squotestr interpolate var', text=>q('${a}'), result=>'${a}'},
+    {category=>'dquotestr interpolate var', text=>q("$a"), result=>1},
+    {category=>'dquotestr interpolate var', text=>q("${a}"), result=>1},
 
     # term:paren
     {category=>'paren', text=>'4*(2 + 3)', result=>'20'},

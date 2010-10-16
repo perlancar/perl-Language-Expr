@@ -1,12 +1,18 @@
 package Language::Expr::Interpreter::Default;
 # ABSTRACT: A default interpreter for Language::Expr
 
-use 5.010;
 use Any::Moose;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 use List::Util 'reduce';
 use boolean;
+
+=head1 SYNOPSIS
+
+ use Language::Expr::Interpreter::Default;
+ my $itp = Language::Expr::Interpreter::Default->new;
+ $itp->vars->{a} = 'A';
+ say $itp->eval(q["$a b" . "c"]); # "A b c"
 
 =head1 DESCRIPTION
 
@@ -262,46 +268,19 @@ sub rule_undef {
 
 sub rule_squotestr {
     my ($self, %args) = @_;
-    my $match = $args{match};
-    join "", map {
-        $_ eq "\\'" ? "'" :
-        $_ eq "\\\\" ? "\\" :
-        $_
-    } @{ $match->{part} };
+    join("",
+         map { $_->{value} }
+             @{ $self->parse_squotestr($args{match}{part}) });
 }
-
-my $asis = sub { shift; $_[0] };
 
 sub rule_dquotestr {
     my ($self, %args) = @_;
-    my $match = $args{match};
-    my $qf = $args{qm} || $asis;
-
-    #return join(", ", map {"[$_]"} @{$match->{part}}); #DEBUG
-
-    join "", map {
-        my $s01 = substr($_, 0, 1);
-        my $s02 = substr($_, 0, 2);
-        my $l = length();
-        $_ eq "\\'" ? "'" :
-        $_ eq "\\\"" ? '"' :
-        $_ eq "\\\\" ? "\\" :
-        $_ eq "\\\$" ? '$' :
-        $_ eq "\\t" ? "\t" :
-        $_ eq "\\n" ? "\n" :
-        $_ eq "\\f" ? "\f" :
-        $_ eq "\\b" ? "\b" :
-        $_ eq "\\a" ? "\a" :
-        $_ eq "\\e" ? "\e" :
-        $_ eq "\\e" ? "\e" :
-        $l >= 2 && $l <= 4 && $s01 eq "\\" && substr($_, 1, 1) >= "0" && substr($_, 1, 1) <= "7" ? chr(oct(substr($_, 1))) : # \000 octal
-        $l >= 3 && $l <= 4 && $s02 eq "\\x" ? chr(hex(substr($_, 1))) : # \xFF hex
-        $l >= 5 && $l <= 8 && substr($_, 0, 3) eq "\\x{" ? chr(hex(substr($_, 3, length()-4))) : # \x{1234} wide hex
-        $s02 eq '${' ? $self->rule_var(match=>{var=>substr($_, 2, length()-3)}) : # ${var}
-        $s01 eq '$' ? $self->rule_var(match=>{var=>substr($_, 1, length()-1)}) :  # $var
-        $_ eq "\\" ? "" :
-        $_
-    } @{ $match->{part} };
+    join("",
+         map { $_->{type} eq 'VAR' ?
+                   $self->rule_var(match=>{var=>$_->{value}}) :
+                   $_->{value}
+               }
+             @{ $self->parse_dquotestr($args{match}{part}) });
 }
 
 sub rule_bool {

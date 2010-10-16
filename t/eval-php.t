@@ -44,7 +44,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 158;
+use Test::More tests => 171;
 use Test::Exception;
 use JSON;
 use Language::Expr::Compiler::PHP;
