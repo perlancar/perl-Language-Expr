@@ -165,8 +165,7 @@ sub parse_expr {
             (?{ $MATCH = $obj->rule_squotestr(match=>\%MATCH) })
 
         <token: dquotestr>
-            "<[part=([^"\044\\]|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
-#                              ^ can't add + here, segfaults (perl/RG bug?)
+            "<[part=([^"\044\\]+|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
             (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
 
         <rule: var0>
