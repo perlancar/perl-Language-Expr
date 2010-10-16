@@ -4,6 +4,8 @@ Revision history for Language-Expr
 
         Fix handling of quoted string.
 
+        All compilers get hook_var property, not just Perl.
+
 
 0.10    2010-10-13
 

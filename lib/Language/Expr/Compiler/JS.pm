@@ -362,7 +362,11 @@ sub rule_num {
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "$match->{var}";
+    if ($self->hook_var) {
+        return $self->hook_var->($match->{var});
+    } else {
+        return "$match->{var}";
+    }
 }
 
 sub rule_func {
