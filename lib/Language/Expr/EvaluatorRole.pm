@@ -43,7 +43,7 @@ Instead of parsing parts themselves, consumers can use this method (typically in
 their rule_dquotestr). This method converts each Expr escapes into Perl string
 and variables. For example:
 
- parse_dquotestr('abc\\t\\\\$foo ${bar baz}') -> (
+ parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
    {type=>"STR", value=>'abc\t\\'},
    {type=>"VAR", value=>'foo'},
    {type=>"STR", value=>' '},
@@ -107,7 +107,7 @@ Instead of parsing parts themselves, consumers can use this method (typically in
 their rule_squotestr). This method converts Expr single quoted string into Perl
 string.
 
- parse_squotestr('abc\\t\\\\$foo ${bar baz}') -> (
+ parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
    {type=>"STR", value=>'abc\t\\$foo ${bar baz}'},
  )
 
