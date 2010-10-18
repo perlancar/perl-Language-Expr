@@ -43,6 +43,9 @@ Perl).
 E.g. $a becomes $a, and so on. Be careful not to make variables which
 are invalid in PHP, e.g. $.. or ${foo/bar}.
 
+You can customize this behaviour by subclassing rule_var() or by providing a
+hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
+
 =item * Functions by default simply use PHP functions.
 
 foo() becomes foo(). Except those mentioned in B<func_mapping>

@@ -32,19 +32,14 @@ e.g. the expression '"" || "0" || 2' will result to 2 since Perl
 thinks that "" and "0" are false. It is also weakly typed like Perl,
 i.e. allows '1 + "2"' to become 3.
 
-=item * Currently strings are rudimentary escaped.
-
-Data dumping modules can't be used currently due to segfaults (at
-least in 5.10.1).
-
 =item * Variables by default simply use Perl variables.
 
 E.g. $a becomes $a, and so on. Be careful not to make variables which
 are invalid in Perl, e.g. $.. or ${foo/bar} (but ${foo::bar} is okay
 because it translates to $foo::bar).
 
-You can subclass and override rule_var() if you want to provide your
-own variables.
+You can customize this behaviour by subclassing rule_var() or by providing a
+hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =item * Functions by default simply use Perl functions.
 

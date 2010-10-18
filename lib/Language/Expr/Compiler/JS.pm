@@ -41,15 +41,13 @@ The emitted JS code will follow JavaScript's weak typing and coercion
 rules, e.g. Expr '1+"2"' will simply be translated to JavaScript
 '1+"2"' and will result in "12".
 
-=item * Currently strings are rudimentary escaped.
-
-Data dumping modules can't be used currently due to segfaults (at
-least in 5.10.1).
-
 =item * Variables by default simply use JavaScript variables.
 
 E.g. $a becomes a, and so on. Be careful not to make variables which
 are invalid in JavaScript, e.g. $.. or ${foo/bar}.
+
+You can customize this behaviour by subclassing rule_var() or by providing a
+hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =item * Functions by default simply use Javascript functions.
 
