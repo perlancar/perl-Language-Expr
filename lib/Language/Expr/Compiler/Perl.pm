@@ -47,6 +47,9 @@ Unless those specified in func_mapping. For example, if
 $compiler->func_mapping->{foo} = "Foo::do_it", then the expression
 'foo(1)' will be compiled into 'Foo::do_it(1)'.
 
+You can customize this behaviour by subclassing rule_func() or by providing a
+hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
+
 =back
 
 =head1 METHODS
@@ -343,10 +346,14 @@ sub rule_func {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $f = $match->{func_name};
-    my $fmap = $self->func_mapping->{$f};
-    $f = $fmap if $fmap;
     my $args = $match->{args};
-    "$f(".join(", ", @$args).")";
+    if ($self->hook_func) {
+        return $self->hook_func->($f, @$args);
+    } else {
+        my $fmap = $self->func_mapping->{$f};
+        $f = $fmap if $fmap;
+        "$f(".join(", ", @$args).")";
+    }
 }
 
 sub _map_grep_usort {

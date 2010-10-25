@@ -52,6 +52,9 @@ foo() becomes foo(). Except those mentioned in B<func_mapping>
 (e.g. uc() becomes strtoupper() if func_mapping->{uc} is
 'strtoupper').
 
+You can customize this behaviour by subclassing rule_func() or by providing a
+hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
+
 =back
 
 =head1 METHODS
@@ -384,10 +387,14 @@ sub rule_func {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $f = $match->{func_name};
-    my $fmap = $self->func_mapping->{$f};
-    $f = $fmap if $fmap;
     my $args = $match->{args};
-    "$f(".join(", ", @$args).")";
+    if ($self->hook_func) {
+        return $self->hook_func->($f, @$args);
+    } else {
+        my $fmap = $self->func_mapping->{$f};
+        $f = $fmap if $fmap;
+        "$f(".join(", ", @$args).")";
+    }
 }
 
 sub _map_grep_usort {

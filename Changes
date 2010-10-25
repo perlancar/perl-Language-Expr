@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.12    2010-10-25
+
+        Add hook_func property.
+
+
 0.11    2010-10-16
 
         Fix handling of quoted string.
