@@ -1,5 +1,10 @@
 Revision history for Language-Expr
 
+0.13    2010-10-25
+
+        If hook_{var,func} returns undef, the default behaviour is used.
+
+
 0.12    2010-10-25
 
         Add hook_func property.

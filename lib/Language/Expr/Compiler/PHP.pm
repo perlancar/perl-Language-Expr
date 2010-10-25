@@ -377,10 +377,10 @@ sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
     if ($self->hook_var) {
-        return $self->hook_var->($match->{var});
-    } else {
-        return "\$$match->{var}";
+        my $res = $self->hook_var->($match->{var});
+        return $res if defined($res);
     }
+    return "\$$match->{var}";
 }
 
 sub rule_func {
@@ -389,12 +389,12 @@ sub rule_func {
     my $f = $match->{func_name};
     my $args = $match->{args};
     if ($self->hook_func) {
-        return $self->hook_func->($f, @$args);
-    } else {
-        my $fmap = $self->func_mapping->{$f};
-        $f = $fmap if $fmap;
-        "$f(".join(", ", @$args).")";
+        my $res = $self->hook_func->($f, @$args);
+        return $res if defined($res);
     }
+    my $fmap = $self->func_mapping->{$f};
+    $f = $fmap if $fmap;
+    "$f(".join(", ", @$args).")";
 }
 
 sub _map_grep_usort {
