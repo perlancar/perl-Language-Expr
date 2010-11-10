@@ -1,7 +1,7 @@
 package Language::Expr::Parser;
 # ABSTRACT: Parse Language::Expr expression
 
-use feature 'state';
+use 5.010;
 # now can't compile with this on?
 #use strict;
 #use warnings;
