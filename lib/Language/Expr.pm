@@ -200,8 +200,8 @@ fail.
 
 Syntax reference: L<Language::Expr::Manual::Syntax>
 
-Modules that are using Language::Expr: L<Data::Schema>,
-L<Data::Template::Expr>.
+Modules that are using Language::Expr: L<Data::Sah>,
+L<Data::Template::Expr> (not yet released).
 
 Other related modules: L<Math::Expression>,
 L<Math::Expression::Evaluator>, L<Language::Farnsworth>
