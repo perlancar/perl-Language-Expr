@@ -147,15 +147,14 @@ sub enum_vars {
 
 =head2 Why yet another simplistic (restricted, etc) language? Why not just Perl?
 
-When first adding expression support to L<Data::Schema>, I want a
-language that is simple enough so I can easily convert it to Perl,
-PHP, JavaScript, and others. I do not need a fully-fledged programming
-language. In fact, Expr is not even Turing-complete, it does not
-support assignment or loops. Nor does it allow function definition
-(though it allows anonymous function in grep/map/usort). Instead, I
-just need some basic stuffs like mathematical/string/logical
-operators, arrays, hashes, functions, map/grep/usort. This language
-will mostly be used inside templates and schemas.
+When first adding expression support to L<Data::Schema> (now L<Data::Sah>), I
+want a language that is simple enough so I can easily convert it to Perl, PHP,
+JavaScript, and others. I do not need a fully-fledged programming language. In
+fact, Expr is not even Turing-complete, it does not support assignment or loops.
+Nor does it allow function definition (though it allows anonymous function in
+grep/map/usort). Instead, I just need some basic stuffs like
+mathematical/string/logical operators, arrays, hashes, functions, map/grep/usort.
+This language will mostly be used inside templates and schemas.
 
 =head2 Why don't you use Language::Farnsworth, or Math::Expression, or Math::Expression::Evaluator, or $FOO?
 
