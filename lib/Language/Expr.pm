@@ -194,8 +194,7 @@ See L<Language::Expr::Compiler::JS>.
 
 Due to possible bugs in Perl's RE engine or Regexp::Grammars or my
 grammar, some syntax errors will cause further parsing to
-fail. Variable interpolation inside double quoted strings also doesn't
-work yet (segfaults).
+fail.
 
 
 =head1 SEE ALSO
