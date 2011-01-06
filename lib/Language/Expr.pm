@@ -32,7 +32,8 @@ package Language::Expr;
 
     # use variables & functions in expression (compiled mode, by default the Perl
     # compiler translates variables and function call as-is and runs it in
-    # Language::Expr::Compiler::Perl namespace, but you can customize this)
+    # Language::Expr::Compiler::Perl namespace, but you can customize this, see
+    # below)
     $le->interpreted(0);
     package Language::Expr::Compiler::Perl;
     sub pyth { ($_[0]**2 + $_[1]**2)**0.5 }
