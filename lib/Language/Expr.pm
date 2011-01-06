@@ -161,7 +161,7 @@ will mostly be used inside templates and schemas.
 
 I need several compilers and interpreters (some even with different
 semantics), so that it's easier to start with a simple parser of my
-own. And of course there are personal preference of language syntax.
+own. And of course there is personal preference of language syntax.
 
 =head2 I want different syntax for (variables, foo operator, etc)!
 
@@ -170,11 +170,10 @@ modifying the Language::Expr::Parser module.
 
 =head2 The parser is too slow!
 
-I personally am not having problem with performance. In fact,
-L<Regexp::Grammmars> should be much faster than
-L<Parse::RecDescent>. If you need faster parsing speed you can take a
-look at reimplementing the parser using L<Parse::Yapp>,
-L<Parse::Eyapp>, etc.
+I personally am not having problem with compile performance. In fact,
+L<Regexp::Grammmars> should be much faster than L<Parse::RecDescent>. If you need
+faster parsing speed you can take a look at reimplementing the parser using
+L<Parse::Yapp>, L<Parse::Eyapp>, etc.
 
 If you are having performance runtime problem, try switching from
 using the interpreter to using one of the available compilers.
