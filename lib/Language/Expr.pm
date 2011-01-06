@@ -3,16 +3,46 @@ package Language::Expr;
 
 =head1 SYNOPSIS
 
+    use 5.010;
     use Language::Expr;
     my $le = Language::Expr->new;
-    $le->var('a' => 1, 'b' => 2);
-    $le->func(sqr => sub { $_[0] ** 2 }, rand => sub {rand()});
 
-    # evaluate expression
-    say $le->eval('$a + sqr($b)'); # 5
+    # evaluate expressions
+    say $le->eval('1 + 2*3 + [4, 5][-1]'); # 12
+    say $le->eval(q("i" . " love " .
+                    {lang=>"perl", food=>"rujak"}["lang"])); # "i love perl"
+
+    # convert Expr to Perl
+    use Language::Expr::Compiler::Perl;
+    my $perl = Language::Expr::Compiler::Perl->new;
+    say $perl->perl('1 ^^ 2'); # "(1 xor 2)"
+
+    # convert Expr to JavaScript
+    use Language::Expr::Compiler::JS;
+    my $js = Language::Expr::Compiler::JS->new;
+    say $js->js('1 . 2'); # "'' + 1 + 2"
+
+    # use variables & functions in expression (interpreted mode)
+    $le->interpreted(1);
+    $le->var('a' => 3, 'b' => 4);
+    $le->func(pyth => sub { ($_[0]**2 + $_[1]**2)**0.5 });
+    say $le->eval('pyth($a, $b)'); # 5
+
+    # use variables & functions in expression (compiled mode, by default the Perl
+    # compiler translates variables and function call as-is and runs it in
+    # Language::Expr::Compiler::Perl namespace, but you can customize this)
+    $le->interpreted(0);
+    package Language::Expr::Compiler::Perl;
+    sub pyth { ($_[0]**2 + $_[1]**2)**0.5 }
+    our $a = 3;
+    our $b = 4;
+    package main;
+    say $le->compiler->perl('pyth($a, $b)'); # "pyth($a, $b)"
+    say $le->eval('pyth($a, $b)'); # "pyth($a, $b)"
 
     # enumerate variables
-    say $le->enum_vars('$a*$a + sqr($b)'); # ['a', 'b']
+    use Data::Dump;
+    dd $le->enum_vars('$a*$a + sqr($b)'); # ['a', 'b']
 
 =head1 DESCRIPTION
 
