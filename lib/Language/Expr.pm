@@ -4,6 +4,8 @@ package Language::Expr;
 =head1 SYNOPSIS
 
     use 5.010;
+    use strict;
+    use warnings;
     use Language::Expr;
     my $le = Language::Expr->new;
 
@@ -48,7 +50,7 @@ package Language::Expr;
     our $b = 4;
     package main;
     $le->compiler->hook_var (sub { '$My::'.$_[0] });
-    $le->compiler->hook_func(sub { 'My::'.shift."(".join(", ", @_).")" });
+    $le->compiler->hook_func(sub { 'My::'.(shift)."(".join(", ", @_).")" });
     say $le->compiler->perl('pyth($a, $b)'); # "My::pyth($My::a, $My::b)"
     say $le->eval('pyth($a, $b)'); # "5.000"
 
