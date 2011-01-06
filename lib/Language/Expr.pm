@@ -4,7 +4,7 @@ package Language::Expr;
 =head1 SYNOPSIS
 
     use Language::Expr;
-    my $le = new Language::Expr;
+    my $le = Language::Expr->new;
     $le->var('a' => 1, 'b' => 2);
     $le->func(sqr => sub { $_[0] ** 2 }, rand => sub {rand()});
 
