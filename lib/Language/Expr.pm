@@ -212,27 +212,10 @@ own. And of course there is personal preference of language syntax.
 Create your own language :-) Fork this distribution and start
 modifying the Language::Expr::Parser module.
 
-=head2 The parser is too slow!
-
-I personally am not having problem with compile performance. In fact,
-L<Regexp::Grammmars> should be much faster than L<Parse::RecDescent>. If you need
-faster parsing speed you can take a look at reimplementing the parser using
-L<Parse::Yapp>, L<Parse::Eyapp>, etc.
-
-If you are having performance runtime problem, try switching from
-using the interpreter to using one of the available compilers.
-
 =head2 How to show details of errors in expression?
 
 This is a TODO item.
 
-=head2 How to convert Expr expression into Perl code?
-
-See L<Language::Expr::Compiler::Perl>.
-
-=head2 How to convert Expr expression into JavaScript code?
-
-See L<Language::Expr::Compiler::JS>.
 
 =head1 BUGS
 
