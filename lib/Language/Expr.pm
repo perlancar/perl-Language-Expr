@@ -43,7 +43,7 @@ package Language::Expr;
     our $a = 3;
     our $b = 4;
     package main;
-    say $le->compiler->perl('pyth($a, $b)'); # "pyth($a, $b)"
+    say $le->perl('pyth($a, $b)'); # "pyth($a, $b)"
     say $le->eval('pyth($a, $b)'); # 5
 
     # tell compiler to use My namespace, translate 'func()' to 'My::func()' and
@@ -55,7 +55,7 @@ package Language::Expr;
     package main;
     $le->compiler->hook_var (sub { '$My::'.$_[0] });
     $le->compiler->hook_func(sub { 'My::'.(shift)."(".join(", ", @_).")" });
-    say $le->compiler->perl('pyth($a, $b)'); # "My::pyth($My::a, $My::b)"
+    say $le->perl('pyth($a, $b)'); # "My::pyth($My::a, $My::b)"
     say $le->eval('pyth($a, $b)'); # "5.000"
 
     # enumerate variables
