@@ -126,7 +126,7 @@ operators mostly to separate statements, which we do not have anyway.
 See L<Language::Expr::Parser> for more information. As an alternative, you can
 use the if() function (availability depends on interpreter/compiler).
 
-=item * Hash value is accessed using [] instead of {}.
+=item * Hash value is accessed using [] instead of {}, and barewords (e.g. $hash[key] instead of $hash["key"]) are not allowed.
 
 Which, BTW, is also the way it is done in Python, Ruby, and PHP.
 
@@ -229,9 +229,10 @@ and:
 
  ${anything goes except closing curly brace}
 
-Differences from Perl: There are no special variables with funny names in Expr
-($., $$, etc), but if they are enclosed with curly braces they are allowed (e.g.
-${.}, ${name/contains/slashes}). In fact, the curly braces syntax allows the
+Differences from Perl: In Expr there is just $scalar, no @array or %hash or
+others. There are no special variables with funny names ($., $$, etc), but if
+they are enclosed with curly braces they are allowed (e.g. ${.},
+${name/contains/slashes}). In fact, the curly braces syntax allows the
 compiler/interpreter a greater freedom of defining the namespace scheme aside
 from the Perl-like double-colon syntax, e.g.:
 
