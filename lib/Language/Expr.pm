@@ -104,7 +104,7 @@ has interpreted => (is => 'rw', default => 0);
 
 =head2 interpreter => OBJ
 
-The Language::Expr::Interpreter::Default instance.
+Store the Language::Expr::Interpreter::Default instance.
 
 =cut
 
@@ -114,7 +114,7 @@ has interpreter => (
 
 =head2 compiler => OBJ
 
-The Language::Expr::Compiler::Perl instance.
+Store the Language::Expr::Compiler::Perl instance.
 
 =cut
 
@@ -124,7 +124,7 @@ has compiler => (
 
 =head2 js_compiler => OBJ
 
-The Language::Expr::Compiler::JS instance. Will only be loaded on demand.
+Store the Language::Expr::Compiler::JS instance.
 
 =cut
 
@@ -133,7 +133,7 @@ has js_compiler => (
 
 =head2 php_compiler => OBJ
 
-The Language::Expr::Compiler::PHP instance. Will only be loaded on demand.
+Store the Language::Expr::Compiler::PHP instance.
 
 =cut
 
@@ -142,7 +142,7 @@ has php_compiler => (
 
 =head2 varenumer => OBJ
 
-The Language::Expr::Interpreter::VarEnumer instance.
+Store the Language::Expr::Interpreter::VarEnumer instance.
 
 =cut
 
@@ -303,9 +303,9 @@ This language will mostly be used inside templates and schemas.
 
 =head2 Why don't you use Language::Farnsworth, or Math::Expression, or Math::Expression::Evaluator, or $FOO?
 
-I need several compilers and interpreters (some even with different
-semantics), so that it's easier to start with a simple parser of my
-own. And of course there is personal preference of language syntax.
+I need several compilers and interpreters (some even with different semantics),
+so it's easier to start with a simple parser of my own. And of course there is
+personal preference of language syntax.
 
 =head2 What is the difference between a compiler and interpreter?
 
