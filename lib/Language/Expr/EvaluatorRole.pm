@@ -7,6 +7,7 @@ use Any::Moose '::Role';
 requires 'rule_pair_simple';
 requires 'rule_pair_string';
 requires 'rule_or_xor';
+requires 'rule_ternary';
 requires 'rule_and';
 requires 'rule_bit_or_xor';
 requires 'rule_bit_and';

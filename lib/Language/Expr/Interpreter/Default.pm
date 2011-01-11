@@ -90,6 +90,12 @@ sub rule_or_xor {
     $res;
 }
 
+sub rule_ternary {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    $match->{operand1} ? $match->{operand2} : $match->{operand3};
+}
+
 sub rule_and {
     my ($self, %args) = @_;
     my $match = $args{match};

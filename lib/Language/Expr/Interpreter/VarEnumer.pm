@@ -38,6 +38,8 @@ sub rule_pair_string { }
 
 sub rule_or_xor { }
 
+sub rule_ternary { }
+
 sub rule_and { }
 
 sub rule_bit_or_xor { }

@@ -113,6 +113,13 @@ sub rule_and {
     join "", grep {defined} @res;
 }
 
+sub rule_ternary {
+    my ($self, %args) = @_;
+    my $match = $args{match};
+    "($match->{operand1} ? $match->{operand2} : $match->{operand3})";
+    join "", grep {defined} @res;
+}
+
 sub rule_bit_or_xor {
     my ($self, %args) = @_;
     my $match = $args{match};

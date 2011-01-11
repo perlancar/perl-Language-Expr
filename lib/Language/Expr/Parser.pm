@@ -43,7 +43,7 @@ sub parse_expr {
         <rule: answer>
             <MATCH=or_xor>
 
-# precedence level  2: left     =>
+# precedence level: left     =>
         <rule: pair>
             <key=(\w+)> =\> <value=answer>
             (?{ $MATCH = $obj->rule_pair_simple(match=>\%MATCH) })
@@ -52,64 +52,70 @@ sub parse_expr {
           | <key=dquotestr> =\> <value=answer>
             (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
 
-# precedence level  3: left     || // ^^
+# precedence level: left     || // ^^
         <rule: or_xor>
             <[operand=and]> ** <[op=(\|\||//|\^\^)]>
             (?{ $MATCH = $obj->rule_or_xor(match=>\%MATCH) })
 
-# precedence level  4: left     &&
+# precedence level: right    ?:
+#        <rule: ternary>
+#            <operand1=and> \? <operand2=and> : <operand3=and>
+#            (?{ $MATCH = $obj->rule_ternary(match=>\%MATCH) })
+#          | <MATCH=and>
+
+# precedence level: left     &&
         <rule: and>
             <[operand=bit_or_xor]> ** <[op=(&&)]>
             (?{ $MATCH = $obj->rule_and(match=>\%MATCH) })
 
-# precedence level  5: left     | ^
+# precedence level: left     | ^
         <rule: bit_or_xor>
             <[operand=bit_and]> ** <[op=(\||\^)]>
             (?{ $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH) })
 
-# precedence level  6: left     &
+# precedence level: left     &
         <rule: bit_and>
             <[operand=comparison3]> ** <[op=(&)]>
             (?{ $MATCH = $obj->rule_bit_and(match=>\%MATCH) })
 
             # NOTE: \x3c = "<", \x3e = ">"
 
-# precedence level  7: nonassoc (currently the grammar says assoc) <=> cmp
+# precedence level: nonassoc (currently the grammar says assoc) <=> cmp
         <rule: comparison3>
             <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
             (?{ $MATCH = $obj->rule_comparison3(match=>\%MATCH) })
 
-# precedence level  8: left == != eq ne < > <= >= ge gt le lt
+# precedence level: left == != eq ne < > <= >= ge gt le lt
         <rule: comparison>
             <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
             (?{ $MATCH = $obj->rule_comparison(match=>\%MATCH) })
 
-# precedence level  9: left     << >>
+# precedence level: left     << >>
         <rule: bit_shift>
             <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
             (?{ $MATCH = $obj->rule_bit_shift(match=>\%MATCH) })
 
-# precedence level 10: left     + - .
+# precedence level: left     + - .
         <rule: add>
             <[operand=mult]> ** <[op=(\+|-|\.)]>
             (?{ $MATCH = $obj->rule_add(match=>\%MATCH) })
 
-# precedence level 11: left     * / % x
+# precedence level: left     * / % x
         <rule: mult>
             <[operand=unary]> ** <[op=(\*|/|%|x)]>
             (?{ $MATCH = $obj->rule_mult(match=>\%MATCH) })
 
-# precedence level 12: right    ! ~ unary+ unary-
+# precedence level: right    ! ~ unary+ unary-
         <rule: unary>
             <[op=(!|~|\+|-)]>* <operand=power>
             (?{ $MATCH = $obj->rule_unary(match=>\%MATCH) })
 
-# precedence level 13: right    **
+# precedence level: right    **
         <rule: power>
             <[operand=subscripting]> ** <[op=(\*\*)]>
             (?{ $MATCH = $obj->rule_power(match=>\%MATCH) })
 
-# precedence level 14: left    hash[s], array[i]
+# precedence level: left    hash[s], array[i]
         <rule: subscripting>
             <operand=var0> <[subscript]>*
             (?{ $MATCH = $obj->rule_subscripting_var(match=>\%MATCH) })
@@ -119,7 +125,7 @@ sub parse_expr {
         <rule: subscript>
               \[ <MATCH=term> \]
 
-# precedence level 15: left     term (variable, str/num literals, func(), (paren))
+# precedence level: left     term (variable, str/num literals, func(), (paren))
         <rule: term>
             <MATCH=func>
           | <MATCH=var0>
@@ -200,5 +206,15 @@ sub parse_expr {
     die "Invalid syntax in expression `$str`" unless $str =~ $grammars->[$level];
     $obj_arg->expr_postprocess(result => $/{answer});
 }
+
+=head1 BUGS
+
+=over 4
+
+=item * Ternary operator is not parsed at the moment due to slow backtrack problem.
+
+=back
+
+=cut
 
 1;

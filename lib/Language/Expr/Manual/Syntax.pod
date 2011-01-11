@@ -121,9 +121,9 @@ operators mostly to separate statements, which we do not have anyway.
 
 =item * "xor" becomes "^^" (to be consistent with "^" as bitwise-xor).
 
-=item * Currently no tertiary "?:" operator.
+=item * (Implementation) Currently ternary "?:" operator is not parsed.
 
-Use B<if()> function instead (availability depends on interpreter/compiler).
+See L<Language::Expr::Parser> for more information.
 
 =item * Hash value is accessed using [] instead of {}.
 
@@ -143,6 +143,7 @@ along with their associativity.
 
  left     =>
  left     || // ^^
+ right    ?:
  left     &&
  left     | ^
  left     &
@@ -163,6 +164,10 @@ along with their associativity.
 =head2 Logical or, defined-or, logical xor
 
  left     || // ^^
+
+=head2 Ternary operator
+
+ right    ?:
 
 =head2 Logical and
 
