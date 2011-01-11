@@ -11,6 +11,9 @@ variables, and function calls.
 Language::Expr is (intentionally) not Turing-complete (lacks
 assignment and loops).
 
+Language::Expr is a lot like Perl. Differences from Perl, if any, are given
+after each section.
+
 It should be trivial to implement an interpreter or code generator
 from the parser. In fact, Language::Expr is meant to be easily
 convertible to Perl, PHP, and Javascript (among others like Python and
@@ -28,6 +31,9 @@ Ruby).
  true
  false
 
+Differences from Perl: Perl doesn't support native booleans, but there are
+modules like L<boolean> which practically makes Perl behaves like it does.
+
 =head2 Number
 
  1
@@ -37,6 +43,9 @@ Ruby).
  0x1f    # hexadecimal, = 31 in decimal
  0o17    # octal, = 15 in decimal
  0b100   # binary, = 4 in decimal
+
+Differences from Perl: octal literals in Expr are written using the less
+error-prone 0o123 syntax, which is also adopted by Python.
 
 =head2 String
 
@@ -65,28 +74,28 @@ sequences:
  \x7 or \x7B          hex char
  \x{263a}             wide hex char
 
-Difference with Perl: Perl supports a few other escape sequences, but
-they are not commonly found in other scripting languages (e.g.: named
-Unicode character or the \l, \L, et al), so they are not included.
-
 Double-quoted strings will also interpolate variables, e.g.:
 
  "I have $num apples"
  "This is Foo::Bar version ${perl:/Foo/Bar/VERSION}"
+
+Differences from Perl: Perl supports a few other escape sequences, but they are
+not commonly found in other scripting languages (e.g.: named Unicode character
+or the \l, \L, et al), so they are not included.
 
 =head2 Array
 
  []
  [1, 2, "str"]
 
-Difference from Perl: dangling comma at the end is not allowed.
+Differences from Perl: dangling comma at the end is not allowed in Expr.
 
 =head2 Hash
 
  {}
  {a => 1, "b c" => 2+3}
 
-Difference from Perl: you must always use "=>" to separate key and
+Differences from Perl: in Expr you must always use "=>" to separate key and
 value, not comma. Dangling comma at the end is not allowed.
 
 
@@ -99,7 +108,7 @@ and associativity, but here are the differences:
 
 =item * No assigment operators.
 
-Because assignment is not supported.
+Because assignment is deliberately not supported.
 
 =item * No smart-match "~~" operator or the other more esoteric or Perl-specific operators.
 
@@ -107,21 +116,25 @@ These include Perl's "..", "...", "->", etc.
 
 =item * Currently no "and", "or", "not" operators.
 
-Use &&, ||, ! instead. Perl supports an extra, low-precedence set of
-logical operators mostly to separate statements, which we do not have.
+Use &&, ||, ! instead. Perl supports an extra, low-precedence set of logical
+operators mostly to separate statements, which we do not have anyway.
 
 =item * "xor" becomes "^^" (to be consistent with "^" as bitwise-xor).
 
 =item * Currently no tertiary "?:" operator.
 
-Use B<if()> function instead (availability depends on
-interpreter/compiler).
+Use B<if()> function instead (availability depends on interpreter/compiler).
 
 =item * Hash value is accessed using [] instead of {}.
 
 Which, BTW, is also the way it is done in Python, Ruby, and PHP.
 
 =item * Comparison operators can be chained (except <=> and cmp).
+
+Example:
+
+ 1 < 2 < 3       # true
+ 2 == (1+1) != 2 # false
 
 =back
 
@@ -140,7 +153,7 @@ along with their associativity.
  left     * / % x
  right    ! ~ unary+ unary-
  right    **
- left     hash[s], array[i]
+ left     subscript (hash[s], array[i])
  left     term (variable, str/num literals, (paren), func())
 
 =head2 Pair
@@ -193,7 +206,7 @@ along with their associativity.
 
 =head2 Hash and array subscript
 
- left     hash[s], array[i]
+ left     subscript (hash[s], array[i])
 
 =head2 Term
 
@@ -201,24 +214,26 @@ along with their associativity.
 
 =head1 VARIABLES
 
-There are two syntax of variables:
+There are two syntax for variables:
 
  $alphanum123 (including $_)
- $.
- $..
+ $package::separated::var
 
 and:
 
  ${anything goes except closing curly brace}
 
-Difference from Perl: The simple syntax does not allow
-namespaces/package names (e.g. $foo::bar). In fact, the
-compiler/interpreter is allowed to have its own namespace
-scheme. L<Data::Schema> and L<Data::Template::Expr> uses a namespace +
-filesystem-like path scheme, e.g.:
+Differences from Perl: There are no special variables with funny names in Expr
+($., $$, etc), but if they are enclosed with curly braces they are allowed (e.g.
+${.}, ${name/contains/slashes}). In fact, the curly braces syntax allows the
+compiler/interpreter a greater freedom of defining the namespace scheme aside
+from the Perl-like double-colon syntax, e.g.:
 
+ # Unix-path-like
  ${../foo}
  ${/foo/bar/baz}
+
+ # volume:path (or URL-like)
  ${schema:/foo/bar/baz}
  ${data:../../baz}
 
@@ -229,32 +244,31 @@ Examples:
  rand()
  length("foo")
 
-Difference from Perl: parentheses are required.
+Differences from Perl: parentheses are required in Expr.
 
 The language define just a few functions:
 
 =head2 map({ EXPR }, ARRAY) -> RESULT_ARRAY
 
-This is similar to Perl's map() (but notice the required parentheses),
-it will form a new array composed from the result of EXPR. EXPR will
-be evaluated for each element of ARRAY (stored in B<$_>). The original
-value of $_ will be restored after EXPR completes.
+This is similar to Perl's map() (but notice the required parentheses), it will
+form a new array composed from the result of EXPR. EXPR will be evaluated for
+each element of ARRAY (stored in B<$_>). The original value of $_ will be
+restored after EXPR completes.
 
 =head2 grep({ EXPR }, ARRAY) -> RESULT_ARRAY
 
-This is similar to Perl's grep() (but notice the required
-parentheses), it will form a new array composed from the elements of
-ARRAY when EXPR evaluates to true (like in Perl, empty string '', the
-number 0, boolean C<false>, C<undef> are considered false). EXPR will
-be evaluated for each element of ARRAY (stored in B<$_>). The original
-value of $_ will be restored after EXPR completes.
+This is similar to Perl's grep() (but notice the required parentheses), it will
+form a new array composed from the elements of ARRAY when EXPR evaluates to true
+(like in Perl, empty string '', the number 0, boolean C<false>, C<undef> are
+considered false). EXPR will be evaluated for each element of ARRAY (stored in
+B<$_>). The original value of $_ will be restored after EXPR completes.
 
 =head2 usort({ EXPR }, ARRAY) -> RESULT_ARRAY
 
-This is similar to Perl's sort() (but notice the required
-parentheses), it will return the ARRAY sorted using comparison in
-EXPR. EXPR will be evaluated for each element of ARRAY (B<$a> and
-B<$b> will be set with two values to be compared). The original value
-of B<$a> and B<$b> will be restored after EXPR completes.
+This is similar to Perl's sort() (but notice the required parentheses), it will
+return the ARRAY sorted using comparison in EXPR. EXPR will be evaluated for
+each element of ARRAY (B<$a> and B<$b> will be set with two values to be
+compared). The original value of B<$a> and B<$b> will be restored after EXPR
+completes.
 
 =cut

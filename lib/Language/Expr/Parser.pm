@@ -178,7 +178,7 @@ sub parse_expr {
             (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
 
         <rule: var0>
-            \$ <var=(\.\.?|\w+)>
+            \$ <var=(\w+(?:::\w+)*)>
             (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
           | \$ \{ <var=([^\}]+)> \}
             (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
