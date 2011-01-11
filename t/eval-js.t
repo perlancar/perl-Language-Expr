@@ -44,7 +44,7 @@ BEGIN {
     }
 }
 
-use Test::More tests => 174;
+use Test::More tests => 180;
 use Test::Exception;
 use JSON;
 use Language::Expr::Compiler::JS;
