@@ -342,7 +342,7 @@ fail.
 
 Syntax reference: L<Language::Expr::Manual::Syntax>
 
-Modules that are using Language::Expr: L<Data::Sah>,
+Modules that are using Language::Expr: L<Data::Sah> (not yet released),
 L<Data::Template::Expr> (not yet released).
 
 Other related modules: L<Math::Expression>,
