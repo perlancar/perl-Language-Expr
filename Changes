@@ -1,5 +1,14 @@
 Revision history for Language-Expr
 
+0.15    2011-01-11
+
+        Add more documentation.
+
+        Add compile(), js(), and php() in main module.
+
+        Support octal/hexadecimal/binary number literals.
+
+
 0.14    2011-01-06
 
         Correct and expand synopsis.
