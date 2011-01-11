@@ -80,9 +80,6 @@ This distribution consists of the language parser
 =cut
 
 use Any::Moose;
-use Language::Expr::Interpreter::Default;
-use Language::Expr::Compiler::Perl;
-use Language::Expr::Interpreter::VarEnumer;
 
 
 =head1 ATTRIBUTES
@@ -100,7 +97,10 @@ inconvenience might be rectified in the future.
 
 =cut
 
-has interpreted => (is => 'rw', default => 0);
+has interpreted => (
+    is => 'rw',
+    default => 0,
+);
 
 =head2 interpreter => OBJ
 
@@ -110,7 +110,12 @@ Store the Language::Expr::Interpreter::Default instance.
 
 has interpreter => (
     is => 'ro',
-    default => sub { Language::Expr::Interpreter::Default->new });
+    lazy => 1,
+    default => sub {
+        require Language::Expr::Interpreter::Default;
+        Language::Expr::Interpreter::Default->new;
+    },
+);
 
 =head2 compiler => OBJ
 
@@ -120,7 +125,12 @@ Store the Language::Expr::Compiler::Perl instance.
 
 has compiler => (
     is => 'ro',
-    default => sub { Language::Expr::Compiler::Perl->new });
+    lazy => 1,
+    default => sub {
+        require Language::Expr::Compiler::Perl;
+        Language::Expr::Compiler::Perl->new;
+    },
+);
 
 =head2 js_compiler => OBJ
 
@@ -129,7 +139,13 @@ Store the Language::Expr::Compiler::JS instance.
 =cut
 
 has js_compiler => (
-    is => 'rw');
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        require Language::Expr::Compiler::JS;
+        Language::Expr::Compiler::JS->new;
+    },
+);
 
 =head2 php_compiler => OBJ
 
@@ -138,7 +154,13 @@ Store the Language::Expr::Compiler::PHP instance.
 =cut
 
 has php_compiler => (
-    is => 'rw');
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        require Language::Expr::Compiler::PHP;
+        Language::Expr::Compiler::PHP->new;
+    },
+);
 
 =head2 varenumer => OBJ
 
@@ -148,7 +170,12 @@ Store the Language::Expr::Interpreter::VarEnumer instance.
 
 has varenumer => (
     is => 'ro',
-    default => sub { Language::Expr::Interpreter::VarEnumer->new });
+    lazy => 1,
+    default => sub {
+        require Language::Expr::Interpreter::VarEnumer;
+        Language::Expr::Interpreter::VarEnumer->new;
+    },
+);
 
 
 =head1 METHODS
