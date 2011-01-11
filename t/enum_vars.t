@@ -21,7 +21,7 @@ my @data = (
 
     {category=>'func', text=>'length($a)', result=>['a']},
 
-    {category=>'subscript', text=>'$.[$b]+([1, 2, $..])[$a]', result=>['.', 'b', '..', 'a']},
+    {category=>'subscript', text=>'$a::b[$b]+([1, 2, $b::c])[$a]', result=>['a::b', 'b', 'b::c', 'a']},
 
 );
 
