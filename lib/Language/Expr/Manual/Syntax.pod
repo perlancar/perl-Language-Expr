@@ -32,7 +32,7 @@ Ruby).
  false
 
 Differences from Perl: Perl doesn't support native booleans, but there are
-modules like L<boolean> which practically makes Perl behaves like it does.
+modules like L<boolean> which practically make Perl behaves like it does.
 
 =head2 Number
 
