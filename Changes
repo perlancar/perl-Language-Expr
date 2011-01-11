@@ -1,12 +1,22 @@
 Revision history for Language-Expr
 
+0.16    2011-01-11
+
+        Add more documentation.
+
+        Language: Remove support for $. and $.. variable syntax (you can still
+        write them as ${.} and ${..} if you need them). Add support for
+        $package::separated::var (currently translated as-is in PHP/JS
+        compiler).
+
+
 0.15    2011-01-11
 
         Add more documentation.
 
         Add compile(), js(), and php() in main module.
 
-        Support octal/hexadecimal/binary number literals.
+        Language: Support octal/hexadecimal/binary number literals.
 
 
 0.14    2011-01-06
