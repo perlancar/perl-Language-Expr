@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 324;
+use Test::More tests => 336;
 use Test::Exception;
 use Language::Expr;
 use POSIX;

@@ -12,6 +12,14 @@ sub stdvars {
 
 sub stdtests {
     return (
+    # literal num
+    {category=>'literal num', text=>'-0x1f', result=>-31},
+    {category=>'literal num', text=>'0b100', result=>4},
+    {category=>'literal num', text=>'-0o17', result=>-15},
+    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'0x1g'},
+    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'-0b2'},
+    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'0o18'},
+
     # array
     {category=>'array', text=>'[]', result=>[]},
     {category=>'array', text=>'[1,2]', result=>[1, 2]},
