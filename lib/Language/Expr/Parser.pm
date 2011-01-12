@@ -55,7 +55,13 @@ sub parse_expr {
 # precedence level: left     || // ^^
         <rule: or_xor>
             <[operand=and]> ** <[op=(\|\||//|\^\^)]>
-            (?{ $MATCH = $obj->rule_or_xor(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_or_xor(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: right    ?:
 #        <rule: ternary>
@@ -66,61 +72,133 @@ sub parse_expr {
 # precedence level: left     &&
         <rule: and>
             <[operand=bit_or_xor]> ** <[op=(&&)]>
-            (?{ $MATCH = $obj->rule_and(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_and(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     | ^
         <rule: bit_or_xor>
             <[operand=bit_and]> ** <[op=(\||\^)]>
-            (?{ $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     &
         <rule: bit_and>
             <[operand=comparison3]> ** <[op=(&)]>
-            (?{ $MATCH = $obj->rule_bit_and(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_bit_and(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
             # NOTE: \x3c = "<", \x3e = ">"
 
 # precedence level: nonassoc (currently the grammar says assoc) <=> cmp
         <rule: comparison3>
             <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
-            (?{ $MATCH = $obj->rule_comparison3(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_comparison3(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left == != eq ne < > <= >= ge gt le lt
         <rule: comparison>
             <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
-            (?{ $MATCH = $obj->rule_comparison(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_comparison(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     << >>
         <rule: bit_shift>
             <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
-            (?{ $MATCH = $obj->rule_bit_shift(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_bit_shift(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     + - .
         <rule: add>
             <[operand=mult]> ** <[op=(\+|-|\.)]>
-            (?{ $MATCH = $obj->rule_add(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_add(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     * / % x
         <rule: mult>
             <[operand=unary]> ** <[op=(\*|/|%|x)]>
-            (?{ $MATCH = $obj->rule_mult(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_mult(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: right    ! ~ unary+ unary-
         <rule: unary>
             <[op=(!|~|\+|-)]>* <operand=power>
-            (?{ $MATCH = $obj->rule_unary(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_unary(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand};
+                }
+            })
 
 # precedence level: right    **
         <rule: power>
             <[operand=subscripting]> ** <[op=(\*\*)]>
-            (?{ $MATCH = $obj->rule_power(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{op} }) {
+                    $MATCH = $obj->rule_power(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left    hash[s], array[i]
         <rule: subscripting>
             <operand=var0> <[subscript]>*
-            (?{ $MATCH = $obj->rule_subscripting_var(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{subscript} }) {
+                    $MATCH = $obj->rule_subscripting_var(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand};
+                }
+            })
           | <operand=term> <[subscript]>*
-            (?{ $MATCH = $obj->rule_subscripting_expr(match=>\%MATCH) })
+            (?{
+                if (@{ $MATCH{subscript} }) {
+                    $MATCH = $obj->rule_subscripting_expr(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand};
+                }
+            })
 
         <rule: subscript>
               \[ <MATCH=term> \]
