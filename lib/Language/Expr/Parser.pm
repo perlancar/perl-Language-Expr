@@ -45,7 +45,7 @@ sub parse_expr {
 
 # precedence level: left     =>
         <rule: pair>
-            <key=(\w+)> =\> <value=answer>
+            <key=(\w++)> =\> <value=answer>
             (?{ $MATCH = $obj->rule_pair_simple(match=>\%MATCH) })
           | <key=squotestr> =\> <value=answer>
             (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
@@ -237,13 +237,13 @@ sub parse_expr {
             (?{ $MATCH = $obj->rule_bool(match=>\%MATCH) })
 
         <token: num0>
-            <sign0a=([+-]?)> 0x <num0a=([0-9A-Fa-f]++)>
+            <sign0a=([+-]?+)> 0x <num0a=([0-9A-Fa-f]++)>
             (?{ $MATCH = $obj->rule_num(match=>{num=>
                 ($MATCH{sign0a} eq '-' ? -1:1) * hex($MATCH{num0a})}) })
-          | <sign0b=([+-]?)> 0o <num0b=([0-7]++)>
+          | <sign0b=([+-]?+)> 0o <num0b=([0-7]++)>
             (?{ $MATCH = $obj->rule_num(match=>{num=>
                 ($MATCH{sign0b} eq '-' ? -1:1) * oct($MATCH{num0b})}) })
-          | <sign0c=([+-]?)> 0b <num0c=([0-1]++)>
+          | <sign0c=([+-]?+)> 0b <num0c=([0-1]++)>
             (?{ $MATCH = $obj->rule_num(match=>{num=>
                 ($MATCH{sign0c} eq '-' ? -1:1) * oct("0b".$MATCH{num0c})}) })
           | <num0c=( [+-]?\d++(?:\.\d++)?+ | inf | nan)>
@@ -254,26 +254,26 @@ sub parse_expr {
           | <MATCH=dquotestr>
 
         <token: squotestr>
-            '<[part=(\\\\|\\'|\\|[^\\']+)]>*'
+            '<[part=(\\\\|\\'|\\|[^\\']++)]>*'
             (?{ $MATCH = $obj->rule_squotestr(match=>\%MATCH) })
 
         <token: dquotestr>
-            "<[part=([^"\044\\]+|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
+            "<[part=([^"\044\\]++|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
             (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
 
         <rule: var0>
-            \$ <var=(\w+(?:::\w+)*)>
+            \$ <var=(\w++(?:::\w+)*+)>
             (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
-          | \$ \{ <var=([^\}]+)> \}
+          | \$ \{ <var=([^\}]++)> \}
             (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
 
         <rule: func>
-            <func_name=([A-Za-z_]\w*)> \( \)
+            <func_name=([A-Za-z_]\w*+)> \( \)
             (?{ $MATCH = $obj->rule_func(match=>{func_name=>$MATCH{func_name}, args=>[]}) })
           | <func_name=(map|grep|usort)> \( \{ <expr=answer> \} (?{ push @$subexpr_stack, $CONTEXT }), <input_array=answer> \)
             (?{ my $meth = "rule_func_$MATCH{func_name}";
                 $MATCH = $obj->$meth(match=>{expr=>pop(@$subexpr_stack), array=>$MATCH{input_array}}) })
-          | <func_name=([A-Za-z_]\w*)> \( <[args=answer]> ** (,) \)
+          | <func_name=([A-Za-z_]\w*+)> \( <[args=answer]> ** (,) \)
             (?{ $MATCH = $obj->rule_func(match=>\%MATCH) })
 
     }xms } 0..($MAX_LEVELS-1)];
