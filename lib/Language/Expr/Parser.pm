@@ -56,7 +56,7 @@ sub parse_expr {
         <rule: or_xor>
             <[operand=ternary]> ** <[op=(\|\||//|\^\^)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_or_xor(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -67,7 +67,7 @@ sub parse_expr {
         <rule: ternary>
             <[operand=and]> ** <[op=(\?|:)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     unless (@{ $MATCH{op} } == 2 &&
                             $MATCH{op}[0] eq '?' &&
                             $MATCH{op}[1] eq ':') {
@@ -83,7 +83,7 @@ sub parse_expr {
         <rule: and>
             <[operand=bit_or_xor]> ** <[op=(&&)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_and(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -94,7 +94,7 @@ sub parse_expr {
         <rule: bit_or_xor>
             <[operand=bit_and]> ** <[op=(\||\^)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -105,7 +105,7 @@ sub parse_expr {
         <rule: bit_and>
             <[operand=comparison3]> ** <[op=(&)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_bit_and(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -118,7 +118,7 @@ sub parse_expr {
         <rule: comparison3>
             <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_comparison3(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -129,7 +129,7 @@ sub parse_expr {
         <rule: comparison>
             <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_comparison(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -140,7 +140,7 @@ sub parse_expr {
         <rule: bit_shift>
             <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_bit_shift(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -151,7 +151,7 @@ sub parse_expr {
         <rule: add>
             <[operand=mult]> ** <[op=(\+|-|\.)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_add(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -162,7 +162,7 @@ sub parse_expr {
         <rule: mult>
             <[operand=unary]> ** <[op=(\*|/|%|x)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_mult(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -173,7 +173,7 @@ sub parse_expr {
         <rule: unary>
             <[op=(!|~|\+|-)]>* <operand=power>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_unary(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand};
@@ -184,7 +184,7 @@ sub parse_expr {
         <rule: power>
             <[operand=subscripting]> ** <[op=(\*\*)]>
             (?{
-                if (@{ $MATCH{op} }) {
+                if ($MATCH{op} && @{ $MATCH{op} }) {
                     $MATCH = $obj->rule_power(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand}[0];
@@ -195,7 +195,7 @@ sub parse_expr {
         <rule: subscripting>
             <operand=var0> <[subscript]>*
             (?{
-                if (@{ $MATCH{subscript} }) {
+                if ($MATCH{subscript} && @{ $MATCH{subscript} }) {
                     $MATCH = $obj->rule_subscripting_var(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand};
@@ -203,7 +203,7 @@ sub parse_expr {
             })
           | <operand=term> <[subscript]>*
             (?{
-                if (@{ $MATCH{subscript} }) {
+                if ($MATCH{subscript} && @{ $MATCH{subscript} }) {
                     $MATCH = $obj->rule_subscripting_expr(match=>\%MATCH);
                 } else {
                     $MATCH = $MATCH{operand};
