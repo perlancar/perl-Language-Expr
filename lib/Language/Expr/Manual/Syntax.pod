@@ -121,11 +121,6 @@ operators mostly to separate statements, which we do not have anyway.
 
 =item * "xor" becomes "^^" (to be consistent with "^" as bitwise-xor).
 
-=item * (Implementation) Currently ternary "?:" operator is not parsed.
-
-See L<Language::Expr::Parser> for more information. As an alternative, you can
-use the if() function (availability depends on interpreter/compiler).
-
 =item * Hash value is accessed using [] instead of {}, and barewords (e.g. $hash[key] instead of $hash["key"]) are not allowed.
 
 Which, BTW, is also the way it is done in Python, Ruby, and PHP.
