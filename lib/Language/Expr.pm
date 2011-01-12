@@ -69,9 +69,6 @@ supports mathematical and string operators, arrays, hashes, variables,
 and functions. See L<Language::Expr::Manual::Syntax> for description
 of the language syntax.
 
-The language is very simple. The parser is just around 120 lines
-long.
-
 This distribution consists of the language parser
 (L<Language::Expr::Parser>), some interpreters
 (Language::Expr::Interpreter::*), and some compilers
