@@ -54,7 +54,7 @@ sub parse_expr {
 
 # precedence level: left     || // ^^
         <rule: or_xor>
-            <[operand=and]> ** <[op=(\|\||//|\^\^)]>
+            <[operand=ternary]> ** <[op=(\|\||//|\^\^)]>
             (?{
                 if (@{ $MATCH{op} }) {
                     $MATCH = $obj->rule_or_xor(match=>\%MATCH);
@@ -64,10 +64,20 @@ sub parse_expr {
             })
 
 # precedence level: right    ?:
-#        <rule: ternary>
-#            <operand1=and> \? <operand2=and> : <operand3=and>
-#            (?{ $MATCH = $obj->rule_ternary(match=>\%MATCH) })
-#          | <MATCH=and>
+        <rule: ternary>
+            <[operand=and]> ** <[op=(\?|:)]>
+            (?{
+                if (@{ $MATCH{op} }) {
+                    unless (@{ $MATCH{op} } == 2 &&
+                            $MATCH{op}[0] eq '?' &&
+                            $MATCH{op}[1] eq ':') {
+                        die "Invalid syntax for ternary, please use X ? Y : Z syntax";
+                    }
+                    $MATCH = $obj->rule_ternary(match=>\%MATCH);
+                } else {
+                    $MATCH = $MATCH{operand}[0];
+                }
+            })
 
 # precedence level: left     &&
         <rule: and>
@@ -289,7 +299,7 @@ sub parse_expr {
 
 =over 4
 
-=item * Ternary operator is not parsed at the moment due to slow backtrack problem.
+=item * Ternary operator is not chainable yet.
 
 =back
 

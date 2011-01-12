@@ -1,10 +1,12 @@
 Revision history for Language-Expr
 
-0.17
+0.17    2011-01-12
+
+        Language: Ternary operator ?:.
 
         Add more documentation.
 
-        Language: Ternary operator ?: is defined (but not yet parsed).
+        Some grammar optimizations.
 
 
 0.16    2011-01-11

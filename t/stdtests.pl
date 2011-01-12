@@ -108,6 +108,23 @@ sub stdtests {
     {category=>'or_xor', text=>'undef // 2', result=>2},
     {category=>'or_xor', text=>'undef // undef', result=>undef},
 
+    # ternary
+
+    # commented, if enabled, will cause further parsing to fail
+    #{category=>'ternary', text=>'1 : 1', parse_error=>qr/invalid syntax for ternary/i},
+    #{category=>'ternary', text=>'1 ? 1', parse_error=>qr/invalid syntax for ternary/i},
+    #{category=>'ternary', text=>'1 ? 1 ? 1', parse_error=>qr/invalid syntax for ternary/i},
+    #{category=>'ternary', text=>'1 : 1 ? 1', parse_error=>qr/invalid syntax for ternary/i},
+    #{category=>'ternary', text=>'1 : 1 : 1', parse_error=>qr/invalid syntax for ternary/i},
+
+    #{category=>'ternary', text=>'1 ? 1 ? 1 : 1 : 1', parse_error=>qr/invalid syntax for ternary/i}, # chained is not supported yet
+    {category=>'ternary', text=>'1==1 ? "a":"b"', result=>"a"},
+    {category=>'ternary', text=>'1==0 ? "a":"b"', result=>"b"},
+    {category=>'ternary', text=>'1==1 ? (2==2 ? "a":"b") : "c"', result=>"a"},
+    {category=>'ternary', text=>'1==1 ? (2==3 ? "a":"b") : "c"', result=>"b"},
+    {category=>'ternary', text=>'1==0 ? (2==2 ? "a":"b") : "c"', result=>"c"},
+    {category=>'ternary', text=>'1==0 ? (2==3 ? "a":"b") : "c"', result=>"c"},
+
     # add
     {category=>'add', text=>'1+1', result=>'2'},
     {category=>'add', text=>'1+1+4+7', result=>'13'},
