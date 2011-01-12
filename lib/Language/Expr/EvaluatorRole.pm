@@ -98,7 +98,7 @@ sub parse_dquotestr {
             push @sbuf, $_;
         }
     }
-    push @res, {type=>"STR", value=>join("", @sbuf)} if @sbuf;
+    push @res, {type=>"STR", value=>join("", grep {defined} @sbuf)} if @sbuf;
     \@res;
 }
 
@@ -128,7 +128,7 @@ sub parse_squotestr {
         elsif ($_ eq "\\\\") { push @sbuf, "\\" }
         else                 { push @sbuf, $_   }
     }
-    push @res, {type=>"STR", value=>join("", @sbuf)} if @sbuf;
+    push @res, {type=>"STR", value=>join("", grep {defined} @sbuf)} if @sbuf;
     \@res;
 }
 
