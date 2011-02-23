@@ -76,7 +76,11 @@ This distribution consists of the language parser
 
 =cut
 
-use Any::Moose;
+use 5.010;
+use strict;
+use warnings;
+
+use Moo;
 
 
 =head1 ATTRIBUTES
@@ -96,7 +100,7 @@ inconvenience might be rectified in the future.
 
 has interpreted => (
     is => 'rw',
-    default => 0,
+    default => sub{0},
 );
 
 =head2 interpreter => OBJ

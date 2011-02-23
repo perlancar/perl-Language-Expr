@@ -2,7 +2,10 @@ package Language::Expr::Compiler::PHP;
 # ABSTRACT: Compile Language::Expr expression to PHP
 
 use 5.010;
-use Any::Moose;
+use strict;
+use warnings;
+
+use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Compiler::Base';
 
@@ -531,6 +534,4 @@ sub _substitute_use {
     $str;
 }
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

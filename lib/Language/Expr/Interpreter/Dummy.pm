@@ -1,7 +1,11 @@
 package Language::Expr::Interpreter::Dummy;
 # ABSTRACT: Dummy interpreter for Language::Expr (used for testing)
 
-use Any::Moose;
+use 5.010;
+use strict;
+use warnings;
+
+use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
@@ -49,6 +53,4 @@ sub rule_parenthesis { }
 sub expr_preprocess { }
 sub expr_postprocess { }
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

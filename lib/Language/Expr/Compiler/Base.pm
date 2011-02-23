@@ -2,7 +2,10 @@ package Language::Expr::Compiler::Base;
 # ABSTRACT: Base class for Expr compilers
 
 use 5.010;
-use Any::Moose;
+use strict;
+use warnings;
+
+use Moo;
 extends 'Language::Expr::Evaluator';
 
 use UUID::Tiny ':std';
@@ -111,6 +114,4 @@ sub marker_ids_re {
     qr/$re/;
 }
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

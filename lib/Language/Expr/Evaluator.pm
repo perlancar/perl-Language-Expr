@@ -1,7 +1,11 @@
 package Language::Expr::Evaluator;
 # ABSTRACT: Base class for Language::Expr compilers and interpreters
 
-use Any::Moose;
+use 5.010;
+use strict;
+use warnings;
+
+use Moo;
 require Language::Expr::Parser;
 
 =head1 METHODS
@@ -18,6 +22,4 @@ sub eval {
     $res;
 }
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

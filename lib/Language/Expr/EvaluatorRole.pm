@@ -2,7 +2,10 @@ package Language::Expr::EvaluatorRole;
 # ABSTRACT: Specification for Language::Expr interpreter/compiler
 
 use 5.010;
-use Any::Moose '::Role';
+use strict;
+use warnings;
+
+use Moo::Role;
 
 requires 'rule_pair_simple';
 requires 'rule_pair_string';
@@ -132,5 +135,4 @@ sub parse_squotestr {
     \@res;
 }
 
-no Any::Moose;
 1;

@@ -1,7 +1,11 @@
 package Language::Expr::Interpreter::VarEnumer;
 # ABSTRACT: Enumerate variables mentioned in Language::Expr expression
 
-use Any::Moose;
+use 5.010;
+use strict;
+use warnings;
+
+use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
@@ -129,6 +133,4 @@ Currently $_ in map/grep variables and $a & $b in usort are counted.
 
 =cut
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

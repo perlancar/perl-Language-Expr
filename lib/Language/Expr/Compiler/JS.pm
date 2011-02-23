@@ -2,7 +2,10 @@ package Language::Expr::Compiler::JS;
 # ABSTRACT: Compile Language::Expr expression to JavaScript
 
 use 5.010;
-use Any::Moose;
+use strict;
+use warnings;
+
+use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Compiler::Base';
 
@@ -484,6 +487,4 @@ sub js {
     $res;
 }
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;

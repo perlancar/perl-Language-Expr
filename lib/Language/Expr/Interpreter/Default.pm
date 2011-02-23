@@ -1,7 +1,11 @@
 package Language::Expr::Interpreter::Default;
 # ABSTRACT: A default interpreter for Language::Expr
 
-use Any::Moose;
+use 5.010;
+use strict;
+use warnings;
+
+use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 use List::Util 'reduce';
@@ -55,7 +59,7 @@ Current recursion level.
 
 =cut
 
-has level => (is => 'rw', default => 0);
+has level => (is => 'rw', default => sub{0});
 
 
 =head1 METHODS
@@ -393,6 +397,4 @@ Currently subexpression (map/grep/usort) doesn't work yet.
 
 =cut
 
-__PACKAGE__->meta->make_immutable;
-no Any::Moose;
 1;
