@@ -1,6 +1,6 @@
 use boolean;
 use Data::Rmap qw(:all);
-use Clone::Any qw/clone/;
+use Data::Clone qw/clone/;
 
 sub prepare_testing {
 }
