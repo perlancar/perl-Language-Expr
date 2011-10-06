@@ -42,8 +42,8 @@ Can be set to a coderef that will be called during parsing whenever variable is
 encountered. The coderef is called with variable name as argument, and expected
 to return target language code to handle the variable. By default, if this
 attribute is not set, variable in expression is returned as is (e.g. '$foo'
-becomes '$foo' in Perl), which means some will result in error (e.g. '${name that
-contains some symbols that makes it invalid Perl)').
+becomes '$foo' in Perl), which means some will result in error (e.g. '${name
+that contains some symbols that makes it invalid Perl}').
 
 If the coderef returns undef, the default behaviour is used.
 
