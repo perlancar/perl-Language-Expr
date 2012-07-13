@@ -2,6 +2,8 @@
 package Language::Expr::Manual::Syntax;
 # ABSTRACT: Description of the Language::Expr language
 
+# VERSION
+
 =head1 OVERVIEW
 
 Language::Expr language is very simple. It has just enough features to
