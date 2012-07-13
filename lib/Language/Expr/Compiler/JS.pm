@@ -1,6 +1,8 @@
 package Language::Expr::Compiler::JS;
 # ABSTRACT: Compile Language::Expr expression to JavaScript
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

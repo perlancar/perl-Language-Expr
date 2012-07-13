@@ -1,6 +1,8 @@
 package Language::Expr::EvaluatorRole;
 # ABSTRACT: Specification for Language::Expr interpreter/compiler
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

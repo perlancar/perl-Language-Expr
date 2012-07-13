@@ -1,6 +1,8 @@
 package Language::Expr::Compiler::PHP;
 # ABSTRACT: Compile Language::Expr expression to PHP
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

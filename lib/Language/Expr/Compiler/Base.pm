@@ -1,6 +1,8 @@
 package Language::Expr::Compiler::Base;
 # ABSTRACT: Base class for Expr compilers
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

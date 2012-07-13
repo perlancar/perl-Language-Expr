@@ -1,6 +1,8 @@
 package Language::Expr;
 # ABSTRACT: Simple minilanguage for use in expression
 
+# VERSION
+
 =head1 SYNOPSIS
 
     use 5.010;

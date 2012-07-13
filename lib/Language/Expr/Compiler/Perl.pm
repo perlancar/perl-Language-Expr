@@ -1,6 +1,8 @@
 package Language::Expr::Compiler::Perl;
 # ABSTRACT: Compile Language::Expr expression to Perl
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

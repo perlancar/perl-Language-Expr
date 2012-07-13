@@ -1,6 +1,8 @@
 package Language::Expr::Evaluator;
 # ABSTRACT: Base class for Language::Expr compilers and interpreters
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

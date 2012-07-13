@@ -1,6 +1,8 @@
 package Language::Expr::Interpreter::Dummy;
 # ABSTRACT: Dummy interpreter for Language::Expr (used for testing)
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;

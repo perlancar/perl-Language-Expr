@@ -1,6 +1,8 @@
 package Language::Expr::Parser;
 # ABSTRACT: Parse Language::Expr expression
 
+# VERSION
+
 use 5.010;
 # now can't compile with this on?
 #use strict;

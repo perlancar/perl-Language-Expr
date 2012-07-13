@@ -1,6 +1,8 @@
 package Language::Expr::Interpreter::Default;
 # ABSTRACT: A default interpreter for Language::Expr
 
+# VERSION
+
 use 5.010;
 use strict;
 use warnings;
