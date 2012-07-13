@@ -206,7 +206,7 @@ sub stdtests {
 
     # term:var
     {category=>'var', text=>'$b', result=>'2'},
-    {category=>'var', text=>q[${a b}], result=>'3', compiler_run_error=>qr/Bareword found/i, php_compiler_run_error=>qr/syntax error/i},
+    {category=>'var', text=>q[${a b}], result=>'3', compiler_run_error=>qr/Bareword found/i, js_compiler_run_error=>qr/syntax\s*error/i, php_compiler_run_error=>qr/syntax error/i},
     {category=>'var', text=>'$a+2*$b', result=>'5'},
     {category=>'var', text=>'$.', parse_error=>qr/invalid syntax/i}, # no longer allowed since 0.16
     {category=>'var', text=>'$..', parse_error=>qr/invalid syntax/i}, # no longer allowed since 0.16
