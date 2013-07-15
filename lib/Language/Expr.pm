@@ -78,7 +78,7 @@ This distribution consists of the language parser
 
 =cut
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 
