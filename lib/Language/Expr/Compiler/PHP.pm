@@ -177,15 +177,13 @@ sub rule_comparison3 {
 
 sub _comparison1 {
     my ($opd1, $op, $opd2) = @_;
-    given ($op) {
-        when ('eq') { return "(strcmp($opd1, $opd2) == 0)" }
-        when ('ne') { return "(strcmp($opd1, $opd2) != 0)" }
-        when ('lt') { return "(strcmp($opd1, $opd2) <= 0)" }
-        when ('le') { return "(strcmp($opd1, $opd2) <  0)" }
-        when ('gt') { return "(strcmp($opd1, $opd2) >= 0)" }
-        when ('ge') { return "(strcmp($opd1, $opd2) >  0)" }
-        default { return "($opd1 $op $opd2)" }
-    }
+    if    ($op eq 'eq') { return "(strcmp($opd1, $opd2) == 0)" }
+    elsif ($op eq 'ne') { return "(strcmp($opd1, $opd2) != 0)" }
+    elsif ($op eq 'lt') { return "(strcmp($opd1, $opd2) <= 0)" }
+    elsif ($op eq 'le') { return "(strcmp($opd1, $opd2) <  0)" }
+    elsif ($op eq 'gt') { return "(strcmp($opd1, $opd2) >= 0)" }
+    elsif ($op eq 'ge') { return "(strcmp($opd1, $opd2) >  0)" }
+    else { return "($opd1 $op $opd2)" }
 }
 
 sub rule_comparison {
