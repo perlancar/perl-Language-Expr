@@ -1,5 +1,11 @@
 Revision history for Language-Expr
 
+0.21    2013-08-05 (SHARYANTO)
+
+        No functional changes. Add 'use experimental "smartmatch"' for
+        5.18+ [CT].
+
+
 0.20    2013-07-15 (SHARYANTO)
 
         No functional changes. Replace given() with if-else due to failing CT
