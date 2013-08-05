@@ -8,6 +8,7 @@ use strict;
 use warnings;
 
 use Moo;
+use experimental 'smartmatch';
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
