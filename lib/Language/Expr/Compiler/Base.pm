@@ -13,7 +13,7 @@ extends 'Language::Expr::Evaluator';
 use UUID::Tiny ':std';
 use Language::Expr::Interpreter::Default;
 
-=head1 ATTRIBUTES
+=head1 ATTRIBUTES (MANUAL)
 
 =head2 markers => ARRAYREF
 

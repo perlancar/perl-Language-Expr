@@ -2,6 +2,7 @@ package Language::Expr;
 # ABSTRACT: Simple minilanguage for use in expression
 
 # VERSION
+# DATE
 
 =head1 SYNOPSIS
 
@@ -85,7 +86,7 @@ use warnings;
 use Moo;
 
 
-=head1 ATTRIBUTES
+=head1 ATTRIBUTES (MANUAL)
 
 =head2 interpreted => BOOL
 
@@ -361,7 +362,7 @@ modifying the Language::Expr::Parser module.
 This is a TODO item.
 
 
-=head1 BUGS
+=head1 KNOWN BUGS
 
 Due to possible bugs in Perl's RE engine or Regexp::Grammars or my
 grammar, some syntax errors will cause further parsing to

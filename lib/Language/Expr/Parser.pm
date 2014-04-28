@@ -297,7 +297,7 @@ sub parse_expr {
     $obj_arg->expr_postprocess(result => $/{answer});
 }
 
-=head1 BUGS
+=head1 KNOWN BUGS
 
 =over 4
 

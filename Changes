@@ -1,5 +1,12 @@
 Revision history for Language-Expr
 
+0.22    2014-04-28 (SHARYANTO)
+
+        - No functional changes.
+
+        - Disable most tests for now since Regexp::Grammars is broken.
+
+
 0.21    2013-08-05 (SHARYANTO)
 
         - No functional changes. Add 'use experimental "smartmatch"' for
