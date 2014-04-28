@@ -1,12 +1,14 @@
-#!perl -T
+#!perl
 
 # test various methods in Language::Expr not tested by other tests.
 
 use strict;
 use warnings;
 
-use Test::More tests => 8;
+use Test::More 0.98;
 use Language::Expr;
+
+plan skip_all => 'Regexp::Grammars is currently broken';
 
 my $le = Language::Expr->new;
 
@@ -25,3 +27,5 @@ is($le->js('2**3'), 'Math.pow(2, 3)', 'js() works');
 
 is($le->php('2**3'), 'pow(2, 3)', 'php() works');
 
+DONE_TESTING:
+done_testing;

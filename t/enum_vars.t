@@ -1,8 +1,8 @@
-#!perl -T
+#!perl
 
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More;
 use Test::Exception;
 use Language::Expr;
 use POSIX;
@@ -31,3 +31,5 @@ for (@data) {
     is_deeply($le->enum_vars($_->{text}), $_->{result}, "$_->{category} ($_->{text})");
 }
 
+DONE_TESTING:
+done_testing;
