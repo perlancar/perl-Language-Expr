@@ -1,5 +1,12 @@
 Revision history for Language-Expr
 
+0.23    2014-05-01 (SHARYANTO)
+
+        - No functional changes.
+
+        - Second attempt at disabling most tests.
+
+
 0.22    2014-04-28 (SHARYANTO)
 
         - No functional changes.
