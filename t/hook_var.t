@@ -4,11 +4,15 @@ use strict;
 use warnings;
 
 use Test::More;
+
+BEGIN {
+    plan skip_all => 'Regexp::Grammars is currently broken';
+    exit 0;
+}
+
 use Language::Expr::Compiler::Perl;
 use Language::Expr::Compiler::PHP;
 use Language::Expr::Compiler::JS;
-
-plan skip_all => 'Regexp::Grammars is currently broken';
 
 my $plc = new Language::Expr::Compiler::Perl;
 $plc->hook_var(sub { if ($_[0] eq 'x') { return } else { "get_var('$_[0]')" } });

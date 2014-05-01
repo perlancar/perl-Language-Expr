@@ -10,7 +10,10 @@ use POSIX;
 use lib "./t";
 require "stdtests.pl";
 
-plan skip_all => "Regexp::Grammars is currently broken";
+BEGIN {
+    plan skip_all => 'Regexp::Grammars is currently broken';
+    exit 0;
+}
 
 my $le = new Language::Expr;
 {

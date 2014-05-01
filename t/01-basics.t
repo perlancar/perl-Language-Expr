@@ -8,7 +8,10 @@ use warnings;
 use Test::More 0.98;
 use Language::Expr;
 
-plan skip_all => 'Regexp::Grammars is currently broken';
+BEGIN {
+    plan skip_all => 'Regexp::Grammars is currently broken';
+    exit 0;
+}
 
 my $le = Language::Expr->new;
 

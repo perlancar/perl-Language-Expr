@@ -7,6 +7,11 @@ use Test::Exception;
 use Language::Expr;
 use POSIX;
 
+BEGIN {
+    plan skip_all => 'Regexp::Grammars is currently broken';
+    exit 0;
+}
+
 my @data = (
     {category=>'none', text=>'[]', result=>[]},
     {category=>'none', text=>'1+2+3', result=>[]},
