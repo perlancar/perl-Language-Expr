@@ -1,7 +1,4 @@
 package Language::Expr::Interpreter::VarEnumer;
-# ABSTRACT: Enumerate variables mentioned in Language::Expr expression
-
-# VERSION
 
 use 5.010;
 use strict;
@@ -12,72 +9,55 @@ use experimental 'smartmatch';
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
-=head1 ATTRIBUTES
-
-=head2 result => ARRAYREF
-
-Store the list of variables seen during parsing.
-
-=cut
+# VERSION
+# DATE
 
 has result => (is => 'rw');
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
-
-=head2 add_var(VAR)
-
-Add variable to B<result> if it is not already in there.
-
-=cut
 
 sub add_var {
     my ($self, $v) = @_;
     push @{$self->result}, $v unless $v ~~ @{$self->result};
 }
 
-sub rule_pair_simple { }
+sub rule_pair_simple {}
 
-sub rule_pair_string { }
+sub rule_pair_string {}
 
-sub rule_or_xor { }
+sub rule_or_xor {}
 
-sub rule_ternary { }
+sub rule_ternary {}
 
-sub rule_and { }
+sub rule_and {}
 
-sub rule_bit_or_xor { }
+sub rule_bit_or_xor {}
 
-sub rule_bit_and { }
+sub rule_bit_and {}
 
-sub rule_comparison3 { }
+sub rule_comparison3 {}
 
-sub rule_comparison { }
+sub rule_comparison {}
 
-sub rule_bit_shift { }
+sub rule_bit_shift {}
 
-sub rule_add { }
+sub rule_add {}
 
-sub rule_mult { }
+sub rule_mult {}
 
-sub rule_unary { }
+sub rule_unary {}
 
-sub rule_power { }
+sub rule_power {}
 
-sub rule_subscripting_var { }
+sub rule_subscripting_var {}
 
-sub rule_subscripting_expr { }
+sub rule_subscripting_expr {}
 
-sub rule_array { }
+sub rule_array {}
 
-sub rule_hash { }
+sub rule_hash {}
 
-sub rule_undef { }
+sub rule_undef {}
 
-sub rule_squotestr { }
+sub rule_squotestr {}
 
 sub rule_dquotestr {
     my ($self, %args) = @_;
@@ -94,9 +74,9 @@ sub rule_dquotestr {
     }
 }
 
-sub rule_bool { }
+sub rule_bool {}
 
-sub rule_num { }
+sub rule_num {}
 
 sub rule_var {
     my ($self, %args) = @_;
@@ -104,16 +84,13 @@ sub rule_var {
     $self->add_var($match->{var});
 }
 
-sub rule_func { }
+sub rule_func {}
 
-sub rule_func_map {
-}
+sub rule_func_map {}
 
-sub rule_func_grep {
-}
+sub rule_func_grep {}
 
-sub rule_func_usort {
-}
+sub rule_func_usort {}
 
 sub rule_parenthesis {}
 
@@ -130,10 +107,25 @@ sub eval {
     $self->result;
 }
 
-=head1 BUGS/TODOS
-
-Currently $_ in map/grep variables and $a & $b in usort are counted.
-
-=cut
-
 1;
+# ABSTRACT: Enumerate variables mentioned in Language::Expr expression
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head1 ATTRIBUTES
+
+=head2 result => ARRAYREF
+
+Store the list of variables seen during parsing.
+
+
+=head1 METHODS
+
+=head2 add_var(VAR)
+
+Add variable to B<result> if it is not already in there.
+
+
+=head1 KNOWN ISSUES
+
+Currently C<$_> in map/grep variables and C<$a> & C<$b> in usort are counted.

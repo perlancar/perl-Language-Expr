@@ -1,7 +1,4 @@
 package Language::Expr::Compiler::Base;
-# ABSTRACT: Base class for Expr compilers
-
-# VERSION
 
 use 5.010;
 use strict;
@@ -13,7 +10,39 @@ extends 'Language::Expr::Evaluator';
 use UUID::Tiny ':std';
 use Language::Expr::Interpreter::Default;
 
-=head1 ATTRIBUTES (MANUAL)
+# VERSION
+# DATE
+
+# [[type, uuid, data], ...]
+has markers => (is => 'rw', default => sub { [] });
+has func_mapping => (is => 'rw', default => sub { {} });
+has hook_var => (is => 'rw');
+has hook_func => (is => 'rw');
+
+sub new_marker {
+    my ($self, $type, $data) = @_;
+    my $uuid = UUID::Tiny::create_uuid_as_string(UUID_V4);
+    #my $uuid = int(9000*rand()+1000);
+    #print "DEBUG: Creating new marker: type=$type, uuid=$uuid, data=", ($data // "undef"), "\n\n";
+    push @{ $self->markers }, [$type, $uuid, $data];
+    $uuid;
+}
+
+sub marker_ids {
+    my ($self) = @_;
+    map {$_->[1]} @{ $self->markers };
+}
+
+sub marker_ids_re {
+    my ($self) = @_;
+    my $re = "(?:" . join("|", map {$_->[1]} @{ $self->markers }) . ")";
+    qr/$re/;
+}
+
+1;
+# ABSTRACT: Base class for Expr compilers
+
+=head1 ATTRIBUTES
 
 =head2 markers => ARRAYREF
 
@@ -23,22 +52,11 @@ values. This technique is kind of a hack, used for subexpression,
 inserting PHP use() statement (because they must be processed outward
 to inward), etc.
 
-=cut
-
-# [[type, uuid, data], ...]
-has markers => (is => 'rw', default => sub { [] });
-
 =head2 func_mapping => HASHREF
 
 Map Expr function to target language's function/method/property.
 
-=cut
-
-has func_mapping => (is => 'rw', default => sub { {} });
-
-=head1 ATTRIBUTES
-
-=head2 hook_var
+=head2 hook_var => CODE
 
 Can be set to a coderef that will be called during parsing whenever variable is
 encountered. The coderef is called with variable name as argument, and expected
@@ -52,11 +70,7 @@ If the coderef returns undef, the default behaviour is used.
 Note that due to current limitation of Perl regex and/or Regexp::Grammars, you
 cannot use any regex in your hook_var.
 
-=cut
-
-has hook_var => (is => 'rw');
-
-=head2 hook_func
+=head2 hook_func => CODE
 
 Can be set to a coderef that will be called during parsing whenever a function
 call is encountered. The coderef is called as its arguments function name and
@@ -69,51 +83,17 @@ If the coderef returns undef, the default behaviour is used.
 Note that due to current limitation of Perl regex and/or Regexp::Grammars, you
 cannot use any regex in your hook_var.
 
-=cut
-
-has hook_func => (is => 'rw');
-
 
 =head1 METHODS
 
 =head2 new_marker(TYPE[, DATA]) => UUID
 
-Create a new marker. Return a unique ID to be placed in compiled
-output.
-
-=cut
-
-sub new_marker {
-    my ($self, $type, $data) = @_;
-    my $uuid = UUID::Tiny::create_uuid_as_string(UUID_V4);
-    #my $uuid = int(9000*rand()+1000);
-    #print "DEBUG: Creating new marker: type=$type, uuid=$uuid, data=", ($data // "undef"), "\n\n";
-    push @{ $self->markers }, [$type, $uuid, $data];
-    $uuid;
-}
-
+Create a new marker. Return a unique ID to be placed in compiled output.
 
 =head2 marker_ids() => ARRAY
 
 Return an array of all marker IDs.
 
-=cut
-
-sub marker_ids {
-    my ($self) = @_;
-    map {$_->[1]} @{ $self->markers };
-}
-
 =head2 marker_ids_re() => STRING
 
 Return a regex that matches marker IDs.
-
-=cut
-
-sub marker_ids_re {
-    my ($self) = @_;
-    my $re = "(?:" . join("|", map {$_->[1]} @{ $self->markers }) . ")";
-    qr/$re/;
-}
-
-1;

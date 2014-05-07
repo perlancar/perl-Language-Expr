@@ -1,7 +1,4 @@
 package Language::Expr::Compiler::PHP;
-# ABSTRACT: Compile Language::Expr expression to PHP
-
-# VERSION
 
 use 5.010;
 use strict;
@@ -13,60 +10,8 @@ extends 'Language::Expr::Compiler::Base';
 
 use List::MoreUtils qw(uniq);
 
-=head1 SYNOPSIS
-
- use Language::Expr::Compiler::PHP;
- my $phpc = Language::Expr::Compiler::PHP->new;
- print $phpc->php('[1, 2, 3])'); # prints: array(1, 2, 3)
-
- # map Expr function to PHP function
- $phpc->func_mapping->{uc} = 'strtoupper';
- print $phpc->php(q{uc("party like it's ") . ceil(1998.9)}); # prints: strtoupper("party like it's " + ceil(1998.9)
-
-=head1 DESCRIPTION
-
-Compiles Language::Expr expression to PHP code. Some notes:
-
-=over 4
-
-=item * PHP version
-
-This compiler emits PHP 5.3 code (it uses lambda functions).
-
-Currently to test emitted JavaScript code, we use PHP command line
-interpreter as the L<PHP> and L<PHP::Interpreter> modules are still
-not up to par.
-
-=item * PHP-ness
-
-The emitted PHP code will follow PHP's weak typing, coercion rules,
-notions of true/false (which, fortunately, mimics closely that of
-Perl).
-
-=item * Variables by default simply use PHP variables.
-
-E.g. $a becomes $a, and so on. Be careful not to make variables which
-are invalid in PHP, e.g. $.. or ${foo/bar}.
-
-You can customize this behaviour by subclassing rule_var() or by providing a
-hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
-
-=item * Functions by default simply use PHP functions.
-
-foo() becomes foo(). Except those mentioned in B<func_mapping>
-(e.g. uc() becomes strtoupper() if func_mapping->{uc} is
-'strtoupper').
-
-You can customize this behaviour by subclassing rule_func() or by providing a
-hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
-
-=back
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
+# VERSION
+# DATE
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
@@ -474,13 +419,6 @@ sub _quote {
     '"' . join("", @c) . '"';
 }
 
-=head2 php($expr) => $php_code
-
-Convert Language::Expr expression into PHP code. Dies if there is
-syntax error in expression.
-
-=cut
-
 sub php {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
@@ -535,3 +473,61 @@ sub _substitute_use {
 }
 
 1;
+# ABSTRACT: Compile Language::Expr expression to PHP
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head1 SYNOPSIS
+
+ use Language::Expr::Compiler::PHP;
+ my $phpc = Language::Expr::Compiler::PHP->new;
+ print $phpc->php('[1, 2, 3])'); # prints: array(1, 2, 3)
+
+ # map Expr function to PHP function
+ $phpc->func_mapping->{uc} = 'strtoupper';
+ print $phpc->php(q{uc("party like it's ") . ceil(1998.9)}); # prints: strtoupper("party like it's " + ceil(1998.9)
+
+
+=head1 DESCRIPTION
+
+Compiles Language::Expr expression to PHP code. Some notes:
+
+=over
+
+=item * PHP version
+
+This compiler emits PHP 5.3 code (it uses lambda functions).
+
+Currently to test emitted JavaScript code, we use PHP command line interpreter
+as the L<PHP> and L<PHP::Interpreter> modules are still not up to par.
+
+=item * PHP-ness
+
+The emitted PHP code will follow PHP's weak typing, coercion rules, notions of
+true/false (which, fortunately, mimics closely that of Perl).
+
+=item * Variables by default simply use PHP variables.
+
+E.g. $a becomes $a, and so on. Be careful not to make variables which are
+invalid in PHP, e.g. $.. or ${foo/bar}.
+
+You can customize this behaviour by subclassing rule_var() or by providing a
+hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
+
+=item * Functions by default simply use PHP functions.
+
+foo() becomes foo(). Except those mentioned in B<func_mapping> (e.g. uc()
+becomes strtoupper() if func_mapping->{uc} is 'strtoupper').
+
+You can customize this behaviour by subclassing rule_func() or by providing a
+hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
+
+=back
+
+
+=head1 METHODS
+
+=head2 php($expr) => $php_code
+
+Convert Language::Expr expression into PHP code. Dies if there is syntax error
+in expression.

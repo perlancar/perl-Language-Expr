@@ -3,23 +3,23 @@ package Language::Expr::Manual::Syntax;
 # ABSTRACT: Description of the Language::Expr language
 
 # VERSION
+# DATE
 
 =head1 OVERVIEW
 
-Language::Expr language is very simple. It has just enough features to
-support mathematical/logical/string operations, arrays, hashes,
-variables, and function calls.
+Language::Expr language is very simple. It has just enough features to support
+mathematical/logical/string operations, arrays, hashes, variables, and function
+calls.
 
-Language::Expr is (intentionally) not Turing-complete (lacks
-assignment and loops).
+Language::Expr is (intentionally) not Turing-complete (lacks assignment and
+loops).
 
 Language::Expr is a lot like Perl. Differences from Perl, if any, are given
 after each section.
 
-It should be trivial to implement an interpreter or code generator
-from the parser. In fact, Language::Expr is meant to be easily
-convertible to Perl, PHP, and Javascript (among others like Python and
-Ruby).
+It should be trivial to implement an interpreter or code generator from the
+parser. In fact, Language::Expr is meant to be easily convertible to Perl, PHP,
+and Javascript (among others like Python and Ruby).
 
 
 =head1 LITERALS
@@ -51,14 +51,12 @@ error-prone 0o123 syntax, which is also adopted by Python.
 
 =head2 String
 
-Single-quoted strings, e.g. 'single quoted'. Supported escape
-sequences:
+Single-quoted strings, e.g. 'single quoted'. Supported escape sequences:
 
  \'    literal single quote
  \\    literal backslash
 
-Double-quoted strings, e.g. "double quoted". Supported escape
-sequences:
+Double-quoted strings, e.g. "double quoted". Supported escape sequences:
 
  \'    literal single quote
  \"    literal double quote
@@ -103,8 +101,8 @@ value, not comma. Dangling comma at the end is not allowed.
 
 =head1 OPERATORS
 
-Many operators are taken from Perl, along with their precedence levels
-and associativity, but here are the differences:
+Many operators are taken from Perl, along with their precedence levels and
+associativity, but here are the differences:
 
 =over 4
 
@@ -136,8 +134,8 @@ Example:
 
 =back
 
-Below is list of supported operators, ordered from lowest precedence,
-along with their associativity.
+Below is list of supported operators, ordered from lowest precedence, along with
+their associativity.
 
  left     =>
  left     || // ^^
@@ -274,5 +272,3 @@ return the ARRAY sorted using comparison in EXPR. EXPR will be evaluated for
 each element of ARRAY (B<$a> and B<$b> will be set with two values to be
 compared). The original value of B<$a> and B<$b> will be restored after EXPR
 completes.
-
-=cut

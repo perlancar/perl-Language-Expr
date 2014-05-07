@@ -1,7 +1,4 @@
 package Language::Expr::Evaluator;
-# ABSTRACT: Base class for Language::Expr compilers and interpreters
-
-# VERSION
 
 use 5.010;
 use strict;
@@ -10,13 +7,8 @@ use warnings;
 use Moo;
 require Language::Expr::Parser;
 
-=head1 METHODS
-
-=head2 eval($expr) => $result
-
-Evaluate expression and return the result.
-
-=cut
+# VERSION
+# DATE
 
 sub eval {
     my ($self, $expr) = @_;
@@ -25,3 +17,10 @@ sub eval {
 }
 
 1;
+# ABSTRACT: Base class for Language::Expr compilers and interpreters
+
+=head1 METHODS
+
+=head2 eval($expr) => $result
+
+Evaluate expression and return the result.
