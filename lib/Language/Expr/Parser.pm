@@ -11,42 +11,24 @@ our @EXPORT_OK = qw(parse_expr);
 # VERSION
 # DATE
 
-my $MAX_LEVELS = 3;
+my $bnf = <<'_'
+:start         ::= answer
 
-sub parse_expr {
-    my ($str, $obj_arg, $level) = @_;
-
-    $level //= 0;
-    die "Recursion level ($level) too deep (max $MAX_LEVELS)" if $level >= $MAX_LEVELS;
-
-    use Regexp::Grammars;
-
-    # WARN: this is not thread-safe!?
-    state $obj;
-    local $subexpr_stack = [];
-
-    # create not just 1 but 0..$MAX_LEVELS-1 of grammar objects, each
-    # for each recursion level (e.g. for map/grep/usort), fearing that
-    # the grammar is not reentrant. but currently no luck yet, still
-    # results in segfault/bus error.
-
-    state $grammars = [ map { qr{
-        ^\s*<answer>\s*$
-
-        <rule: answer>
-            <MATCH=or_xor>
+answer         ::= or_xor
 
 # precedence level: left     =>
-        <rule: pair>
-            <key=(\w++)> =\> <value=answer>
-            (?{ $MATCH = $obj->rule_pair_simple(match=>\%MATCH) })
-          | <key=squotestr> =\> <value=answer>
-            (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
-          | <key=dquotestr> =\> <value=answer>
-            (?{ $MATCH = $obj->rule_pair_string(match=>\%MATCH) })
+pair           ::= word ('=>') value         action => rule_pair_simple
+                 | squotestr ('=>') value    action => rule_pair_string
+                 | dquotestr ('=>') value    action => rule_pair_string
+word           ~ [\w]+
+value          ::= answer
 
 # precedence level: left     || // ^^
-        <rule: or_xor>
+or_xor         ::= ternary*                  separator => op_or_xor
+op_or_xor      ~ '||'
+               | '//'
+               | '^^'
+
             <[operand=ternary]> ** <[op=(\|\||//|\^\^)]>
             (?{
                 if ($MATCH{op} && @{ $MATCH{op} }) {
@@ -207,17 +189,15 @@ sub parse_expr {
               \[ <MATCH=term> \]
 
 # precedence level: left     term (variable, str/num literals, func(), (paren))
-        <rule: term>
-            <MATCH=func>
-          | <MATCH=var0>
-          | <MATCH=str0>
-          | <MATCH=undef>
-          | <MATCH=num0>
-          | <MATCH=bool0>
-          | <MATCH=array>
-          | <MATCH=hash>
-          | \( <answer> \)
-            (?{ $MATCH = $obj->rule_parenthesis(match=>\%MATCH) // $MATCH{answer} })
+term           ::= func
+                 | var0
+                 | str0
+                 | undef
+                 | num0
+                 | bool0
+                 | array
+                 | hash
+                 | ('(') answer (')')        action => rule_parenthesis
 
         <rule: array>
             \[ \]
@@ -256,13 +236,14 @@ sub parse_expr {
             <MATCH=squotestr>
           | <MATCH=dquotestr>
 
-        <token: squotestr>
-            '<[part=(\\\\|\\'|\\|[^\\']++)]>*'
-            (?{ $MATCH = $obj->rule_squotestr(match=>\%MATCH) })
+squotepart     ~ ('\\')
+               | ("\'")
+               | [^\\']+
+squotestr      ::= ("'") squotepart* ("'")
 
-        <token: dquotestr>
-            "<[part=([^"\044\\]++|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
-            (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
+#        <token: dquotestr>
+#            "<[part=([^"\044\\]++|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
+#            (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
 
         <rule: var0>
             \$ <var=(\w++(?:::\w+)*+)>
@@ -279,13 +260,17 @@ sub parse_expr {
           | <func_name=([A-Za-z_]\w*+)> \( <[args=answer]> ** (,) \)
             (?{ $MATCH = $obj->rule_func(match=>\%MATCH) })
 
-    }xms } 0..($MAX_LEVELS-1)];
+_
 
-    $obj = $obj_arg;
-    $obj_arg->expr_preprocess(string_ref => \$str, level => $level);
-    #print "DEBUG: Parsing expression `$str` with grammars->[$level] ...\n";
-    die "Invalid syntax in expression `$str`" unless $str =~ $grammars->[$level];
-    $obj_arg->expr_postprocess(result => $/{answer});
+use Marpa::R2;
+my $grammar = Marpa::R2::Scanless::G->new({source => \$bnf});
+my $recce = Marpa::R2::Scanless::R->new({grammar=>$grammar, semantics_package=>"MyActions"});
+my $input = q|str => |;
+$recce->read(\$input);
+
+sub MyActions::rule_pair_simple {
+}
+sub MyActions::rule_pair_string {
 }
 
 1;

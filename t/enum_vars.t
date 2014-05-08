@@ -1,16 +1,13 @@
 #!perl
 
+use 5.010;
 use strict;
 use warnings;
-use Test::More;
-use Test::Exception;
+
 use Language::Expr;
 use POSIX;
-
-BEGIN {
-    plan skip_all => 'Regexp::Grammars is currently broken';
-    exit 0;
-}
+use Test::Exception;
+use Test::More;
 
 my @data = (
     {category=>'none', text=>'[]', result=>[]},
