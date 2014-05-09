@@ -17,17 +17,15 @@ my $bnf = <<'_'
 answer             ::= or_dor_xor
 
 # precedence level : left     =>
-pair               ::= word ('=>') value         action=>rule_pair_simple
-                     | squotestr ('=>') value    action=>rule_pair_string
-                     | dquotestr ('=>') value    action=>rule_pair_string
+pair               ::= word ('=>') value                    action=>rule_pair_simple
+                     | squotestr ('=>') value               action=>rule_pair_string
+                     | dquotestr ('=>') value               action=>rule_pair_string
 word               ~   [\w]+
 value              ::= answer
 
 # precedence level : left     || // ^^
-or_dor_xor         ::= or                        action=>::first
-                     | dor                       action=>::first
-                     | xor                       action=>::first
-or                 ::= ternary+                  separator=>op_or action=>rule_or
+or_xor             ::= ternary                              action=>::first
+                     | or_dor_xor op_or_dor_xor or_dor_xor  action=>rule_or_xor
 op_or              ~   '||'
 dor                ::= ternary+                  separator=>op_dor action=>rule_dor
 op_dor             ~   '//'
@@ -53,18 +51,13 @@ op_bit_xor         ~   '^'
 bit_and            ::= comparison3+              separator=op_bit_and action=rule_bit_and
 op_bit_and         ~   '&'
 
-            # NOTE: \x3c = "<", \x3e = ">"
-
 # precedence level: nonassoc (currently the grammar says assoc) <=> cmp
-        <rule: comparison3>
-            <[operand=comparison]> ** <[op=(\x3c=\x3e|cmp)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_comparison3(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+comparison3        ::= spaceship                 action=>::first
+                     | cmp                       action=>::first
+spaceship          ::= comparison+               separator=>op_spaceship action=>rule_spaceship
+op_spaceship       ~   '<=>'
+cmp                ::= comparison+               separator=>op_spaceship action=>rule_cmp
+op_spaceship       ~   'cmp'
 
 # precedence level: left == != eq ne < > <= >= ge gt le lt
         <rule: comparison>

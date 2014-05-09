@@ -1,4 +1,4 @@
-#!perl -T
+#!perl
 
 use strict;
 use warnings;
@@ -9,11 +9,6 @@ use Language::Expr;
 use POSIX;
 use lib "./t";
 require "stdtests.pl";
-
-BEGIN {
-    plan skip_all => 'Regexp::Grammars is currently broken';
-    exit 0;
-}
 
 my $le = new Language::Expr;
 {
