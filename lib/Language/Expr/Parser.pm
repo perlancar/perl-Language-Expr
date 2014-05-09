@@ -12,80 +12,46 @@ our @EXPORT_OK = qw(parse_expr);
 # DATE
 
 my $bnf = <<'_'
-:start         ::= answer
+:start             ::= answer
 
-answer         ::= or_xor
+answer             ::= or_dor_xor
 
-# precedence level: left     =>
-pair           ::= word ('=>') value         action => rule_pair_simple
-                 | squotestr ('=>') value    action => rule_pair_string
-                 | dquotestr ('=>') value    action => rule_pair_string
-word           ~ [\w]+
-value          ::= answer
+# precedence level : left     =>
+pair               ::= word ('=>') value         action=>rule_pair_simple
+                     | squotestr ('=>') value    action=>rule_pair_string
+                     | dquotestr ('=>') value    action=>rule_pair_string
+word               ~   [\w]+
+value              ::= answer
 
-# precedence level: left     || // ^^
-or_xor         ::= ternary*                  separator => op_or_xor
-op_or_xor      ~ '||'
-               | '//'
-               | '^^'
+# precedence level : left     || // ^^
+or_dor_xor         ::= or                        action=>::first
+                     | dor                       action=>::first
+                     | xor                       action=>::first
+or                 ::= ternary+                  separator=>op_or action=>rule_or
+op_or              ~   '||'
+dor                ::= ternary+                  separator=>op_dor action=>rule_dor
+op_dor             ~   '//'
+xor                ::= ternary+                  separator=>op_xor action=>rule_xor
+op_xor             ~   '^^'
 
-            <[operand=ternary]> ** <[op=(\|\||//|\^\^)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_or_xor(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+# precedence level : right    ?:
+ternary            ::= and                       action=>::first
+                     | and ('?') and (':') and   action=>rule_ternary
+# precedence level : left     &&
+and                ::= bit_or_xor+               separator=op_and action=rule_and
+op_and             ~   '&&'
 
-# precedence level: right    ?:
-        <rule: ternary>
-            <[operand=and]> ** <[op=(\?|:)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    unless (@{ $MATCH{op} } == 2 &&
-                            $MATCH{op}[0] eq '?' &&
-                            $MATCH{op}[1] eq ':') {
-                        die "Invalid syntax for ternary, please use X ? Y : Z syntax";
-                    }
-                    $MATCH = $obj->rule_ternary(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+# precedence level : left     | ^
+bit_or_xor         ::= bit_or                    action=>::first
+                     | bit_xor                   action=>::first
+bit_or             ::= bit_and+                  separator=op_bit_or action=rule_bit_or
+op_bit_or          ~   '|'
+bit_xor            ::= bit_and+                  separator=op_bit_xor action=rule_bit_xor
+op_bit_xor         ~   '^'
 
-# precedence level: left     &&
-        <rule: and>
-            <[operand=bit_or_xor]> ** <[op=(&&)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_and(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
-
-# precedence level: left     | ^
-        <rule: bit_or_xor>
-            <[operand=bit_and]> ** <[op=(\||\^)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_bit_or_xor(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
-
-# precedence level: left     &
-        <rule: bit_and>
-            <[operand=comparison3]> ** <[op=(&)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_bit_and(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+# precedence level : left     &
+bit_and            ::= comparison3+              separator=op_bit_and action=rule_bit_and
+op_bit_and         ~   '&'
 
             # NOTE: \x3c = "<", \x3e = ">"
 
