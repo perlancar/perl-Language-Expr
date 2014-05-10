@@ -40,11 +40,12 @@ modules like L<boolean> which practically make Perl behaves like it does.
 
  1
  -2.3
- inf
- nan
- 0x1f    # hexadecimal, = 31 in decimal
- 0o17    # octal, = 15 in decimal
- 0b100   # binary, = 4 in decimal
+ +4.5e-10
+ inf      # only this lowercase value is accepted
+ nan      # only this lowercase value is accepted
+ 0x1f     # hexadecimal, = 31 in decimal
+ 0o17     # octal, = 15 in decimal
+ 0b100    # binary, = 4 in decimal
 
 Differences from Perl: octal literals in Expr are written using the less
 error-prone 0o123 syntax, which is also adopted by Python.
