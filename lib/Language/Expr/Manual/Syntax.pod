@@ -89,15 +89,20 @@ or the \l, \L, et al), so they are not included.
  []
  [1, 2, "str"]
 
-Differences from Perl: dangling comma at the end is not allowed in Expr.
+Dangling comma e.g. C<[1, 2, ]> is allowed.
+
+Differences from Perl: multiple commas as separator e.g. C<[1,, 2]> is not
+allowed in Expr.
 
 =head2 Hash
 
  {}
  {a => 1, "b c" => 2+3}
 
+Dangling comma at the end e.g. C<<{a => 1, b=>2, }>> is allowed.
+
 Differences from Perl: in Expr you must always use "=>" to separate key and
-value, not comma. Dangling comma at the end is not allowed.
+value, not comma.
 
 
 =head1 OPERATORS
