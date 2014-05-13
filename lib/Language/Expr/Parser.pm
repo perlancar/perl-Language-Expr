@@ -12,192 +12,154 @@ our @EXPORT_OK = qw(parse_expr);
 # DATE
 
 my $bnf = <<'_'
+:default           ::= action=>::first
 :start             ::= answer
 
-answer             ::= or_dor_xor
+answer             ::= or_xor
 
 # precedence level : left     =>
-pair               ::= word ('=>') value                    action=>rule_pair_simple
-                     | squotestr ('=>') value               action=>rule_pair_string
-                     | dquotestr ('=>') value               action=>rule_pair_string
-word               ~   [\w]+
+pair               ::= word '=>' value                         action=>rule_pair_simple
+                     | squotestr '=>' value                    action=>rule_pair_string
+                     | dquotestr '=>' value                    action=>rule_pair_string
+word                 ~ [\w]+
 value              ::= answer
 
 # precedence level : left     || // ^^
-or_xor             ::= ternary                              action=>::first
-                     | or_dor_xor op_or_dor_xor or_dor_xor  action=>rule_or_xor
-op_or              ~   '||'
-dor                ::= ternary+                  separator=>op_dor action=>rule_dor
-op_dor             ~   '//'
-xor                ::= ternary+                  separator=>op_xor action=>rule_xor
-op_xor             ~   '^^'
+or_xor             ::= ternary
+                     | or_xor op_or_xor or_xor                 action=>rule_or_xor
+op_or                ~ '||'
+                     | '//'
+                     | '^^'
 
 # precedence level : right    ?:
-ternary            ::= and                       action=>::first
-                     | and ('?') and (':') and   action=>rule_ternary
+ternary            ::= and
+                    || ternary '?' ternary ':' ternary         action=>rule_ternary assoc=>right
+
 # precedence level : left     &&
-and                ::= bit_or_xor+               separator=op_and action=rule_and
-op_and             ~   '&&'
+and                ::= bit_or_xor
+                     | and '&&' and                            action=>rule_and
 
 # precedence level : left     | ^
-bit_or_xor         ::= bit_or                    action=>::first
-                     | bit_xor                   action=>::first
-bit_or             ::= bit_and+                  separator=op_bit_or action=rule_bit_or
-op_bit_or          ~   '|'
-bit_xor            ::= bit_and+                  separator=op_bit_xor action=rule_bit_xor
-op_bit_xor         ~   '^'
+bit_or_xor         ::= bit_and
+                     | bit_or_xor op_bit_or_xor bit_or_xor     action=>rule_bit_or_xor
+op_bit_or_xor        ~ '|'
+                     | '^'
 
 # precedence level : left     &
-bit_and            ::= comparison3+              separator=op_bit_and action=rule_bit_and
-op_bit_and         ~   '&'
+bit_and            ::= comparison3
+                     | bit_and '&' bit_and                     action=>rule_bit_and
 
-# precedence level: nonassoc (currently the grammar says assoc) <=> cmp
-comparison3        ::= spaceship                 action=>::first
-                     | cmp                       action=>::first
-spaceship          ::= comparison+               separator=>op_spaceship action=>rule_spaceship
-op_spaceship       ~   '<=>'
-cmp                ::= comparison+               separator=>op_spaceship action=>rule_cmp
-op_spaceship       ~   'cmp'
+# precedence level: group     <=> cmp
+comparison3        ::= comparison
+                     | comparison3 op_comparison3 comparison3  action=>rule_comparison3 assoc=>group
 
 # precedence level: left == != eq ne < > <= >= ge gt le lt
-        <rule: comparison>
-            <[operand=bit_shift]> ** <[op=(==|!=|eq|ne|\x3c=?|\x3e=?|lt|gt|le|ge)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_comparison(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+comparison         ::= bit_shift
+                     | comparison op_comparison comparison     action=>rule_comparison
+op_comparison        ~ '=='
+                     | '!='
+                     | 'eq'
+                     | 'ne'
+                     | '>='
+                     | '>'
+                     | '<='
+                     | '<'
+                     | 'lt'
+                     | 'gt'
+                     | 'le'
+                     | 'ge'
 
 # precedence level: left     << >>
-        <rule: bit_shift>
-            <[operand=add]> ** <[op=(\x3c\x3c|\x3e\x3e)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_bit_shift(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+bit_shift          ::= add
+                     | bit_shift op_bit_shift bit_shift        action=>rule_bit_shift
+op_bit_shift         ~ '<<'
+                     | '>>'
 
 # precedence level: left     + - .
-        <rule: add>
-            <[operand=mult]> ** <[op=(\+|-|\.)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_add(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+add                ::= mult
+                     | add op_add add                          action=>rule_add
+op_add               ~ '+'
+                     | '-'
+                     | '.'
 
 # precedence level: left     * / % x
-        <rule: mult>
-            <[operand=unary]> ** <[op=(\*|/|%|x)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_mult(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+mult               ::= unary
+                     | mult op_mult mult                       action=>rule_mult
+op_mult              ~ '*'
+                     | '/'
+                     | '%'
+                     | 'x'
 
 # precedence level: right    ! ~ unary+ unary-
-        <rule: unary>
-            <[op=(!|~|\+|-)]>* <operand=power>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_unary(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand};
-                }
-            })
+unary              ::= power
+                     | op_unary unary                          action=>rule_unary
+op_unary             ~ '!'
+                     | '~'
+                     | '+'
+                     | '-'
 
 # precedence level: right    **
-        <rule: power>
-            <[operand=subscripting]> ** <[op=(\*\*)]>
-            (?{
-                if ($MATCH{op} && @{ $MATCH{op} }) {
-                    $MATCH = $obj->rule_power(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand}[0];
-                }
-            })
+power              ::= subscripting
+                    || power '**' power                        action=>rule_power assoc=>right
 
 # precedence level: left    hash[s], array[i]
-        <rule: subscripting>
-            <operand=var0> <[subscript]>*
-            (?{
-                if ($MATCH{subscript} && @{ $MATCH{subscript} }) {
-                    $MATCH = $obj->rule_subscripting_var(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand};
-                }
-            })
-          | <operand=term> <[subscript]>*
-            (?{
-                if ($MATCH{subscript} && @{ $MATCH{subscript} }) {
-                    $MATCH = $obj->rule_subscripting_expr(match=>\%MATCH);
-                } else {
-                    $MATCH = $MATCH{operand};
-                }
-            })
-
-        <rule: subscript>
-              \[ <MATCH=term> \]
+subscripting       ::= var0 '[' term ']'                       action=>rule_subscripting_var
+                     | term '[' term ']'                       action=>rule_subscripting_expr
 
 # precedence level: left     term (variable, str/num literals, func(), (paren))
-term           ::= func
-                 | var0
-                 | str0
-                 | undef
-                 | num0
-                 | bool0
-                 | array
-                 | hash
-                 | ('(') answer (')')        action => rule_parenthesis
+term               ::= func
+                     | var
+                     | str
+                     | undef
+                     | num
+                     | bool
+                     | array
+                     | hash
+                     | '(' answer ')'                          action=>rule_parenthesis
 
-        <rule: array>
-            \[ \]
-            (?{ $MATCH = $obj->rule_array(match=>{element=>[]}) })
-          | \[ <[element=answer]> ** (,) \]
-            (?{ $MATCH = $obj->rule_array(match=>\%MATCH) })
+array              ::= '[' members ']'                         action=>rule_array
+members            ::= answer*                                 separator=>comma action=[values]
+comma                ~ ','
 
-        <rule: hash>
-            \{ \}
-            (?{ $MATCH = $obj->rule_hash(match=>{pair=>[]}) })
-          | \{ <[pair]> ** (,) \}
-            (?{ $MATCH = $obj->rule_hash(match=>\%MATCH) })
+hash               ::= '{' pairs '}'                           action=>rule_hash
+pairs              ::= pair*                                   separator=>comma action=[values]
 
-        <token: undef>
-            undef
-            (?{ $MATCH = $obj->rule_undef() })
+undef                ~ 'undef'
 
-        <token: bool0>
-            <bool=(true|false)>
-            (?{ $MATCH = $obj->rule_bool(match=>\%MATCH) })
+bool                 ~ 'true'
+                     | 'false'
 
-        <token: num0>
-            <sign0a=([+-]?+)> 0x <num0a=([0-9A-Fa-f]++)>
-            (?{ $MATCH = $obj->rule_num(match=>{num=>
-                ($MATCH{sign0a} eq '-' ? -1:1) * hex($MATCH{num0a})}) })
-          | <sign0b=([+-]?+)> 0o <num0b=([0-7]++)>
-            (?{ $MATCH = $obj->rule_num(match=>{num=>
-                ($MATCH{sign0b} eq '-' ? -1:1) * oct($MATCH{num0b})}) })
-          | <sign0c=([+-]?+)> 0b <num0c=([0-1]++)>
-            (?{ $MATCH = $obj->rule_num(match=>{num=>
-                ($MATCH{sign0c} eq '-' ? -1:1) * oct("0b".$MATCH{num0c})}) })
-          | <num0c=( [+-]?\d++(?:\.\d++)?+ | inf | nan)>
-            (?{ $MATCH = $obj->rule_num(match=>{num=>$MATCH{num0c}}) })
+hexdigits            ~ [0-9A-Fa-f]+
+decdigits            ~ [0-9]+
+decdigits            ~ [0-7]+
+bindigits            ~ [01]+
 
-        <rule: str0>
-            <MATCH=squotestr>
-          | <MATCH=dquotestr>
+sign                 ~ [+-]
+num                  ~      '0x' hexdigits
+                     | sign '0x' hexdigits
+                     |      '0o' octdigits
+                     | sign '0o' octdigits
+                     |      '0b' bindigits
+                     | sign '0b' bindigits
+                     |      decdigits
+                     | sign decdigits
+                     |      decdigits '.' decdigits
+                     | sign decdigits '.' decdigits
+                     |      decdigits [Ee] decdigits
+                     | sign decdigits [Ee] decdigits
+                     |      decdigits [Ee] sign decdigits
+                     | sign decdigits [Ee] sign decdigits
+                     |      decdigits '.' decdigits [Ee] decdigits
+                     | sign decdigits '.' decdigits [Ee] decdigits
+                     |      decdigits '.' decdigits [Ee] sign decdigits
+                     | sign decdigits '.' decdigits [Ee] sign decdigits
 
-squotepart     ~ ('\\')
-               | ("\'")
-               | [^\\']+
+str                  ~ squotestr
+                     | dquotestr
+
+squotepart           ~ '\\'
+                     | '\' [\x27]
+                     | [^\\']+
 squotestr      ::= ("'") squotepart* ("'")
 
 #        <token: dquotestr>
