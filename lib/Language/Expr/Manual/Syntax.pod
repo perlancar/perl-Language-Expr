@@ -123,7 +123,7 @@ These include Perl's "..", "...", "->", etc.
 =item * Currently no "and", "or", "not" operators.
 
 Use &&, ||, ! instead. Perl supports an extra, low-precedence set of logical
-operators mostly to separate statements, which we do not have anyway.
+operators mostly to separate statements, which Expr does not support anyway.
 
 =item * "xor" becomes "^^" (to be consistent with "^" as bitwise-xor).
 
