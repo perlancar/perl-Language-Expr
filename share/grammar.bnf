@@ -1,22 +1,20 @@
 :default           ::= action=>::first
-lexeme default         latm=>1
+lexeme default       = latm=>1
 :start             ::= answer
 
 answer             ::= or_xor
 
 # precedence level : left     =>
-pair               ::= word '=>' value                         action=>rule_pair_simple
+pair               ::= word_G1 '=>' value                      action=>rule_pair_simple
                      | squotestr '=>' value                    action=>rule_pair_string
                      | dquotestr '=>' value                    action=>rule_pair_string
-word                 ~ [\w]+
+word_G1              ~ [\w]+
 value              ::= answer
 
 # precedence level : left     || // ^^
 or_xor             ::= ternary
                      | or_xor op_or_xor or_xor                 action=>rule_or_xor
-op_or                ~ '||'
-                     | '//'
-                     | '^^'
+op_or_xor          ::= '||' | '//' | '^^'
 
 # precedence level : right    ?:
 ternary            ::= and
@@ -29,8 +27,7 @@ and                ::= bit_or_xor
 # precedence level : left     | ^
 bit_or_xor         ::= bit_and
                      | bit_or_xor op_bit_or_xor bit_or_xor     action=>rule_bit_or_xor
-op_bit_or_xor        ~ '|'
-                     | '^'
+op_bit_or_xor        ~ '|' | '^'
 
 # precedence level : left     &
 bit_and            ::= comparison3
@@ -39,58 +36,40 @@ bit_and            ::= comparison3
 # precedence level: group     <=> cmp
 comparison3        ::= comparison
                      | comparison3 op_comparison3 comparison3  action=>rule_comparison3 assoc=>group
+op_comparison3     ::= '<=>' | 'cmp'
 
 # precedence level: left == != eq ne < > <= >= ge gt le lt
 comparison         ::= bit_shift
                      | comparison op_comparison comparison     action=>rule_comparison
-op_comparison        ~ '=='
-                     | '!='
-                     | 'eq'
-                     | 'ne'
-                     | '>='
-                     | '>'
-                     | '<='
-                     | '<'
-                     | 'lt'
-                     | 'gt'
-                     | 'le'
-                     | 'ge'
+op_comparison        ~ '==' | '!=' | 'eq' | 'ne' | '>=' | '>'
+                     | '<=' | '<'  | 'lt' | 'gt' | 'le' | 'ge'
 
 # precedence level: left     << >>
 bit_shift          ::= add
                      | bit_shift op_bit_shift bit_shift        action=>rule_bit_shift
-op_bit_shift         ~ '<<'
-                     | '>>'
+op_bit_shift         ~ '<<' | '>>'
 
 # precedence level: left     + - .
 add                ::= mult
                      | add op_add add                          action=>rule_add
-op_add               ~ '+'
-                     | '-'
-                     | '.'
+op_add               ~ '+' | '-' | '.'
 
 # precedence level: left     * / % x
 mult               ::= unary
                      | mult op_mult mult                       action=>rule_mult
-op_mult              ~ '*'
-                     | '/'
-                     | '%'
-                     | 'x'
+op_mult              ~ '*' | '/' | '%' | 'x'
 
 # precedence level: right    ! ~ unary+ unary-
 unary              ::= power
                      | op_unary unary                          action=>rule_unary
-op_unary             ~ '!'
-                     | '~'
-                     | '+'
-                     | '-'
+op_unary             ~ '!' | '~' | '+' | '-'
 
 # precedence level: right    **
 power              ::= subscripting
                     || power '**' power                        action=>rule_power assoc=>right
 
 # precedence level: left    hash[s], array[i]
-subscripting       ::= var0 '[' term ']'                       action=>rule_subscripting_var
+subscripting       ::= var '[' term ']'                        action=>rule_subscripting_var
                      | term '[' term ']'                       action=>rule_subscripting_expr
 
 # precedence level: left     term (variable, str/num literals, func(), (paren))
@@ -105,20 +84,19 @@ term               ::= func
                      | '(' answer ')'                          action=>rule_parenthesis
 
 array              ::= '[' members ']'                         action=>rule_array
-members            ::= answer*                                 separator=>comma action=[values]
+members            ::= answer*                                 separator=>comma action=>[values]
 comma                ~ ','
 
 hash               ::= '{' pairs '}'                           action=>rule_hash
-pairs              ::= pair*                                   separator=>comma action=[values]
+pairs              ::= pair*                                   separator=>comma action=>[values]
 
 undef                ~ 'undef'
 
-bool                 ~ 'true'
-                     | 'false'
+bool                 ~ 'true' | 'false'
 
 hexdigits            ~ [0-9A-Fa-f]+
 decdigits            ~ [0-9]+
-decdigits            ~ [0-7]+
+octdigits            ~ [0-7]+
 bindigits            ~ [01]+
 
 sign                 ~ [+-]
@@ -141,31 +119,34 @@ num                  ~      '0x' hexdigits
                      |      decdigits '.' decdigits [Ee] sign decdigits
                      | sign decdigits '.' decdigits [Ee] sign decdigits
 
-str                  ~ squotestr
-                     | dquotestr
+str                ::= squotestr | dquotestr
 
 squotepart           ~ '\\'
-                     | '\' [\x27]
-                     | [^\\']+
-squotestr      ::= ("'") squotepart* ("'")
+                     | '\' [']
+                     | [^\\']
+squoteparts          ~ squotepart*
+squotestr            ~ ['] squoteparts [']
 
-#        <token: dquotestr>
-#            "<[part=([^"\044\\]++|\$\.\.?|\$\w+|\$\{[^\}]+\}|\\\\|\\'|\\"|\\[tnrfbae\$]|\\[0-7]{1,3}|\\x[0-9A-Fa-f]{1,2}|\\x\{[0-9A-Fa-f]{1,4}\}|\\)]>*"
-#            (?{ $MATCH = $obj->rule_dquotestr(match=>\%MATCH) })
+# we cheat here, we don't check all the known escape, and let the action checks it later
+dquotepart           ~ '\\'
+                     | '\' [']
+                     | [^\\']
+dquoteparts          ~ dquotepart*
+dquotestr            ~ ["] dquoteparts ["]
 
-        <rule: var0>
-            \$ <var=(\w++(?:::\w+)*+)>
-            (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
-          | \$ \{ <var=([^\}]++)> \}
-            (?{ $MATCH = $obj->rule_var(match=>\%MATCH) })
+word_L0              ~ [\w]+
+subpkg               ~ '::' word_L0
+subpkgs              ~ subpkg*
+noncurlycloses       ~ [^}]+
+var                  ~ '$' word_L0
+                     | '$' word_L0 subpkgs
+                     | '${' noncurlycloses '}'
 
-        <rule: func>
-            <func_name=([A-Za-z_]\w*+)> \( \)
-            (?{ $MATCH = $obj->rule_func(match=>{func_name=>$MATCH{func_name}, args=>[]}) })
-          | <func_name=(map|grep|usort)> \( \{ <expr=answer> \} (?{ push @$subexpr_stack, $CONTEXT }), <input_array=answer> \)
-            (?{ my $meth = "rule_func_$MATCH{func_name}";
-                $MATCH = $obj->$meth(match=>{expr=>pop(@$subexpr_stack), array=>$MATCH{input_array}}) })
-          | <func_name=([A-Za-z_]\w*+)> \( <[args=answer]> ** (,) \)
-            (?{ $MATCH = $obj->rule_func(match=>\%MATCH) })
-
-_
+word0                ~ [\w]*
+func_name            ~ [A-Za-z_] word0
+func_arg           ::= answer
+func_args          ::= func_arg*                               separator=>comma action=>[values]
+func               ::= func_name ('(') func_args (')')         action=>rule_func
+                     | 'map'   ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_map
+                     | 'grep'  ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_grep
+                     | 'usort' ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_usort

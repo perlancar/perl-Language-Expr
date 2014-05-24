@@ -33,6 +33,7 @@ sub parse_expr {
 
     my $recce = Marpa::R2::Scanless::R->new({
         grammar=>$slif, semantics_package=>$pkg});
+    say "D1";
     $recce->read(\$str);
 }
 
