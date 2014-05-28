@@ -13,245 +13,116 @@ use boolean;
 # VERSION
 # DATE
 
-sub rule_pair_simple {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    "$match->{key} => $match->{value}";
-}
-
-sub rule_pair_string {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    "$match->{key} => $match->{value}";
+sub rule_pair {
+    my $h = shift;
+    "$_[0] => $_[1]";
 }
 
 sub rule_or_xor {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '||') { push @res, " || $term" }
-        elsif ($op eq '//') { push @res, " // $term" }
-        # add parenthesis because perl's xor precendence is low
-        elsif ($op eq '^^') { @res = ("(", @res, " xor $term)") }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '||') { "$opn1 || $opn2" }
+    elsif ($op eq '//') { "$opn1 // $opn2" }
+    elsif ($op eq '^^') { "($opn1 xor $opn2)" }
 }
 
 sub rule_and {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '&&') { @res = ("((", @res, " && $term) || false)") }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    "(($_[0] && $_[2]) || false)";
 }
 
 sub rule_ternary {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my $opd = $match->{operand};
-    "$opd->[0] ? $opd->[1] : $opd->[2]";
+    my $h = shift;
+    "$_[0] ? $_[1] : $_[2]";
 }
 
 sub rule_bit_or_xor {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '|') { push @res, " | $term" }
-        elsif ($op eq '^') { push @res, " ^ $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '|') { "$opn1 | $opn2" }
+    elsif ($op eq '^') { "$opn1 ^ $opn2" }
 }
 
 sub rule_bit_and {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '&') { push @res, " & $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '&') { "$opn1 & $opn2" }
 }
 
 sub rule_comparison3 {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '<=>') { push @res, " <=> $term" }
-        elsif ($op eq 'cmp') { push @res, " cmp $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '<=>') { "$opn1 <=> $opn2" }
+    elsif ($op eq 'cmp') { "$opn1 cmp $opn2" }
 }
 
 sub rule_comparison {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @opds;
-    push @opds, shift @{$match->{operand}};
-    return '' unless defined $opds[0];
-    my @ops;
-    for my $term (@{$match->{operand}}) {
-        push @opds, $term;
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '==' ) { push @ops, '=='  }
-        elsif ($op eq '!=' ) { push @ops, '!='  }
-        elsif ($op eq 'eq' ) { push @ops, 'eq'  }
-        elsif ($op eq 'ne' ) { push @ops, 'ne'  }
-        elsif ($op eq '<'  ) { push @ops, '<'   }
-        elsif ($op eq '<=' ) { push @ops, '<='  }
-        elsif ($op eq '>'  ) { push @ops, '>'   }
-        elsif ($op eq '>=' ) { push @ops, '>='  }
-        elsif ($op eq 'lt' ) { push @ops, 'lt'  }
-        elsif ($op eq 'le' ) { push @ops, 'le'  }
-        elsif ($op eq 'gt' ) { push @ops, 'gt'  }
-        elsif ($op eq 'ge' ) { push @ops, 'ge'  }
-    }
-    return $opds[0] unless @ops;
-    my @res;
-    my $lastopd;
-    my ($opd1, $opd2);
-    while (@ops) {
-        my $op = pop @ops;
-        if (defined($lastopd)) {
-            $opd2 = $lastopd;
-            $opd1 = pop @opds;
-        } else {
-            $opd2 = pop @opds;
-            $opd1 = pop @opds;
-        }
-        if (@res) {
-            @res = ("(($opd1 $op $opd2) ? ", @res, " : false)");
-        } else {
-            push @res, "($opd1 $op $opd2 ? true:false)";
-        }
-        $lastopd = $opd1;
-    }
-    join "", @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    "($opn1 $op $opn2) ? true : false)";
 }
 
 sub rule_bit_shift {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '>>') { push @res, " >> $term" }
-        elsif ($op eq '<<') { push @res, " << $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '>>') { "$opn1 >> $opn2" }
+    elsif ($op eq '<<') { "$opn1 << $opn2" }
 }
 
 sub rule_add {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '.') { push @res, " . $term" }
-        if    ($op eq '+') { push @res, " + $term" }
-        if    ($op eq '-') { push @res, " - $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '.') { "$opn1 . $opn2" }
+    elsif ($op eq '+') { "$opn1 + $opn2" }
+    elsif ($op eq '-') { "$opn1 - $opn2" }
 }
 
 sub rule_mult {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        my $op = shift @{$match->{op}//=[]};
-        last unless $op;
-        if    ($op eq '*') { push @res, " * $term" }
-        if    ($op eq '/') { push @res, " / $term" }
-        if    ($op eq '%') { push @res, " % $term" }
-        if    ($op eq 'x') { push @res, " x $term" }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($opn1, $op, $opn2) = @_;
+    if    ($op eq '*') { "$opn1 * $opn2" }
+    elsif ($op eq '/') { "$opn1 / $opn2" }
+    elsif ($op eq '%') { "$opn1 % $opn2" }
+    elsif ($op eq 'x') { "$opn1 x $opn2" }
 }
 
 sub rule_unary {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, $match->{operand};
-    for my $op (reverse @{$match->{op}//=[]}) {
-        last unless $op;
-        # use paren because --x or ++x is interpreted as pre-decrement/increment
-        if    ($op eq '!') { @res = ("(", @res, " ? false:true)") }
-        if    ($op eq '-') { @res = ("-(", @res, ")") }
-        if    ($op eq '~') { @res = ("~(", @res, ")") }
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    my ($op, $opn) = @_;
+    if    ($op eq '!') { "($opn ? false:true)" }
+    # we use paren because --x or ++x is interpreted as pre-decrement/increment
+    elsif ($op eq '~') { "~($opn)" }
+    elsif ($op eq '-') { "-($opn)" }
+    elsif ($op eq '+') { "+($opn)" }
 }
 
 sub rule_power {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my @res;
-    push @res, shift @{$match->{operand}};
-    for my $term (@{$match->{operand}}) {
-        push @res, " ** $term";
-    }
-    join "", grep {defined} @res;
+    my $h = shift;
+    "$_[0] ** $_[2]";
 }
 
 sub rule_subscripting_var {
-    my ($self, %args) = @_;
-    $self->rule_subscripting_expr(%args);
+    my $h = shift;
+    rule_subscripting_expr($h, @_);
 }
 
 sub rule_subscripting_expr {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    my $opd = $match->{operand};
-    my @ss = @{$match->{subscript}//=[]};
-    return $opd unless @ss;
-    my $res;
-    for my $s (@ss) {
-        $opd = $res if defined($res);
-        $res = qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
-            qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
-                qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
-                    qq!die "Invalid subscript \$s for \$v" } })!;
-    }
-    $res;
+    my $h = shift;
+    my ($opn, $s) = @_;
+    qq!(do { my (\$v) = ($opn); my (\$s) = ($s); !.
+        qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
+            qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
+                qq!die "Invalid subscript \$s for \$v" } })!;
 }
 
 sub rule_array {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    "[" . join(", ", @{ $match->{element} }) . "]";
+    my $h = shift;
+    "[" . join(", ", @{ $_[0] }) . "]";
 }
 
 sub rule_hash {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    "{" . join(", ", @{ $match->{pair} }). "}";
+    my $h = shift;
+    "{" . join(", ", @{ $_[0] }). "}";
 }
 
 sub rule_undef {
@@ -259,42 +130,28 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    my ($self, %args) = @_;
-    join(" . ",
-         map { $self->_quote($_->{value}) }
-             @{ $self->parse_squotestr($args{match}{part}) });
+    my $h = shift;
+    # TODO
 }
 
 sub rule_dquotestr {
-    my ($self, %args) = @_;
-    my @tmp =
-        map { $_->{type} eq 'VAR' ?
-                  $self->rule_var(match=>{var=>$_->{value}}) :
-                      $self->_quote($_->{value})
-                  }
-            @{ $self->parse_dquotestr($args{match}{part}) };
-    if (@tmp > 1) {
-        "(". join(" . ", @tmp) . ")[0]";
-    } else {
-        $tmp[0];
-    }
+    my $h = shift;
+    # TODO
 }
 
 sub rule_bool {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    if ($match->{bool} eq 'true') { "true" } else { "false" }
+    my $h = shift;
+    # TODO
 }
 
 sub rule_num {
     my ($self, %args) = @_;
-    my $match = $args{match};
-    if    ($match->{num} eq 'inf') { '"Inf"' }
-    elsif ($match->{num} eq 'nan') { '"NaN"' }
-    else                           { $match->{num}+0 }
+    # TODO
 }
 
 sub rule_var {
+    my $h = shift;
+    # TODO
     my ($self, %args) = @_;
     my $match = $args{match};
     if ($self->hook_var) {
@@ -305,6 +162,8 @@ sub rule_var {
 }
 
 sub rule_func {
+    my $h = shift;
+    # TODO
     my ($self, %args) = @_;
     my $match = $args{match};
     my $f = $match->{func_name};
@@ -378,7 +237,7 @@ sub _quote {
 
 sub perl {
     my ($self, $expr) = @_;
-    my $res = Language::Expr::Parser::parse_expr($expr, $self);
+    my $res = Language::Expr::Parser::parse_expr($expr, ref($self));
     for my $m (@{ $self->markers }) {
         my $type = $m->[0];
         next unless $type eq 'subexpr';

@@ -4,75 +4,76 @@ lexeme default       = latm=>1
 
 answer             ::= or_xor
 
-# precedence level : left     =>
-pair               ::= word_G1 '=>' value                      action=>rule_pair_simple
-                     | squotestr '=>' value                    action=>rule_pair_string
-                     | dquotestr '=>' value                    action=>rule_pair_string
+    # precedence level : left     =>
+pair               ::= word_G1 ('=>') value                    action=>rule_pair
+                     | squotestr ('=>') value                  action=>rule_pair
+                     | dquotestr ('=>') value                  action=>rule_pair
 word_G1              ~ [\w]+
 value              ::= answer
 
-# precedence level : left     || // ^^
+    # precedence level : left     || // ^^
 or_xor             ::= ternary
                      | or_xor op_or_xor or_xor                 action=>rule_or_xor
 op_or_xor          ::= '||' | '//' | '^^'
 
-# precedence level : right    ?:
+    # precedence level : right    ?:
 ternary            ::= and
-                    || ternary '?' ternary ':' ternary         action=>rule_ternary assoc=>right
+                    || ternary ('?') ternary (':') ternary     action=>rule_ternary assoc=>right
 
-# precedence level : left     &&
+    # precedence level : left     &&
 and                ::= bit_or_xor
                      | and '&&' and                            action=>rule_and
 
-# precedence level : left     | ^
+    # precedence level : left     | ^
 bit_or_xor         ::= bit_and
                      | bit_or_xor op_bit_or_xor bit_or_xor     action=>rule_bit_or_xor
 op_bit_or_xor        ~ '|' | '^'
 
-# precedence level : left     &
+    # precedence level : left     &
 bit_and            ::= comparison3
                      | bit_and '&' bit_and                     action=>rule_bit_and
 
-# precedence level: group     <=> cmp
+    # precedence level: group     <=> cmp
 comparison3        ::= comparison
                      | comparison3 op_comparison3 comparison3  action=>rule_comparison3 assoc=>group
 op_comparison3     ::= '<=>' | 'cmp'
 
-# precedence level: left == != eq ne < > <= >= ge gt le lt
+    # precedence level: left == != eq ne < > <= >= ge gt le lt
 comparison         ::= bit_shift
                      | comparison op_comparison comparison     action=>rule_comparison
 op_comparison        ~ '==' | '!=' | 'eq' | 'ne' | '>=' | '>'
                      | '<=' | '<'  | 'lt' | 'gt' | 'le' | 'ge'
 
-# precedence level: left     << >>
+    # precedence level: left     << >>
 bit_shift          ::= add
                      | bit_shift op_bit_shift bit_shift        action=>rule_bit_shift
 op_bit_shift         ~ '<<' | '>>'
 
-# precedence level: left     + - .
+    # precedence level: left     + - .
 add                ::= mult
                      | add op_add add                          action=>rule_add
 op_add               ~ '+' | '-' | '.'
 
-# precedence level: left     * / % x
+    # precedence level: left     * / % x
 mult               ::= unary
                      | mult op_mult mult                       action=>rule_mult
 op_mult              ~ '*' | '/' | '%' | 'x'
 
-# precedence level: right    ! ~ unary+ unary-
+    # precedence level: right    ! ~ unary+ unary-
 unary              ::= power
                      | op_unary unary                          action=>rule_unary
 op_unary             ~ '!' | '~' | '+' | '-'
 
-# precedence level: right    **
+    # precedence level: right    **
 power              ::= subscripting
                     || power '**' power                        action=>rule_power assoc=>right
 
-# precedence level: left    hash[s], array[i]
-subscripting       ::= var '[' term ']'                        action=>rule_subscripting_var
-                     | term '[' term ']'                       action=>rule_subscripting_expr
+    # precedence level: left    hash[s], array[i]
+subscripting       ::= term
+                     | var  ('[') term (']')                   action=>rule_subscripting_var
+                     | term ('[') term (']')                   action=>rule_subscripting_expr
 
-# precedence level: left     term (variable, str/num literals, func(), (paren))
+    # precedence level: left     term (variable, str/num literals, func(), (paren))
 term               ::= func
                      | var
                      | str
@@ -83,18 +84,20 @@ term               ::= func
                      | hash
                      | '(' answer ')'                          action=>rule_parenthesis
 
-array              ::= '[' members ']'                         action=>rule_array
+    ####
+array              ::= ('[') members (']')                     action=>rule_array
 members            ::= answer*                                 separator=>comma action=>[values]
 comma                ~ ','
 
-hash               ::= '{' pairs '}'                           action=>rule_hash
+hash               ::= ('{') pairs ('}')                       action=>rule_hash
 pairs              ::= pair*                                   separator=>comma action=>[values]
 
 undef                ~ 'undef'
 
 bool                 ~ 'true' | 'false'
 
-hexdigits            ~ [0-9A-Fa-f]+
+hexdigit             ~ [0-9A-Fa-f]
+hexdigits            ~ hexdigit+
 decdigits            ~ [0-9]+
 octdigits            ~ [0-7]+
 bindigits            ~ [01]+
@@ -118,6 +121,9 @@ num                  ~      '0x' hexdigits
                      | sign decdigits '.' decdigits [Ee] decdigits
                      |      decdigits '.' decdigits [Ee] sign decdigits
                      | sign decdigits '.' decdigits [Ee] sign decdigits
+                     |      'inf'
+                     | sign 'inf'
+                     |      'nan'
 
 str                ::= squotestr | dquotestr
 
@@ -127,10 +133,19 @@ squotepart           ~ '\\'
 squoteparts          ~ squotepart*
 squotestr            ~ ['] squoteparts [']
 
-# we cheat here, we don't check all the known escape, and let the action checks it later
 dquotepart           ~ '\\'
                      | '\' [']
                      | [^\\']
+                     | '\0' | '\0' [0-7] | '\0' [0-7][0-7]
+                     | '\x' hexdigit
+                     | '\x' hexdigit hexdigit
+                     | '\x{' hexdigit '}'
+                     | '\x{' hexdigit hexdigit '}'
+                     | '\x{' hexdigit hexdigit hexdigit '}'
+                     | '\x{' hexdigit hexdigit hexdigit hexdigit '}'
+                     | '\' ["$tnrfbae]
+                     #| '\' [\d\D]
+                     | var0
 dquoteparts          ~ dquotepart*
 dquotestr            ~ ["] dquoteparts ["]
 
@@ -138,9 +153,10 @@ word_L0              ~ [\w]+
 subpkg               ~ '::' word_L0
 subpkgs              ~ subpkg*
 noncurlycloses       ~ [^}]+
-var                  ~ '$' word_L0
+var0                 ~ '$' word_L0
                      | '$' word_L0 subpkgs
                      | '${' noncurlycloses '}'
+var                  ~ var0
 
 word0                ~ [\w]*
 func_name            ~ [A-Za-z_] word0
@@ -150,3 +166,7 @@ func               ::= func_name ('(') func_args (')')         action=>rule_func
                      | 'map'   ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_map
                      | 'grep'  ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_grep
                      | 'usort' ('(') ('{') answer ('}') (',') func_args (')')  action=>rule_func_usort
+
+:discard             ~ ws
+ws                   ~ [\s]+
+

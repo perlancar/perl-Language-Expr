@@ -9,8 +9,7 @@ use Moo::Role;
 # VERSION
 # DATE
 
-requires 'rule_pair_simple';
-requires 'rule_pair_string';
+requires 'rule_pair';
 requires 'rule_or_xor';
 requires 'rule_ternary';
 requires 'rule_and';

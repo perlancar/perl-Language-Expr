@@ -32,9 +32,18 @@ sub parse_expr {
     };
 
     my $recce = Marpa::R2::Scanless::R->new({
-        grammar=>$slif, semantics_package=>$pkg});
-    say "D1";
+        grammar           => $slif,
+        semantics_package => $pkg,
+        trace_terminals   => $ENV{DEBUG} ? 1:0,
+        trace_values      => $ENV{DEBUG} ? 1:0,
+    });
     $recce->read(\$str);
+    my $valref = $recce->value;
+    if (!defined($valref)) {
+        die "No parse was found after reading the entire input\n";
+        # XXX show last expression
+    }
+    $$valref;
 }
 
 1;

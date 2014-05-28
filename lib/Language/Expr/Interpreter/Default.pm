@@ -17,16 +17,9 @@ has vars  => (is => 'rw', default => sub { {} });
 has funcs => (is => 'rw', default => sub { {} });
 has level => (is => 'rw', default => sub{0});
 
-sub rule_pair_simple {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    [$match->{key}, $match->{value}];
-}
-
-sub rule_pair_string {
-    my ($self, %args) = @_;
-    my $match = $args{match};
-    [$match->{key}, $match->{value}];
+sub rule_pair {
+    my $h = shift;
+    [$_[0] => $_[1]];
 }
 
 sub rule_or_xor {
