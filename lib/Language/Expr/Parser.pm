@@ -18,12 +18,12 @@ sub parse_expr {
         my $slif = ''; # MARPA_SLIF_GRAMMAR(cf=grammar.bnf replace='')
         unless ($slif) {
             my $f;
-            if (-f "share/grammar.bnf") {
-                $f = "share/grammar.bnf";
+            if (-f "share/grammar/grammar.bnf") {
+                $f = "share/grammar/grammar.bnf";
             } else {
                 require File::ShareDir;
                 $f = File::ShareDir::dist_file(
-                    'Language-Expr', 'grammar.bnf');
+                    'Language-Expr', 'grammar/grammar.bnf');
             }
             require File::Slurp::Tiny;
             my $bnf = File::Slurp::Tiny::read_file($f);
