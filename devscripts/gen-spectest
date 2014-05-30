@@ -10,43 +10,43 @@ use JSON;
 
 my @t;
 
-for my $cat ('literal/number') {
-    push @t, {category=>$cat, input=>'-0x1f'  , result=>-31, note=>'hex'};
-    push @t, {category=>$cat, input=>'-1.2'   , result=>15, note=>'decimal'};
-    push @t, {category=>$cat, input=>'-1.2e4' , result=>-1.2e4, note=>'exponent notation'};
-    push @t, {category=>$cat, input=>'015'    , result=>15, note=>'octal uses 0o prefix, not 0'};
-    push @t, {category=>$cat, input=>'0b100'  , result=>4, note=>'binary'};
-    push @t, {category=>$cat, input=>'-0o17'  , result=>-15, note=>'octal'};
-    push @t, {category=>$cat, input=>'0x1g'   , dies=>1, note=>'invalid hex digit'};
-    push @t, {category=>$cat, input=>'-0b2'   , dies=>1, note=>'invalid binary digit'};
-    push @t, {category=>$cat, input=>'0o18'   , dies=>1, note=>'invalid octal digit'};
+for my $tags (['literal', 'number']) {
+    push @t, {tags=>$cat, input=>'-0x1f'  , result=>-31, note=>'hex'};
+    push @t, {tags=>$tags, input=>'-1.2'   , result=>15, note=>'decimal'};
+    push @t, {tags=>$tags, input=>'-1.2e4' , result=>-1.2e4, note=>'exponent notation'};
+    push @t, {tags=>$tags, input=>'015'    , result=>15, note=>'octal uses 0o prefix, not 0'};
+    push @t, {tags=>$tags, input=>'0b100'  , result=>4, note=>'binary'};
+    push @t, {tags=>$tags, input=>'-0o17'  , result=>-15, note=>'octal'};
+    push @t, {tags=>$tags, input=>'0x1g'   , dies=>1, note=>'invalid hex digit'};
+    push @t, {tags=>$tags, input=>'-0b2'   , dies=>1, note=>'invalid binary digit'};
+    push @t, {tags=>$tags, input=>'0o18'   , dies=>1, note=>'invalid octal digit'};
 }
 
-for my $cat ('literal/array') {
-    push @t, {category=>$cat, input=>'[]'         , result=>[]};
-    push @t, {category=>$cat, input=>'[1,2]'      , result=>[1, 2]};
-    push @t, {category=>$cat, input=>'[1, 2, 3+4]', result=>[1,2,7]};
-    push @t, {category=>$cat, input=>'['          , dies=>1, note=>'missing closing bracket'};
-    push @t, {category=>$cat, input=>'['          , dies=>1, note=>'missing opening bracket'};
-    push @t, {category=>$cat, input=>'[1,]'       , dies=>1, note=>'dangling comma'};
-    push @t, {category=>$cat, input=>'[1 2]'      , dies=>1, note=>'missing comma'};
-    push @t, {category=>$cat, input=>'[a]'        , dies=>1, note=>'missing quote'};
+for my $tags (['literal', 'array']) {
+    push @t, {tags=>$tags, input=>'[]'         , result=>[]};
+    push @t, {tags=>$tags, input=>'[1,2]'      , result=>[1, 2]};
+    push @t, {tags=>$tags, input=>'[1, 2, 3+4]', result=>[1,2,7]};
+    push @t, {tags=>$tags, input=>'['          , dies=>1, note=>'missing closing bracket'};
+    push @t, {tags=>$tags, input=>'['          , dies=>1, note=>'missing opening bracket'};
+    push @t, {tags=>$tags, input=>'[1,]'       , dies=>1, note=>'dangling comma'};
+    push @t, {tags=>$tags, input=>'[1 2]'      , dies=>1, note=>'missing comma'};
+    push @t, {tags=>$tags, input=>'[a]'        , dies=>1, note=>'missing quote'};
 }
 
-for my $cat ('literal/hash') {
-    push @t, {category=>$cat, input=>'{}'                , result=>{}};
-    push @t, {category=>$cat, input=>'{a=>1}'            , result=>{a=>1}};
-    push @t, {category=>$cat, input=>q[{'a'=>1}]         , result=>{a=>1}};
-    push @t, {category=>$cat, input=>q[{"a b"=>1}]       , result=>{"a b"=>1}};
-    push @t, {category=>$cat, input=>'{("a"."b")=>1}'    , dies=>1, note=>'expression not supported on pair key'};
-    push @t, {category=>$cat, input=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}, note=>'expression allowed on pair value'};
-    push @t, {category=>$cat, input=>'{'                 , dies=>1, note=>'missing opening brace'};
-    push @t, {category=>$cat, input=>'}'                 , dies=>1, note=>'missing closing brace'};
-    push @t, {category=>$cat, input=>'a=>1'              , dies=>1, note=>'missing braces'};
-    push @t, {category=>$cat, input=>'{=>1}'             , dies=>1, note=>'missing pair key'};
-    push @t, {category=>$cat, input=>'{a=>}'             , dies=>1, note=>'missing pair value'};
-    push @t, {category=>$cat, input=>'{a=>1, }'          , dies=>1, note=>'dangling comma'};
-    push @t, {category=>$cat, input=>'{a, 1}'            , dies=>1, note=>'comma not allowed as arrow'};
+for my $tags (['literal', 'hash']) {
+    push @t, {tags=>$tags, input=>'{}'                , result=>{}};
+    push @t, {tags=>$tags, input=>'{a=>1}'            , result=>{a=>1}};
+    push @t, {tags=>$tags, input=>q[{'a'=>1}]         , result=>{a=>1}};
+    push @t, {tags=>$tags, input=>q[{"a b"=>1}]       , result=>{"a b"=>1}};
+    push @t, {tags=>$tags, input=>'{("a"."b")=>1}'    , dies=>1, note=>'expression not supported on pair key'};
+    push @t, {tags=>$tags, input=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}, note=>'expression allowed on pair value'};
+    push @t, {tags=>$tags, input=>'{'                 , dies=>1, note=>'missing opening brace'};
+    push @t, {tags=>$tags, input=>'}'                 , dies=>1, note=>'missing closing brace'};
+    push @t, {tags=>$tags, input=>'a=>1'              , dies=>1, note=>'missing braces'};
+    push @t, {tags=>$tags, input=>'{=>1}'             , dies=>1, note=>'missing pair key'};
+    push @t, {tags=>$tags, input=>'{a=>}'             , dies=>1, note=>'missing pair value'};
+    push @t, {tags=>$tags, input=>'{a=>1, }'          , dies=>1, note=>'dangling comma'};
+    push @t, {tags=>$tags, input=>'{a, 1}'            , dies=>1, note=>'comma not allowed as arrow'};
 }
 
 my $json = JSON->new->pretty->allow_nonref;
