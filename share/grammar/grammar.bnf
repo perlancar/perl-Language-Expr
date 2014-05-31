@@ -78,7 +78,7 @@ term               ::= func
                      | var
                      | str
                      | undef
-                     | num
+                     | num                                     action=>rule_num
                      | bool
                      | array
                      | hash
@@ -169,4 +169,3 @@ func               ::= func_name ('(') func_args (')')         action=>rule_func
 
 :discard             ~ ws
 ws                   ~ [\s]+
-

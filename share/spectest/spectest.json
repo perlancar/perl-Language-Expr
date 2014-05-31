@@ -1,70 +1,122 @@
 {
+   "version" : "0.23",
    "tests" : [
       {
+         "note" : "hex",
          "input" : "-0x1f",
-         "category" : "literal/number",
-         "result" : -31,
-         "note" : "hex"
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "result" : -31
       },
       {
-         "note" : "decimal",
+         "result" : -1.2,
          "input" : "-1.2",
-         "category" : "literal/number",
-         "result" : 15
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "note" : "decimal"
       },
       {
-         "category" : "literal/number",
+         "note" : "exponent notation",
+         "tags" : [
+            "literal",
+            "number"
+         ],
          "input" : "-1.2e4",
-         "result" : -12000,
-         "note" : "exponent notation"
+         "result" : -12000
       },
       {
-         "result" : 15,
+         "note" : "octal uses 0o prefix, not 0",
          "input" : "015",
-         "category" : "literal/number",
-         "note" : "octal uses 0o prefix, not 0"
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "result" : 13
       },
       {
-         "input" : "0b100",
-         "category" : "literal/number",
          "result" : 4,
+         "input" : "0b100",
+         "tags" : [
+            "literal",
+            "number"
+         ],
          "note" : "binary"
       },
       {
+         "note" : "binary negative",
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "input" : "-0b100",
+         "result" : -4
+      },
+      {
+         "result" : 15,
          "note" : "octal",
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "input" : "0o17"
+      },
+      {
          "result" : -15,
-         "category" : "literal/number",
+         "note" : "octal negative",
+         "tags" : [
+            "literal",
+            "number"
+         ],
          "input" : "-0o17"
       },
       {
-         "dies" : 1,
          "input" : "0x1g",
-         "category" : "literal/number",
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "dies" : 1,
          "note" : "invalid hex digit"
       },
       {
+         "dies" : 1,
          "note" : "invalid binary digit",
-         "dies" : 1,
-         "input" : "-0b2",
-         "category" : "literal/number"
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "input" : "-0b2"
       },
       {
-         "note" : "invalid octal digit",
-         "dies" : 1,
          "input" : "0o18",
-         "category" : "literal/number"
+         "tags" : [
+            "literal",
+            "number"
+         ],
+         "dies" : 1,
+         "note" : "invalid octal digit"
       },
       {
-         "result" : [],
-         "category" : "literal/array",
-         "input" : "[]"
+         "input" : "[]",
+         "tags" : [
+            "literal",
+            "array"
+         ],
+         "result" : []
       },
       {
          "result" : [
             1,
             2
          ],
-         "category" : "literal/array",
+         "tags" : [
+            "literal",
+            "array"
+         ],
          "input" : "[1,2]"
       },
       {
@@ -73,41 +125,64 @@
             2,
             7
          ],
-         "category" : "literal/array",
-         "input" : "[1, 2, 3+4]"
+         "input" : "[1, 2, 3+4]",
+         "tags" : [
+            "literal",
+            "array"
+         ]
       },
       {
-         "category" : "literal/array",
-         "input" : "[",
+         "note" : "missing closing bracket",
          "dies" : 1,
-         "note" : "missing closing bracket"
+         "input" : "[",
+         "tags" : [
+            "literal",
+            "array"
+         ]
       },
       {
-         "category" : "literal/array",
-         "input" : "[",
+         "note" : "missing opening bracket",
          "dies" : 1,
-         "note" : "missing opening bracket"
+         "input" : "]",
+         "tags" : [
+            "literal",
+            "array"
+         ]
       },
       {
          "note" : "dangling comma",
+         "tags" : [
+            "literal",
+            "array"
+         ],
          "input" : "[1,]",
-         "category" : "literal/array",
-         "dies" : 1
+         "result" : [
+            1
+         ]
       },
       {
-         "note" : "missing comma",
+         "tags" : [
+            "literal",
+            "array"
+         ],
          "input" : "[1 2]",
-         "category" : "literal/array",
+         "note" : "missing comma",
          "dies" : 1
       },
       {
-         "dies" : 1,
-         "category" : "literal/array",
+         "tags" : [
+            "literal",
+            "array"
+         ],
          "input" : "[a]",
+         "dies" : 1,
          "note" : "missing quote"
       },
       {
-         "category" : "literal/hash",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{}",
          "result" : {}
       },
@@ -115,81 +190,118 @@
          "result" : {
             "a" : 1
          },
-         "category" : "literal/hash",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{a=>1}"
       },
       {
          "result" : {
             "a" : 1
          },
-         "input" : "{'a'=>1}",
-         "category" : "literal/hash"
+         "tags" : [
+            "literal",
+            "hash"
+         ],
+         "input" : "{'a'=>1}"
       },
       {
-         "category" : "literal/hash",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{\"a b\"=>1}",
          "result" : {
             "a b" : 1
          }
       },
       {
-         "category" : "literal/hash",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{(\"a\".\"b\")=>1}",
          "dies" : 1,
          "note" : "expression not supported on pair key"
       },
       {
          "result" : {
-            "b c" : 2,
-            "a" : 1
+            "a" : 1,
+            "b c" : 2
          },
-         "category" : "literal/hash",
+         "note" : "expression allowed on pair value",
          "input" : "{a=>1, \"b c\"=>1+1}",
-         "note" : "expression allowed on pair value"
+         "tags" : [
+            "literal",
+            "hash"
+         ]
       },
       {
          "dies" : 1,
-         "category" : "literal/hash",
-         "input" : "{",
-         "note" : "missing opening brace"
+         "note" : "missing opening brace",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
+         "input" : "{"
       },
       {
+         "dies" : 1,
+         "note" : "missing closing brace",
          "input" : "}",
-         "category" : "literal/hash",
-         "dies" : 1,
-         "note" : "missing closing brace"
+         "tags" : [
+            "literal",
+            "hash"
+         ]
       },
       {
          "dies" : 1,
-         "input" : "a=>1",
-         "category" : "literal/hash",
-         "note" : "missing braces"
+         "note" : "missing braces",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
+         "input" : "a=>1"
       },
       {
-         "dies" : 1,
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{=>1}",
-         "category" : "literal/hash",
+         "dies" : 1,
          "note" : "missing pair key"
       },
       {
-         "dies" : 1,
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{a=>}",
-         "category" : "literal/hash",
-         "note" : "missing pair value"
+         "note" : "missing pair value",
+         "dies" : 1
       },
       {
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{a=>1, }",
-         "category" : "literal/hash",
-         "dies" : 1,
-         "note" : "dangling comma"
+         "note" : "dangling comma",
+         "result" : {
+            "a" : 1
+         }
       },
       {
-         "dies" : 1,
-         "category" : "literal/hash",
+         "tags" : [
+            "literal",
+            "hash"
+         ],
          "input" : "{a, 1}",
+         "dies" : 1,
          "note" : "comma not allowed as arrow"
       }
    ],
-   "comment" : "Generated by devscripts/gen-spectest on Fri May 30 14:49:05 2014",
-   "version" : "0.23"
+   "comment" : "Generated by devscripts/gen-spectest on Sat May 31 09:36:11 2014"
 }

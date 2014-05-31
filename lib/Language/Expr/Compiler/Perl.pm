@@ -145,8 +145,14 @@ sub rule_bool {
 }
 
 sub rule_num {
-    my ($self, %args) = @_;
-    # TODO
+    my $h = shift;
+    if ($_[0] =~ /\A([+-]?)0o(.+)/) {
+        # Oo is not supported by perl
+        ($1 eq '-' ? -1:1) * oct($2);
+    } else {
+        # the rest is
+        $_[0];
+    }
 }
 
 sub rule_var {
