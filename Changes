@@ -1,5 +1,26 @@
 Revision history for Language-Expr
 
+0.24    2014-05-31 (SHARYANTO) (not yet released)
+
+        - Switch parser from using Regexp::Grammars to Marpa::R2. RG has lots of
+          problems, e.g. segfaults and regex engine reentrance issue, does not
+          run on perl 5.18.x, exponential parsing time as input becomes longer,
+          inadequate error message.
+
+        [REMOVED FEATURES]
+
+        - Remove interpreter mode. You must now use the compiled mode. func(),
+          var() are also hereby removed.
+
+        - Remove compile().
+
+        [INCOMPATIBLE CHANGES]
+
+        - Rename 'compiler' attribute to 'perl_compiler'.
+
+        - Rename 'varenumer' attribute to 'var_enumer'.
+
+
 0.23    2014-05-01 (SHARYANTO)
 
         - No functional changes.

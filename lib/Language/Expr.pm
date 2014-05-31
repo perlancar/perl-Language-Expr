@@ -9,21 +9,7 @@ use Moo;
 # VERSION
 # DATE
 
-has interpreted => (
-    is => 'rw',
-    default => sub{0},
-);
-
-has interpreter => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Interpreter::Default;
-        Language::Expr::Interpreter::Default->new;
-    },
-);
-
-has compiler => (
+has perl_compiler => (
     is => 'ro',
     lazy => 1,
     default => sub {
@@ -50,7 +36,7 @@ has php_compiler => (
     },
 );
 
-has varenumer => (
+has var_enumer => (
     is => 'ro',
     lazy => 1,
     default => sub {
@@ -59,63 +45,29 @@ has varenumer => (
     },
 );
 
-sub var {
-    my ($self, %args) = @_;
-    my $itp = $self->interpreter;
-    $itp->vars->{$_} = $args{$_} for keys %args;
-}
-
-sub func {
-    my ($self, %args) = @_;
-    my $itp = $self->interpreter;
-    for (keys %args) {
-        die "Function `$_` already defined" if $itp->funcs->{$_};
-        die "Function `$_`: coderef required" unless ref($args{$_}) eq 'CODE';
-        $itp->funcs->{$_} = $args{$_};
-    }
-}
-
 sub eval {
     my ($self, $str) = @_;
-    my $evaluator = $self->interpreted ? $self->interpreter : $self->compiler;
-    $evaluator->eval($str);
+    eval $self->perl($str);
 }
 
 sub perl {
     my ($self, $str) = @_;
-    $self->compiler->perl($str);
+    $self->perl_compiler->compile($str);
 }
 
 sub js {
     my ($self, $str) = @_;
-    unless ($self->js_compiler) {
-        require Language::Expr::Compiler::JS;
-        $self->js_compiler(Language::Expr::Compiler::JS->new);
-    }
-    $self->js_compiler->js($str);
+    $self->js_compiler->compile($str);
 }
 
 sub php {
     my ($self, $str) = @_;
-    unless ($self->php_compiler) {
-        require Language::Expr::Compiler::PHP;
-        $self->php_compiler(Language::Expr::Compiler::PHP->new);
-    }
-    $self->php_compiler->php($str);
-}
-
-sub compile {
-    my ($self, $str) = @_;
-    my $s = $self->perl($str);
-    # the '$_ = \@_' trick is to make '$_[0]' in expression work like in Perl
-    my $sub = eval qq(sub { local \$_ = \\\@_; $s });
-    die $@ if $@;
-    $sub;
+    $self->php_compiler->compile($str);
 }
 
 sub enum_vars {
     my ($self, $str) = @_;
-    $self->varenumer->eval($str);
+    $self->var_enumer->eval($str);
 }
 
 1;
@@ -143,22 +95,10 @@ sub enum_vars {
  # convert Expr to PHP
  say $le->php('"x" x 10'); # "str_repeat(('x'), 10)"
 
- # convert Expr to compiled Perl code
- my $sub = $le->compile('($_[0]**2 + $_[1]**2)**0.5');
- say $sub->(3, 4); # 5
-
- # use variables & functions in expression (interpreted mode)
- $le->interpreted(1);
- $le->var('a' => 3, 'b' => 4);
- $le->func(pyth => sub { ($_[0]**2 + $_[1]**2)**0.5 });
- say $le->eval('pyth($a, $b)'); # 5
-
- # use variables & functions in expression (compiled mode, by default the Perl
- # compiler translates variables and function call as-is and runs it in
- # Language::Expr::Compiler::Perl namespace, but you can customize this, see
- # below)
- $le->interpreted(0);
- package Language::Expr::Compiler::Perl;
+ # use variables & functions in expression (by default the Perl compiler
+ # translates variables and function call as-is and runs it in
+ # Language::Expr::Compiled namespace, but you can customize this, see below)
+ package Language::Expr::Compiled;
  sub pyth { ($_[0]**2 + $_[1]**2)**0.5 }
  our $a = 3;
  our $b = 4;
@@ -166,16 +106,16 @@ sub enum_vars {
  say $le->perl('pyth($a, $b)'); # "pyth($a, $b)"
  say $le->eval('pyth($a, $b)'); # 5
 
- # tell compiler to use My namespace, translate 'func()' to 'My::func()' and
- # '$var' to '$My::var'
- package My;
+ # tell compiler to use My::Expr namespace, so 'func()' resolves to
+ # 'My::Expr::func()' and '$var' to '$My::Expr::var'
+ package My::Expr;
  sub pyth { sprintf("%.03f", ($_[0]**2 + $_[1]**2)**0.5) }
  our $a = 3;
  our $b = 4;
  package main;
- $le->compiler->hook_var (sub { '$My::'.$_[0] });
- $le->compiler->hook_func(sub { 'My::'.(shift)."(".join(", ", @_).")" });
- say $le->perl('pyth($a, $b)'); # "My::pyth($My::a, $My::b)"
+ $le->perl_compiler->hook_var (sub { '$My::Expr::'.$_[0] });
+ $le->perl_compiler->hook_func(sub { 'My::Expr::'.(shift)."(".join(", ", @_).")" });
+ say $le->perl('pyth($a, $b)'); # "My::Expr::pyth($My::a, $My::b)"
  say $le->eval('pyth($a, $b)'); # "5.000"
 
  # enumerate variables
@@ -190,41 +130,28 @@ mathematical and string operators, arrays, hashes, variables, and functions. See
 L<Language::Expr::Manual::Syntax> for description of the language syntax.
 
 This distribution consists of the language parser (L<Language::Expr::Parser>),
-some interpreters (Language::Expr::Interpreter::*), and some compilers
-(Language::Expr::Compiler::*).
+some compilers (Language::Expr::Compiler::*) and interpreters
+(Language::Expr::Interpreter::*).
 
 
 =head1 ATTRIBUTES
 
-=head2 interpreted => BOOL
+=head2 perl_compiler => OBJ
 
-Whether to use the interpreter. By default is 0 (use the compiler, which means
-Language::Expr expression will be compiled to Perl code first before executed).
-
-Note: The compiler is used by default because the interpreter currently lacks
-subexpression (map/grep/sort) support. But the compiler cannot by default
-directly use variables and functions defined by var() and func(). This slight
-inconvenience might be rectified in the future.
-
-=head2 interpreter => OBJ
-
-Store the Language::Expr::Interpreter::Default instance.
-
-=head2 compiler => OBJ
-
-Store the Language::Expr::Compiler::Perl instance.
+Store the L<Language::Expr::Compiler::Perl> instance (instantiated lazily).
 
 =head2 js_compiler => OBJ
 
-Store the Language::Expr::Compiler::JS instance.
+Store the L<Language::Expr::Compiler::JS> instance (instantiated lazily).
 
 =head2 php_compiler => OBJ
 
-Store the Language::Expr::Compiler::PHP instance.
+Store the L<Language::Expr::Compiler::PHP> instance (instantiated lazily).
 
-=head2 varenumer => OBJ
+=head2 var_enumer => OBJ
 
-Store the Language::Expr::Interpreter::VarEnumer instance.
+Store the L<Language::Expr::Interpreter::VarEnumer> instance (instantiated
+lazily).
 
 
 =head1 METHODS
@@ -235,56 +162,26 @@ Construct a new Language::Expr object, which is just a convenient front-end of
 the Expr parser, compilers, and interpreters. You can also use the
 parser/compiler/interpreter independently.
 
-=head2 var(NAME => VALUE, ...)
+=head2 perl($str) => STR
 
-Define variables. Note that variables are only directly usable in interpreted
-mode (see L</"SYNOPSIS"> for example on how to use variables in compiled mode).
+Convert expression in C<$str> and return a string Perl code. Dies on error. A
+shortcut for C<< $le->perl_compiler->compile() >>.
 
-=head2 func(NAME => CODEREF, ...)
+=head2 js($str) => STR
 
-Define functions. Dies if function is defined multiple times. Note that
-functions are only directly usable in interpreted mode (see SYNOPSIS for example
-on how to use functions in compiled mode).
+Convert expression in C<$str> and return a string JavaScript code. Dies on
+error. Internally just call C<< $le->js_compiler->compile() >>.
 
-=head2 eval(STR) => RESULT
+=head2 php($str) => STR
 
-Evaluate expression in STR (either using the compiler or interpreter) and return
-the result. Will die if there is a parsing or runtime error. By default it uses
-the compiler unless you set C<interpreted> to 1.
+Convert expression in C<$str> and return a string PHP code. Dies on error.
+Internally just call C<< $le->php_compiler->compile() >>.
 
-Also see compile() which will always use the compiler regardless of
-C<interpreted> setting, and will save compilation result into a Perl subroutine
-(thus is more efficient if you need to evaluate an expression repeatedly).
+=head2 enum_vars($str) => ARRAYREF
 
-=head2 perl(STR) => STR
-
-Convert expression in STR and return a string Perl code. Dies on error.
-Internally just call $le->compiler->perl().
-
-=head2 js(STR) => STR
-
-Convert expression in STR and return a string JavaScript code. Dies on error.
-Internally just call $le->js_compiler->js().
-
-=head2 php(STR) => STR
-
-Convert expression in STR and return a string PHP code. Dies on error.
-Internally just call $le->php_compiler->php().
-
-=head2 compile(STR) => CODEREF
-
-Compile expression in STR into Perl subroutine. Dies on error. See also eval().
-
-Inside the expression, you can use '$_[0]', '$_[1]', etc to access the
-subroutine's arguments, because compile() sets $_ to @_. Example:
-
- my $sub = $le->compile('($_[0]**2 + $_[1]**2)**0.5');
- say $sub->(3, 4); # 5
-
-=head2 enum_vars(STR) => ARRAYREF
-
-Enumerate variables mentioned in expression STR. Return empty arrayref
- if no variables are mentioned.
+Enumerate variables mentioned in expression C<$str>. Dies on error. Return empty
+arrayref if no variables are mentioned. Internally just call C<<
+$le->var_enumer->compile() >>.
 
 
 =head1 FAQ
@@ -306,40 +203,19 @@ I need several compilers and interpreters (some even with different semantics),
 so it's easier to start with a simple parser of my own. And of course there is
 personal preference of language syntax.
 
-=head2 What is the difference between a compiler and interpreter?
-
-An interpreter evaluates expression as it is being parsed, while a compiler
-generates a complete Perl (or whatever) code first. Thus, if you $le->eval()
-repeatedly using the interpreter mode (setting $le->interpreted(1)), you will
-repeatedly parse the expression each time. This can be one or more orders of
-magnitude slower compared to compiling into Perl once and then directly
-executing the Perl code repeatedly.
-
-Note that if you use $le->eval() using the default compiler mode, you do not
-reap the benefits of compilation because the expression will be compiled each
-time you call $le->eval(). To save the compilation result, use $le->compile() or
-$le->perl() and compile the Perl code yourself using Perl's eval().
-
 =head2 I want different syntax for (variables, foo operator, etc)!
 
-Create your own language :-) Fork this distribution and start
-modifying the Language::Expr::Parser module.
+Create your own language :-) Fork this distribution and start modifying the
+Language::Expr::Parser module.
 
-=head2 How to show details of errors in expression?
+=head2 How to get a better error message?
 
 This is a TODO item.
-
-
-=head1 KNOWN BUGS
-
-Due to possible bugs in Perl's RE engine or Regexp::Grammars or my
-grammar, some syntax errors will cause further parsing to
-fail.
 
 
 =head1 SEE ALSO
 
 Syntax reference: L<Language::Expr::Manual::Syntax>
 
-Other related modules: L<Math::Expression>,
-L<Math::Expression::Evaluator>, L<Language::Farnsworth>
+Other related modules: L<Math::Expression>, L<Math::Expression::Evaluator>,
+L<Language::Farnsworth>
