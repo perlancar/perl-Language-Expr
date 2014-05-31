@@ -77,7 +77,7 @@ subscripting       ::= term
 term               ::= func
                      | var
                      | str
-                     | undef
+                     | undef                                   action=>rule_undef
                      | num                                     action=>rule_num
                      | bool
                      | array
@@ -125,7 +125,8 @@ num                  ~      '0x' hexdigits
                      | sign 'inf'
                      |      'nan'
 
-str                ::= squotestr | dquotestr
+str                ::= squotestr                               action=>rule_squotestr
+                     | dquotestr                               action=>rule_dquotestr
 
 squotepart           ~ '\\'
                      | '\' [']

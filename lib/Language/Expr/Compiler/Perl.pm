@@ -131,12 +131,32 @@ sub rule_undef {
 
 sub rule_squotestr {
     my $h = shift;
-    # TODO
+    my $res = '';
+    while ($_[0] =~ m!(\\\\|\\'|[^\\']+)!g) {
+        if ($1 eq '\\\\') {
+            $res .= '\\\\';
+        } elsif ($1 eq "\\'") {
+            $res .= "\\'";
+        } else {
+            $res .= $1;
+        }
+    }
+    "'$res'";
 }
 
 sub rule_dquotestr {
     my $h = shift;
-    # TODO
+    my $res = '';
+    while ($_[0] =~ m!(\\\\|\\'|[^\\']+)!g) {
+        if ($1 eq '\\\\') {
+            $res .= '\\\\';
+        } elsif ($1 eq "\\'") {
+            $res .= "\\'";
+        } else {
+            $res .= $1;
+        }
+    }
+    qq("$res");
 }
 
 sub rule_bool {
@@ -147,7 +167,7 @@ sub rule_bool {
 sub rule_num {
     my $h = shift;
     if ($_[0] =~ /\A([+-]?)0o(.+)/) {
-        # Oo is not supported by perl
+        # octal prefix Oo is not supported by perl
         ($1 eq '-' ? -1:1) * oct($2);
     } else {
         # the rest is
