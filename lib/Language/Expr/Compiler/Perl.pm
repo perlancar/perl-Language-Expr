@@ -103,7 +103,7 @@ sub rule_power {
 
 sub rule_subscripting_var {
     my $o = shift;
-    rule_subscripting_expr($h, @_);
+    rule_subscripting_expr($o, @_);
 }
 
 sub rule_subscripting_expr {
