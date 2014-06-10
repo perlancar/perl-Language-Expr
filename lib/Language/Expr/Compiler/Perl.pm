@@ -9,6 +9,7 @@ with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Compiler::Base';
 
 use boolean;
+use Language::Expr::Parser qw(parse_expr);
 
 # VERSION
 # DATE
@@ -261,29 +262,6 @@ sub _quote {
     '"' . join("", @c) . '"';
 }
 
-sub perl {
-    my ($self, $expr) = @_;
-    my $res = Language::Expr::Parser::parse_expr($expr, ref($self));
-    for my $m (@{ $self->markers }) {
-        my $type = $m->[0];
-        next unless $type eq 'subexpr';
-        my $uuid = $m->[1];
-        my $subexpr = $m->[2];
-        my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
-        $res =~ s/TODO-$uuid/$subres/g;
-    }
-    $self->markers([]);
-    $res;
-}
-
-sub eval {
-    my ($self, $expr) = @_;
-    no strict;
-    my $res = eval $self->perl($expr);
-    die $@ if $@;
-    $res;
-}
-
 1;
 # ABSTRACT: Compile Language::Expr expression to Perl
 
@@ -293,7 +271,7 @@ sub eval {
 
  use Language::Expr::Compiler::Perl;
  my $plc = Language::Expr::Compiler::Perl->new;
- print $plc->perl('1 ^^ 2'); # prints '1 xor 2'
+ print $plc->compile('1 ^^ 2'); # prints '1 xor 2'
 
 
 =head1 DESCRIPTION
@@ -336,7 +314,7 @@ hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =head1 METHODS
 
-=head2 perl($expr) => $perl_code
+=head2 compile($expr) => $perl_code
 
-Convert Language::Expr expression into Perl code. Dies if there is
-syntax error in expression.
+Convert Language::Expr expression into string Perl code. Dies if there is syntax
+error in expression.

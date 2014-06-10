@@ -7,8 +7,8 @@ use warnings;
 use Moo;
 extends 'Language::Expr::Evaluator';
 
+use Language::Expr::Parser qw(parse_expr);
 use UUID::Tiny ':std';
-use Language::Expr::Interpreter::Default;
 
 # VERSION
 # DATE
@@ -37,6 +37,11 @@ sub marker_ids_re {
     my ($self) = @_;
     my $re = "(?:" . join("|", map {$_->[1]} @{ $self->markers }) . ")";
     qr/$re/;
+}
+
+sub compile {
+    my ($self, $expr) = @_;
+    parse_expr($expr, ref($self));
 }
 
 1;
@@ -97,3 +102,7 @@ Return an array of all marker IDs.
 =head2 marker_ids_re() => STRING
 
 Return a regex that matches marker IDs.
+
+=head2 compile($str) => ANY
+
+Compile Expr in C<$str> to target language.
