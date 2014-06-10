@@ -14,12 +14,12 @@ use boolean;
 # DATE
 
 sub rule_pair {
-    my $h = shift;
+    my $o = shift;
     "$_[0] => $_[1]";
 }
 
 sub rule_or_xor {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '||') { "$opn1 || $opn2" }
     elsif ($op eq '//') { "$opn1 // $opn2" }
@@ -27,50 +27,50 @@ sub rule_or_xor {
 }
 
 sub rule_and {
-    my $h = shift;
+    my $o = shift;
     "(($_[0] && $_[2]) || false)";
 }
 
 sub rule_ternary {
-    my $h = shift;
+    my $o = shift;
     "$_[0] ? $_[1] : $_[2]";
 }
 
 sub rule_bit_or_xor {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '|') { "$opn1 | $opn2" }
     elsif ($op eq '^') { "$opn1 ^ $opn2" }
 }
 
 sub rule_bit_and {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '&') { "$opn1 & $opn2" }
 }
 
 sub rule_comparison3 {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '<=>') { "$opn1 <=> $opn2" }
     elsif ($op eq 'cmp') { "$opn1 cmp $opn2" }
 }
 
 sub rule_comparison {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     "($opn1 $op $opn2) ? true : false)";
 }
 
 sub rule_bit_shift {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '>>') { "$opn1 >> $opn2" }
     elsif ($op eq '<<') { "$opn1 << $opn2" }
 }
 
 sub rule_add {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '.') { "$opn1 . $opn2" }
     elsif ($op eq '+') { "$opn1 + $opn2" }
@@ -78,7 +78,7 @@ sub rule_add {
 }
 
 sub rule_mult {
-    my $h = shift;
+    my $o = shift;
     my ($opn1, $op, $opn2) = @_;
     if    ($op eq '*') { "$opn1 * $opn2" }
     elsif ($op eq '/') { "$opn1 / $opn2" }
@@ -87,7 +87,7 @@ sub rule_mult {
 }
 
 sub rule_unary {
-    my $h = shift;
+    my $o = shift;
     my ($op, $opn) = @_;
     if    ($op eq '!') { "($opn ? false:true)" }
     # we use paren because --x or ++x is interpreted as pre-decrement/increment
@@ -97,17 +97,17 @@ sub rule_unary {
 }
 
 sub rule_power {
-    my $h = shift;
+    my $o = shift;
     "$_[0] ** $_[2]";
 }
 
 sub rule_subscripting_var {
-    my $h = shift;
+    my $o = shift;
     rule_subscripting_expr($h, @_);
 }
 
 sub rule_subscripting_expr {
-    my $h = shift;
+    my $o = shift;
     my ($opn, $s) = @_;
     qq!(do { my (\$v) = ($opn); my (\$s) = ($s); !.
         qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
@@ -116,12 +116,12 @@ sub rule_subscripting_expr {
 }
 
 sub rule_array {
-    my $h = shift;
+    my $o = shift;
     "[" . join(", ", @{ $_[0] }) . "]";
 }
 
 sub rule_hash {
-    my $h = shift;
+    my $o = shift;
     "{" . join(", ", @{ $_[0] }). "}";
 }
 
@@ -130,7 +130,7 @@ sub rule_undef {
 }
 
 sub rule_squotestr {
-    my $h = shift;
+    my $o = shift;
     my $res = '';
     while ($_[0] =~ m!(\\\\|\\'|[^\\']+)!g) {
         if ($1 eq '\\\\') {
@@ -145,7 +145,7 @@ sub rule_squotestr {
 }
 
 sub rule_dquotestr {
-    my $h = shift;
+    my $o = shift;
     my $res = '';
     while ($_[0] =~ m!(\\\\|\\'|[^\\']+)!g) {
         if ($1 eq '\\\\') {
@@ -160,12 +160,12 @@ sub rule_dquotestr {
 }
 
 sub rule_bool {
-    my $h = shift;
+    my $o = shift;
     # TODO
 }
 
 sub rule_num {
-    my $h = shift;
+    my $o = shift;
     if ($_[0] =~ /\A([+-]?)0o(.+)/) {
         # octal prefix Oo is not supported by perl
         ($1 eq '-' ? -1:1) * oct($2);
@@ -176,7 +176,7 @@ sub rule_num {
 }
 
 sub rule_var {
-    my $h = shift;
+    my $o = shift;
     # TODO
     my ($self, %args) = @_;
     my $match = $args{match};
@@ -188,7 +188,7 @@ sub rule_var {
 }
 
 sub rule_func {
-    my $h = shift;
+    my $o = shift;
     # TODO
     my ($self, %args) = @_;
     my $match = $args{match};
