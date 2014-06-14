@@ -1,6 +1,6 @@
-Revision history for Language-Expr
+0;115;0cRevision history for Language-Expr
 
-0.24    2014-05-31 (SHARYANTO) (not yet released)
+0.24    2014-06-14 (SHARYANTO) (not yet released)
 
         - Switch parser from using Regexp::Grammars to Marpa::R2. RG has lots of
           problems, e.g. segfaults and regex engine reentrance issue, does not
@@ -13,6 +13,8 @@ Revision history for Language-Expr
           var() are also hereby removed.
 
         - Remove compile().
+
+        - Split PHP compiler to its own dist: Language-Expr-Compiler-PHP.
 
         [INCOMPATIBLE CHANGES]
 

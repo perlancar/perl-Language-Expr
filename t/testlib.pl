@@ -110,6 +110,8 @@ sub run_spectest {
               TEST:
                 for my $test (@{ $spec->{tests} }) {
                     my $testname = $test->{name} //= $test->{input};
+                    $testname .= " (".join(", ", @{ $test->{tags} }).")"
+                        if @{ $test->{tags} };
                     subtest $testname => sub {
                         if (my $reason = $should_skip_test->($test)) {
                             plan skip_all => "Skipping test $test->{name}: $reason";
@@ -117,8 +119,11 @@ sub run_spectest {
                         }
                         eval {
                             my $codestr = $le->perl($test->{input});
+                            diag "generated perl code: $codestr";
                             my $res = eval $codestr; die if $@;
-                            is_deeply($res, $test->{result}, "result");
+                            if (exists $test->{result}) {
+                                is_deeply($res, $test->{result}, "result");
+                            }
                         };
                         my $eval_err = $@;
                         if ($test->{dies}) {

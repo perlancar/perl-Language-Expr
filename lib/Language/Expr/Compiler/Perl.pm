@@ -167,7 +167,11 @@ sub rule_bool {
 
 sub rule_num {
     my $o = shift;
-    if ($_[0] =~ /\A([+-]?)0o(.+)/) {
+    if ($_[0] eq 'nan') {
+        q['NaN'];
+    } elsif ($_[0] eq 'inf') {
+        q['Inf'];
+    } elsif ($_[0] =~ /\A([+-]?)0o(.+)/) {
         # octal prefix Oo is not supported by perl
         ($1 eq '-' ? -1:1) * oct($2);
     } else {

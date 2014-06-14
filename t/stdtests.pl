@@ -13,41 +13,6 @@ sub stdvars {
 
 sub stdtests {
     return (
-    # literal num
-    {category=>'literal num', text=>'-0x1f', result=>-31},
-    {category=>'literal num', text=>'0b100', result=>4},
-    {category=>'literal num', text=>'-0o17', result=>-15},
-    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'0x1g'},
-    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'-0b2'},
-    {category=>'literal num', parse_error=>qr/invalid syntax/i, text=>'0o18'},
-
-    # array
-    {category=>'array', text=>'[]', result=>[]},
-    {category=>'array', text=>'[1,2]', result=>[1, 2]},
-    {category=>'array', text=>'[1, 2, 3+4]', result=>[1, 2, 7]},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'['},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>']'},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[,]'},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[1,]'},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[1 2]'},
-    {category=>'array', parse_error=>qr/invalid syntax/i, text=>'[a]'},
-
-    # hash
-    {category=>'hash', text=>'{}', result=>{}, php_result=>[]}, # due to ambiguity of php arrays
-    {category=>'hash', text=>'{a=>1}', result=>{a=>1}},
-    {category=>'hash', text=>q[{'a'=>1}], result=>{a=>1}},
-    {category=>'hash', text=>q[{"a b"=>1}], result=>{"a b"=>1}},
-    {category=>'hash', text=>'{("a"."b")=>1}', parse_error=>qr/invalid syntax/i, xresult=>{ab=>1}}, # many languages (e.g. php and js) don't support expression before "=>", so we disallow them for the moment
-    {category=>'hash', text=>'{a=>1, "b c"=>1+1}', result=>{a=>1, "b c"=>2}},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{=>}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a=>}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{=>1}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a, 1}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{a=>1, }'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'{1=>a}'},
-    {category=>'hash', parse_error=>qr/invalid syntax/i, text=>'a=>1'},
 
     # comparison equal
     {category=>'comparison equal num', text=>'1 == 2', result=>false},
