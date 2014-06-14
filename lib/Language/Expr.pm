@@ -27,15 +27,6 @@ has js_compiler => (
     },
 );
 
-has php_compiler => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Compiler::PHP;
-        Language::Expr::Compiler::PHP->new;
-    },
-);
-
 has var_enumer => (
     is => 'ro',
     lazy => 1,
@@ -58,11 +49,6 @@ sub perl {
 sub js {
     my ($self, $str) = @_;
     $self->js_compiler->compile($str);
-}
-
-sub php {
-    my ($self, $str) = @_;
-    $self->php_compiler->compile($str);
 }
 
 sub enum_vars {
@@ -91,9 +77,6 @@ sub enum_vars {
 
  # convert Expr to JavaScript
  say $le->js('1 . 2'); # "'' + 1 + 2"
-
- # convert Expr to PHP
- say $le->php('"x" x 10'); # "str_repeat(('x'), 10)"
 
  # use variables & functions in expression (by default the Perl compiler
  # translates variables and function call as-is and runs it in
@@ -144,10 +127,6 @@ Store the L<Language::Expr::Compiler::Perl> instance (instantiated lazily).
 
 Store the L<Language::Expr::Compiler::JS> instance (instantiated lazily).
 
-=head2 php_compiler => OBJ
-
-Store the L<Language::Expr::Compiler::PHP> instance (instantiated lazily).
-
 =head2 var_enumer => OBJ
 
 Store the L<Language::Expr::Interpreter::VarEnumer> instance (instantiated
@@ -171,11 +150,6 @@ shortcut for C<< $le->perl_compiler->compile() >>.
 
 Convert expression in C<$str> and return a string JavaScript code. Dies on
 error. Internally just call C<< $le->js_compiler->compile() >>.
-
-=head2 php($str) => STR
-
-Convert expression in C<$str> and return a string PHP code. Dies on error.
-Internally just call C<< $le->php_compiler->compile() >>.
 
 =head2 enum_vars($str) => ARRAYREF
 
