@@ -99,7 +99,7 @@ allowed in Expr.
  {}
  {a => 1, "b c" => 2+3}
 
-Dangling comma at the end e.g. C<<{a => 1, b=>2, }>> is allowed.
+Dangling comma at the end e.g. C<< {a => 1, b=>2, } >> is allowed.
 
 Differences from Perl: in Expr you must always use "=>" to separate key and
 value, not comma.
