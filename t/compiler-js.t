@@ -20,6 +20,10 @@ $jsc->func_mapping->{length}  = ':length';
 
 package main;
 
+# currently we need to skip lots of test because boolean quirkiness stuffs
+# (should be easy to fix/workaround) and let (will need to upgrade node to
+# support let first, and/or use --harmony).
+
 for my $t (stdtests()) {
     next if $t->{category} eq 'var'; # involves let
     next if $t->{category} eq 'dquotestr interpolate var'; #
