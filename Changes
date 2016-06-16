@@ -1,6 +1,6 @@
 Revision history for Language-Expr
 
-0.24    2016-06-16 (PERLANCAR) (unreleased)
+0.24    2016-06-16 (PERLANCAR)
 
         - Adjust to recent Regexp::Grammars & perl, reenable tests because RG is
           no longer broken on recent perls. Module now works again and re-pass

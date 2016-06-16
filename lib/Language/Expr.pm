@@ -46,41 +46,8 @@ sub get_interpreter {
  # evaluate Expr using the default interpreter
  say $le->get_interpreter('default')->eval('1 + 2'); # => 3
 
- # use variables & functions in expression (interpreter mode)
- my $pli = $le->get_interpreter('default');
- $pli->vars->{a} = 3;
- $pli->vars->{b} = 4;
- $pli->functiovars->(pyth => sub { ($_[0]**2 + $_[1]**2)**0.5 });
- say $le->eval('pyth($a, $b)'); # 5
-
- # use variables & functions in expression (compiled mode, by default the Perl
- # compiler translates variables and function call as-is and runs it in
- # Language::Expr::Compiler::Perl namespace, but you can customize this, see
- # below)
- $le->interpreted(0);
- package Language::Expr::Compiler::Perl;
- sub pyth { ($_[0]**2 + $_[1]**2)**0.5 }
- our $a = 3;
- our $b = 4;
- package main;
- say $le->perl('pyth($a, $b)'); # "pyth($a, $b)"
- say $le->eval('pyth($a, $b)'); # 5
-
- # tell compiler to use My namespace, translate 'func()' to 'My::func()' and
- # '$var' to '$My::var'
- package My;
- sub pyth { sprintf("%.03f", ($_[0]**2 + $_[1]**2)**0.5) }
- our $a = 3;
- our $b = 4;
- package main;
- $le->compiler->hook_var (sub { '$My::'.$_[0] });
- $le->compiler->hook_func(sub { 'My::'.(shift)."(".join(", ", @_).")" });
- say $le->perl('pyth($a, $b)'); # "My::pyth($My::a, $My::b)"
- say $le->eval('pyth($a, $b)'); # "5.000"
-
  # enumerate variables
- use Data::Dump;
- dd $le->enum_vars('$a*$a + sqr($b)'); # ['a', 'b']
+ my $vars = $le->enum_vars('$a*$a + sqr($b)'); # => ['a', 'b']
 
 
 =head1 DESCRIPTION
@@ -101,39 +68,14 @@ some interpreters (Language::Expr::Interpreter::*), and some compilers
 
 =head2 new()
 
-Construct a new Language::Expr object, which is just a convenient front-end of
-the Expr parser, compilers, and interpreters. You can also use the
-parser/compiler/interpreter independently.
-
-=head2 var(NAME => val, ...)
-
-Define variables. Note that variables are only directly usable in interpreted
-mode (see L</"SYNOPSIS"> for example on how to use variables in compiled mode).
-
-=head2 func(NAME => coderef, ...)
-
-Define functions. Dies if function is defined multiple times. Note that
-functions are only directly usable in interpreted mode (see L</"SYNOPSIS"> for
-example on how to use functions in compiled mode).
-
-=head2 eval($expr) => any
-
-Evaluate expression in C<$expr> (either using the compiler or interpreter) and
-return the result. Will die if there is a parsing or runtime error. By default
-it uses the compiler unless you set C<interpreted> to 1.
-
-Also see C<compile()> which will always use the compiler regardless of
-C<interpreted> setting, and will save compilation result into a Perl subroutine
-(thus is more efficient if you need to evaluate an expression repeatedly).
-
 =head2 get_compiler($name) => obj
 
 Get compiler named C<$name>, e.g. C<perl>, C<js>.
 
-=head2 enum_vars($expr) => arrayref
+=head2 get_interpreter($name) => obj
 
-Enumerate variables mentioned in expression C<$expr>. Return empty arrayref if
-no variables are mentioned.
+Get compiler named C<$name>, e.g. C<default>, C<var_enumer>, C<dummy>.
+
 
 
 =head1 FAQ
@@ -146,8 +88,8 @@ JavaScript, and others. I do not need a fully-fledged programming language. In
 fact, Expr is not even Turing-complete, it does not support assignment or loops.
 Nor does it allow function definition (though it allows anonymous function in
 grep/map/usort). Instead, I just need some basic stuffs like
-mathematical/string/logical operators, arrays, hashes, functions, map/grep/usort.
-This language will mostly be used inside templates and schemas.
+mathematical/string/logical operators, arrays, hashes, functions,
+map/grep/usort. This language will mostly be used inside templates and schemas.
 
 =head2 Why don't you use Language::Farnsworth, or Math::Expression, or Math::Expression::Evaluator, or $FOO?
 
@@ -190,8 +132,8 @@ fail.
 
 Syntax reference: L<Language::Expr::Manual::Syntax>
 
-Modules that are using Language::Expr: L<Data::Sah> (not yet released),
-L<Data::Template::Expr> (not yet released).
+Modules that are using Language::Expr: L<Data::Sah>, L<Data::Template::Expr>
+(not yet released).
 
-Other related modules: L<Math::Expression>,
-L<Math::Expression::Evaluator>, L<Language::Farnsworth>
+Other related modules: L<Math::Expression>, L<Math::Expression::Evaluator>,
+L<Language::Farnsworth>

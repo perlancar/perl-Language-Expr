@@ -111,6 +111,8 @@ sub eval {
 1;
 # ABSTRACT: Enumerate variables mentioned in Language::Expr expression
 
+=for Pod::Coverage ^((rule|expr)_.+)$
+
 =head1 ATTRIBUTES
 
 
