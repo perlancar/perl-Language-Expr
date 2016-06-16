@@ -1,4 +1,4 @@
-package Language::Expr::Interpreter::Default;
+package Language::Expr::Interpreter::default;
 
 # DATE
 # VERSION
@@ -7,15 +7,16 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo;
-with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Evaluator';
+use Role::Tiny::With;
+use Mo qw(build default);
+extends 'Language::Expr::Interpreter::Base';
+with 'Language::Expr::InterpreterRole';
 use List::Util 'reduce';
 use boolean;
 
 has vars  => (is => 'rw', default => sub { {} });
 has funcs => (is => 'rw', default => sub { {} });
-has level => (is => 'rw', default => sub{0});
+has level => (is => 'rw', default => sub { 0 });
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
@@ -347,10 +348,11 @@ sub expr_postprocess {
 
 =head1 SYNOPSIS
 
- use Language::Expr::Interpreter::Default;
- my $itp = Language::Expr::Interpreter::Default->new;
+ use Language::Expr::Interpreter::default;
+ my $itp = Language::Expr::Interpreter::default->new;
  $itp->vars->{a} = 'A';
  say $itp->eval(q["$a b" . "c"]); # "A b c"
+
 
 =head1 DESCRIPTION
 
@@ -360,14 +362,13 @@ Interprets Language::Expr expression. Some notes:
 
 =item * Uses L<boolean> module.
 
-Comparison like '1 > 1' and '
-
 =item * Follows Perl's notion of true and false.
 
 That is, this expression ' "" || "0" || 2 ' will result to 2 because
 Perl thinks "" and "0" are false.
 
 =back
+
 
 =head1 ATTRIBUTES
 

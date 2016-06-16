@@ -7,11 +7,10 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo;
-extends 'Language::Expr::Evaluator';
-
 use UUID::Tiny ':std';
-use Language::Expr::Interpreter::Default;
+
+use Mo qw(build default);
+extends 'Language::Expr::Evaluator';
 
 # [[type, uuid, data], ...]
 has markers => (is => 'rw', default => sub { [] });

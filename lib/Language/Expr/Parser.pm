@@ -3,7 +3,7 @@ package Language::Expr::Parser;
 # DATE
 # VERSION
 
-use 5.010;
+use 5.010001;
 # now can't compile with this on?
 #use strict;
 #use warnings;

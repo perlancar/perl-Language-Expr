@@ -1,4 +1,4 @@
-package Language::Expr::Evaluator;
+package Language::Expr::Interpreter::Base;
 
 # DATE
 # VERSION
@@ -7,8 +7,12 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo;
 require Language::Expr::Parser;
+
+sub new {
+    my $class = shift;
+    bless {}, $class;
+}
 
 sub eval {
     my ($self, $expr) = @_;
@@ -17,9 +21,11 @@ sub eval {
 }
 
 1;
-# ABSTRACT: Base class for Language::Expr compilers and interpreters
+# ABSTRACT: Base class for Language::Expr interpreters
 
 =head1 METHODS
+
+=head2 new()
 
 =head2 eval($expr) => $result
 

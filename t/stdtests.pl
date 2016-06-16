@@ -1,14 +1,14 @@
 use boolean;
 
 sub stdvars {
-    return (
+    return +{
         a => 1,
         b => 2,
         'a b' => 3,
-        'Language::Expr::Compiler::Perl::b' => 2,
+        'Language::Expr::Compiler::perl::b' => 2,
         ary1 => [qw/one two three/],
         hash1 => {one=>1, two=>2, three=>3},
-    );
+    };
 }
 
 sub stdtests {
@@ -210,7 +210,7 @@ sub stdtests {
     {category=>'var', text=>'$a+2*$b', result=>'5'},
     {category=>'var', text=>'$.', parse_error=>qr/invalid syntax/i}, # no longer allowed since 0.16
     {category=>'var', text=>'$..', parse_error=>qr/invalid syntax/i}, # no longer allowed since 0.16
-    {category=>'var', text=>'$Language::Expr::Compiler::Perl::b', result=>2, js_compiler_run_error=>qr/.*/, php_compiler_run_error=>qr/.*/}, # allowed since 0.16
+    {category=>'var', text=>'$Language::Expr::Compiler::perl::b', result=>2, js_compiler_run_error=>qr/.*/, php_compiler_run_error=>qr/.*/}, # allowed since 0.16
 
     # term:subscript
     {category=>'subscripting', text => '$ary1[1]', result=>'two'},

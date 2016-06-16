@@ -1,17 +1,17 @@
-package Language::Expr::Interpreter::Dummy;
+package Language::Expr::Interpreter::dummy;
 
 # DATE
 # VERSION
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 
-use Moo;
-with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Evaluator';
+use Role::Tiny::With;
+use parent 'Language::Expr::Interpreter::Base';
+with 'Language::Expr::InterpreterRole';
 
-.sub rule_pair_simple { }
+sub rule_pair_simple { }
 sub rule_pair_string { }
 sub rule_or_xor { }
 sub rule_ternary { }

@@ -7,7 +7,7 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo::Role;
+use Role::Tiny;
 
 requires 'rule_pair_simple';
 requires 'rule_pair_string';

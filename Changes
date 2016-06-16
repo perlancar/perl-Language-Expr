@@ -1,5 +1,23 @@
 Revision history for Language-Expr
 
+0.24    2016-06-16 (PERLANCAR)
+
+        - Adjust to recent Regexp::Grammars & perl, reenable tests because RG is
+          no longer broken on recent perls. Module now works again and re-pass
+          all its tests.
+
+        - [Incompatible change] Interface now simplified. Remove
+          compiler-/interpreter-specific methods on Language::Expr, e.g. perl(),
+          js(), php() and replace with get_compiler() and get_interpreter().
+          Also remove eval() and compile(), please use the methods on
+          appropriate compiler/interpreter object instead. Change case for
+          Language::Expr::{Compiler,Interpreter}::*, now use all-small letters,
+          e.g. perl, js, php.
+
+        - [Removed] Remove PHP compiler support, will be provided in a separate
+          dist Language-Expr-Compiler-php.
+
+
 0.23    2014-05-01 (SHARYANTO)
 
         - No functional changes.

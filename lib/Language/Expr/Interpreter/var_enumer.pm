@@ -1,22 +1,20 @@
-package Language::Expr::Interpreter::VarEnumer;
+package Language::Expr::Interpreter::var_enumer;
 
 # DATE
 # VERSION
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 
-use Moo;
-use experimental 'smartmatch';
-with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Evaluator';
+use Role::Tiny::With;
 
-has result => (is => 'rw');
+use parent 'Language::Expr::Interpreter::Base';
+with 'Language::Expr::InterpreterRole';
 
-sub add_var {
+sub _add_var {
     my ($self, $v) = @_;
-    push @{$self->result}, $v unless $v ~~ @{$self->result};
+    push @{$self->{_result}}, $v unless grep {$_ eq $v} @{$self->{_result}};
 }
 
 sub rule_pair_simple { }
@@ -66,10 +64,10 @@ sub rule_dquotestr {
     for (@{ $match->{part} }) {
         # extract 'foo' from '${foo}'
         if (substr($_, 0, 2) eq '${') {
-            $self->add_var(substr($_, 2, length()-3));
+            $self->_add_var(substr($_, 2, length()-3));
         # extract 'foo' from '$foo'
         } elsif (substr($_, 0, 1) eq '$') {
-            $self->add_var(substr($_, 1, length()-1));
+            $self->_add_var(substr($_, 1, length()-1));
         }
     }
 }
@@ -81,7 +79,7 @@ sub rule_num { }
 sub rule_var {
     my ($self, %args) = @_;
     my $match = $args{match};
-    $self->add_var($match->{var});
+    $self->_add_var($match->{var});
 }
 
 sub rule_func { }
@@ -99,7 +97,7 @@ sub rule_parenthesis {}
 
 sub expr_preprocess {
     my ($self, %args) = @_;
-    $self->result([]);
+    $self->{_result} = [];
 }
 
 sub expr_postprocess {}
@@ -107,7 +105,7 @@ sub expr_postprocess {}
 sub eval {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
-    $self->result;
+    $self->{_result};
 }
 
 1;
@@ -115,18 +113,8 @@ sub eval {
 
 =head1 ATTRIBUTES
 
-=head2 result => ARRAYREF
-
-Store the list of variables seen during parsing.
-
 
 =head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=head2 add_var(VAR)
-
-Add variable to B<result> if it is not already in there.
 
 
 =head1 BUGS/TODOS

@@ -2,10 +2,11 @@
 
 use strict;
 use warnings;
-use Test::More;
-use Test::Exception;
+
 use Language::Expr;
 use POSIX;
+use Test::Exception;
+use Test::More;
 
 my @data = (
     {category=>'none', text=>'[]', result=>[]},
@@ -25,10 +26,10 @@ my @data = (
 
 );
 
-my $le = new Language::Expr;
+my $ve = Language::Expr->new->get_interpreter('var_enumer');
 
 for (@data) {
-    is_deeply($le->enum_vars($_->{text}), $_->{result}, "$_->{category} ($_->{text})");
+    is_deeply($ve->eval($_->{text}), $_->{result}, "$_->{category} ($_->{text})");
 }
 
 DONE_TESTING:

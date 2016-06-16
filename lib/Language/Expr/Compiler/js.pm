@@ -1,4 +1,4 @@
-package Language::Expr::Compiler::JS;
+package Language::Expr::Compiler::js;
 
 # DATE
 # VERSION
@@ -7,9 +7,9 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo;
-with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Compiler::Base';
+use Role::Tiny::With;
+use parent 'Language::Expr::Compiler::Base';
+with 'Language::Expr::CompilerRole';
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
@@ -402,7 +402,7 @@ sub _quote {
     '"' . join("", @c) . '"';
 }
 
-sub js {
+sub compile {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
     for my $m (@{ $self->markers }) {
@@ -424,15 +424,16 @@ sub js {
 
 =head1 SYNOPSIS
 
- use Language::Expr::Compiler::JS;
- my $jsc = Language::Expr::Compiler::JS->new;
- print $jsc->js('map({$_**2}, [1, 2, 3])'); # prints: [1, 2, 3].map(function(_){ Math.pow(_, 2) })
+ use Language::Expr::Compiler::js;
+ my $jsc = Language::Expr::Compiler::js->new;
+ print $jsc->compile('map({$_**2}, [1, 2, 3])'); # prints: [1, 2, 3].map(function(_){ Math.pow(_, 2) })
 
  # map Expr function to JS function/method/property
  $jsc->func_mapping->{ceil} = 'Math.ceil';
  $jsc->func_mapping->{uc} = '.toUpperCase';
  $jsc->func_mapping->{length} = ':length';
- print $jsc->js(q{uc("party like it's ") . ceil(1998.9)}); # prints: "party like it's ".toUpperCase() + Math.ceil(1998.9)
+ print $jsc->compile(q{uc("party like it's ") . ceil(1998.9)}); # prints: "party like it's ".toUpperCase() + Math.ceil(1998.9)
+
 
 =head1 DESCRIPTION
 
@@ -442,35 +443,32 @@ Compiles Language::Expr expression to JavaScript code. Some notes:
 
 =item * JavaScript version
 
-This compiler emits JavaScript 1.8.1 code (it uses several Array
-methods like map() and filter() [supported since JavaScript 1.6],
-'let' lexical variables [supported since JavaScript 1.7 / Firefox 2]
-and native JSON [supported since JavaScript 1.8.1 / Firefox 3.5]).
+This compiler emits JavaScript 1.8.1 code (it uses several Array methods like
+map() and filter() [supported since JavaScript 1.6], 'let' lexical variables
+[supported since JavaScript 1.7] and native JSON [supported since JavaScript
+1.8.1]).
 
-Currently to test emitted JavaScript code, we use Spidermonkey 1.9.1+
-JavaScript interpreter (typically located in /usr/bin/js) as the
-L<JavaScript> and L<JE> modules are still not up to par.
+To test emitted JavaScript code, we use Node.js.
 
 =item * JavaScript-ness
 
-The emitted JS code will follow JavaScript's weak typing and coercion
-rules, e.g. Expr '1+"2"' will simply be translated to JavaScript
-'1+"2"' and will result in "12".
+The emitted JS code will follow JavaScript's weak typing and coercion rules,
+e.g. Expr '1+"2"' will simply be translated to JavaScript '1+"2"' and will
+result in "12".
 
 =item * Variables by default simply use JavaScript variables.
 
-E.g. $a becomes a, and so on. Be careful not to make variables which
-are invalid in JavaScript, e.g. $.. or ${foo/bar}.
+E.g. $a becomes a, and so on. Be careful not to make variables which are invalid
+in JavaScript, e.g. $.. or ${foo/bar}.
 
 You can customize this behaviour by subclassing rule_var() or by providing a
 hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =item * Functions by default simply use Javascript functions.
 
-Except those mentioned in B<func_mapping> (e.g. rand() becomes
-Math.rand() if func_mapping->{rand} is 'Math.rand'). You can also map
-to JavaScript method (using '.meth' syntax) and property (using
-':prop' syntax).
+Except those mentioned in B<func_mapping> (e.g. rand() becomes Math.rand() if
+func_mapping->{rand} is 'Math.rand'). You can also map to JavaScript method
+(using '.meth' syntax) and property (using ':prop' syntax).
 
 You can customize this behaviour by subclassing rule_func() or by providing a
 hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
@@ -480,9 +478,9 @@ hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =head1 METHODS
 
-=head2 js($expr) => $js_code
+=head2 compile($expr) => $js_code
 
-Convert Language::Expr expression into JavaScript code. Dies if there
-is syntax error in expression.
+Convert Language::Expr expression into JavaScript code. Dies if there is syntax
+error in expression.
 
 =cut

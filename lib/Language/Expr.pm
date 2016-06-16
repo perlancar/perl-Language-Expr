@@ -7,115 +7,25 @@ use 5.010001;
 use strict;
 use warnings;
 
-use Moo;
-
-has interpreted => (
-    is => 'rw',
-    default => sub{0},
-);
-
-has interpreter => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Interpreter::Default;
-        Language::Expr::Interpreter::Default->new;
-    },
-);
-
-has compiler => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Compiler::Perl;
-        Language::Expr::Compiler::Perl->new;
-    },
-);
-
-has js_compiler => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Compiler::JS;
-        Language::Expr::Compiler::JS->new;
-    },
-);
-
-has php_compiler => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Compiler::PHP;
-        Language::Expr::Compiler::PHP->new;
-    },
-);
-
-has varenumer => (
-    is => 'ro',
-    lazy => 1,
-    default => sub {
-        require Language::Expr::Interpreter::VarEnumer;
-        Language::Expr::Interpreter::VarEnumer->new;
-    },
-);
-
-sub var {
-    my ($self, %args) = @_;
-    my $itp = $self->interpreter;
-    $itp->vars->{$_} = $args{$_} for keys %args;
+sub new {
+    my $class = shift;
+    bless {}, $class;
 }
 
-sub func {
-    my ($self, %args) = @_;
-    my $itp = $self->interpreter;
-    for (keys %args) {
-        die "Function `$_` already defined" if $itp->funcs->{$_};
-        die "Function `$_`: coderef required" unless ref($args{$_}) eq 'CODE';
-        $itp->funcs->{$_} = $args{$_};
-    }
+sub get_compiler {
+    my ($self, $name) = @_;
+    my $mod = "Language::Expr::Compiler::$name";
+    (my $mod_pm = "$mod.pm") =~ s!::!/!g;
+    require $mod_pm;
+    $mod->new();
 }
 
-sub eval {
-    my ($self, $str) = @_;
-    my $evaluator = $self->interpreted ? $self->interpreter : $self->compiler;
-    $evaluator->eval($str);
-}
-
-sub perl {
-    my ($self, $str) = @_;
-    $self->compiler->perl($str);
-}
-
-sub js {
-    my ($self, $str) = @_;
-    unless ($self->js_compiler) {
-        require Language::Expr::Compiler::JS;
-        $self->js_compiler(Language::Expr::Compiler::JS->new);
-    }
-    $self->js_compiler->js($str);
-}
-
-sub php {
-    my ($self, $str) = @_;
-    unless ($self->php_compiler) {
-        require Language::Expr::Compiler::PHP;
-        $self->php_compiler(Language::Expr::Compiler::PHP->new);
-    }
-    $self->php_compiler->php($str);
-}
-
-sub compile {
-    my ($self, $str) = @_;
-    my $s = $self->perl($str);
-    # the '$_ = \@_' trick is to make '$_[0]' in expression work like in Perl
-    my $sub = eval qq(sub { local \$_ = \\\@_; $s });
-    die $@ if $@;
-    $sub;
-}
-
-sub enum_vars {
-    my ($self, $str) = @_;
-    $self->varenumer->eval($str);
+sub get_interpreter {
+    my ($self, $name) = @_;
+    my $mod = "Language::Expr::Interpreter::$name";
+    (my $mod_pm = "$mod.pm") =~ s!::!/!g;
+    require $mod_pm;
+    $mod->new();
 }
 
 1;
@@ -127,28 +37,20 @@ sub enum_vars {
 
  my $le = Language::Expr->new;
 
- # evaluate expressions
- say $le->eval('1 + 2*3 + [4, 5][-1]'); # 12
- say $le->eval(q("i" . " love " .
-                 {lang=>"perl", food=>"rujak"}["lang"])); # "i love perl"
-
- # convert Expr to Perl (string Perl code)
- say $le->perl('1 ^^ 2'); # "(1 xor 2)"
+ # convert Expr to string Perl code
+ say $le->get_compiler('perl')->compile('1 ^^ 2'); => # "(1 xor 2)"
 
  # convert Expr to JavaScript
- say $le->js('1 . 2'); # "'' + 1 + 2"
+ say $le->get_compiler('js')->compile('1 . 2'); # => "'' + 1 + 2"
 
- # convert Expr to PHP
- say $le->php('"x" x 10'); # "str_repeat(('x'), 10)"
+ # evaluate Expr using the default interpreter
+ say $le->get_interpreter('default')->eval('1 + 2'); # => 3
 
- # convert Expr to compiled Perl code
- my $sub = $le->compile('($_[0]**2 + $_[1]**2)**0.5');
- say $sub->(3, 4); # 5
-
- # use variables & functions in expression (interpreted mode)
- $le->interpreted(1);
- $le->var('a' => 3, 'b' => 4);
- $le->func(pyth => sub { ($_[0]**2 + $_[1]**2)**0.5 });
+ # use variables & functions in expression (interpreter mode)
+ my $pli = $le->get_interpreter('default');
+ $pli->vars->{a} = 3;
+ $pli->vars->{b} = 4;
+ $pli->functiovars->(pyth => sub { ($_[0]**2 + $_[1]**2)**0.5 });
  say $le->eval('pyth($a, $b)'); # 5
 
  # use variables & functions in expression (compiled mode, by default the Perl
@@ -194,28 +96,6 @@ some interpreters (Language::Expr::Interpreter::*), and some compilers
 
 =head1 ATTRIBUTES
 
-=head2 interpreted => bool (default: 0)
-
-=head2 interpreter => obj
-
-Store the L<Language::Expr::Interpreter::Default> instance.
-
-=head2 compiler => obj
-
-Store the L<Language::Expr::Compiler::Perl> instance.
-
-=head2 js_compiler => obj
-
-Store the L<Language::Expr::Compiler::JS> instance.
-
-=head2 php_compiler => obj
-
-Store the L<Language::Expr::Compiler::PHP> instance.
-
-=head2 varenumer => obj
-
-Store the L<Language::Expr::Interpreter::VarEnumer> instance.
-
 
 =head1 METHODS
 
@@ -246,31 +126,9 @@ Also see C<compile()> which will always use the compiler regardless of
 C<interpreted> setting, and will save compilation result into a Perl subroutine
 (thus is more efficient if you need to evaluate an expression repeatedly).
 
-=head2 perl($expr) => str
+=head2 get_compiler($name) => obj
 
-Convert expression in C<$expr> and return a string Perl code. Dies on error.
-Internally just call C<< $le->compiler->perl() >>.
-
-=head2 js($expr) => str
-
-Convert expression in C<$expr> and return a string JavaScript code. Dies on
-error. Internally just call C<< $le->js_compiler->js() >>.
-
-=head2 php($expr) => str
-
-Convert expression in C<$expr> and return a string PHP code. Dies on error.
-Internally just call C<< $le->php_compiler->php() >>.
-
-=head2 compile($expr) => coderef
-
-Compile expression in C<$expr> into Perl subroutine. Dies on error. See also
-C<eval()>.
-
-Inside the expression, you can use C<$_[0]>, C<$_[1]>, etc to access the
-subroutine's arguments, because C<compile()> sets C<$_> to C<@_>. Example:
-
- my $sub = $le->compile('($_[0]**2 + $_[1]**2)**0.5');
- say $sub->(3, 4); # 5
+Get compiler named C<$name>, e.g. C<perl>, C<js>.
 
 =head2 enum_vars($expr) => arrayref
 

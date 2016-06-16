@@ -1,4 +1,4 @@
-package Language::Expr::Compiler::PHP;
+package Language::Expr::Compiler::perl;
 
 # DATE
 # VERSION
@@ -7,16 +7,16 @@ use 5.010;
 use strict;
 use warnings;
 
-use Moo;
-with 'Language::Expr::EvaluatorRole';
-extends 'Language::Expr::Compiler::Base';
+use Role::Tiny::With;
+use parent 'Language::Expr::Compiler::Base';
+with 'Language::Expr::CompilerRole';
 
-use List::MoreUtils qw(uniq);
+use boolean;
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "'$match->{key}' => $match->{value}";
+    "$match->{key} => $match->{value}";
 }
 
 sub rule_pair_string {
@@ -33,16 +33,10 @@ sub rule_or_xor {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        my $uuid = $self->new_marker('use');
-        if    ($op eq '||') { @res = ('call_user_func(function()USE()-',$uuid,' { $_x = (',
-                                      @res, '); ',
-                                      'return $_x ? $_x : (', $term, '); })') }
-        elsif ($op eq '//') { @res = ('call_user_func(function()USE()-',$uuid,' { $_x = (',
-                                      @res, '); return isset($_x) ? $_x : (',
-                                      $term, '); })') }
-        elsif ($op eq '^^') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
-                                      @res, '); $_b = (', $term, '); ',
-                                      'return $_a&&!$_b || !$_a&&$_b ? $_a : $_b; })') }
+        if    ($op eq '||') { push @res, " || $term" }
+        elsif ($op eq '//') { push @res, " // $term" }
+        # add parenthesis because perl's xor precendence is low
+        elsif ($op eq '^^') { @res = ("(", @res, " xor $term)") }
     }
     join "", grep {defined} @res;
 }
@@ -55,10 +49,7 @@ sub rule_and {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        my $uuid = $self->new_marker('use');
-        if    ($op eq '&&') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
-                                      @res, '); $_b = (', $term, '); ',
-                                      'return $_a && $_b ? $_b : ($_a ? $_b : $_a); })') }
+        if    ($op eq '&&') { @res = ("((", @res, " && $term) || false)") }
     }
     join "", grep {defined} @res;
 }
@@ -67,7 +58,7 @@ sub rule_ternary {
     my ($self, %args) = @_;
     my $match = $args{match};
     my $opd = $match->{operand};
-    "($opd->[0] ? $opd->[1] : $opd->[2])";
+    "$opd->[0] ? $opd->[1] : $opd->[2]";
 }
 
 sub rule_bit_or_xor {
@@ -105,30 +96,10 @@ sub rule_comparison3 {
     for my $term (@{$match->{operand}}) {
         my $op = shift @{$match->{op}//=[]};
         last unless $op;
-        my $uuid = $self->new_marker('use');
-        # in php, str COMP int is compared numerically, so we only
-        # need to convert one to int
-        if    ($op eq '<=>') { @res = ('call_user_func(function()USE()-',$uuid,' { $_a = (',
-                                      @res, ')+0; $_b = (', $term, '); ',
-                                      'return $_a > $_b ? 1 : ($_a < $_b ? -1 : 0); })') }
-        elsif ($op eq 'cmp') { @res = ('strcmp(', @res, ', ', $term, ')') }
+        if    ($op eq '<=>') { push @res, " <=> $term" }
+        elsif ($op eq 'cmp') { push @res, " cmp $term" }
     }
     join "", grep {defined} @res;
-}
-
-# in php, str COMP int is compared numerically, and so is str COMP str
-# if both strings look like number. so we only need to use strcmp for
-# Expr string comparison operators.
-
-sub _comparison1 {
-    my ($opd1, $op, $opd2) = @_;
-    if    ($op eq 'eq') { return "(strcmp($opd1, $opd2) == 0)" }
-    elsif ($op eq 'ne') { return "(strcmp($opd1, $opd2) != 0)" }
-    elsif ($op eq 'lt') { return "(strcmp($opd1, $opd2) <= 0)" }
-    elsif ($op eq 'le') { return "(strcmp($opd1, $opd2) <  0)" }
-    elsif ($op eq 'gt') { return "(strcmp($opd1, $opd2) >= 0)" }
-    elsif ($op eq 'ge') { return "(strcmp($opd1, $opd2) >  0)" }
-    else { return "($opd1 $op $opd2)" }
 }
 
 sub rule_comparison {
@@ -169,9 +140,9 @@ sub rule_comparison {
             $opd1 = pop @opds;
         }
         if (@res) {
-            @res = ("("._comparison1($opd1, $op, $opd2)." ? ", @res, " : false)");
+            @res = ("(($opd1 $op $opd2) ? ", @res, " : false)");
         } else {
-            push @res, _comparison1($opd1, $op, $opd2);
+            push @res, "($opd1 $op $opd2 ? true:false)";
         }
         $lastopd = $opd1;
     }
@@ -218,7 +189,7 @@ sub rule_mult {
         if    ($op eq '*') { push @res, " * $term" }
         if    ($op eq '/') { push @res, " / $term" }
         if    ($op eq '%') { push @res, " % $term" }
-        if    ($op eq 'x') { @res = ("str_repeat(", @res, ", $term)") }
+        if    ($op eq 'x') { push @res, " x $term" }
     }
     join "", grep {defined} @res;
 }
@@ -231,7 +202,7 @@ sub rule_unary {
     for my $op (reverse @{$match->{op}//=[]}) {
         last unless $op;
         # use paren because --x or ++x is interpreted as pre-decrement/increment
-        if    ($op eq '!') { @res = ("!(", @res, ")") }
+        if    ($op eq '!') { @res = ("(", @res, " ? false:true)") }
         if    ($op eq '-') { @res = ("-(", @res, ")") }
         if    ($op eq '~') { @res = ("~(", @res, ")") }
     }
@@ -242,25 +213,16 @@ sub rule_power {
     my ($self, %args) = @_;
     my $match = $args{match};
     my @res;
-    push @res, pop @{$match->{operand}};
-    for my $term (reverse @{$match->{operand}}) {
-        @res = ("pow($term, ", @res, ")");
+    push @res, shift @{$match->{operand}};
+    for my $term (@{$match->{operand}}) {
+        push @res, " ** $term";
     }
     join "", grep {defined} @res;
 }
 
 sub rule_subscripting_var {
     my ($self, %args) = @_;
-    my $match = $args{match};
-    my $opd = $match->{operand};
-    my @ss = @{$match->{subscript}//=[]};
-    return $opd unless @ss;
-    my $res;
-    for my $s (@ss) {
-        $opd = $res if defined($res);
-        $res = $opd . "[$s]";
-    }
-    $res;
+    $self->rule_subscripting_expr(%args);
 }
 
 sub rule_subscripting_expr {
@@ -272,27 +234,28 @@ sub rule_subscripting_expr {
     my $res;
     for my $s (@ss) {
         $opd = $res if defined($res);
-        my $uuid = $self->new_marker('use');
-        $res = qq!call_user_func(function()USE()-$uuid { \$v = $opd; \$s = $s; if (isset(\$v[\$s])) return \$v[\$s]; else return null; })!;
+        $res = qq!(do { my (\$v) = ($opd); my (\$s) = ($s); !.
+            qq!if (ref(\$v) eq 'HASH') { \$v->{\$s} } !.
+                qq!elsif (ref(\$v) eq 'ARRAY') { \$v->[\$s] } else { !.
+                    qq!die "Invalid subscript \$s for \$v" } })!;
     }
     $res;
-
 }
 
 sub rule_array {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "array(" . join(", ", @{ $match->{element} }) . ")";
+    "[" . join(", ", @{ $match->{element} }) . "]";
 }
 
 sub rule_hash {
     my ($self, %args) = @_;
     my $match = $args{match};
-    "array(" . join(", ", @{ $match->{pair} }). ")";
+    "{" . join(", ", @{ $match->{pair} }). "}";
 }
 
 sub rule_undef {
-    "null";
+    "undef";
 }
 
 sub rule_squotestr {
@@ -304,14 +267,17 @@ sub rule_squotestr {
 
 sub rule_dquotestr {
     my ($self, %args) = @_;
-    "(" .
-    join(" . ",
-         map { $_->{type} eq 'VAR' ?
-                   $self->rule_var(match=>{var=>$_->{value}}) :
-                   $self->_quote($_->{value})
-               }
-             @{ $self->parse_dquotestr($args{match}{part}) }) .
-    ")";
+    my @tmp =
+        map { $_->{type} eq 'VAR' ?
+                  $self->rule_var(match=>{var=>$_->{value}}) :
+                      $self->_quote($_->{value})
+                  }
+            @{ $self->parse_dquotestr($args{match}{part}) };
+    if (@tmp > 1) {
+        "(". join(" . ", @tmp) . ")[0]";
+    } else {
+        $tmp[0];
+    }
 }
 
 sub rule_bool {
@@ -323,8 +289,8 @@ sub rule_bool {
 sub rule_num {
     my ($self, %args) = @_;
     my $match = $args{match};
-    if    ($match->{num} eq 'inf') { 'INF' }
-    elsif ($match->{num} eq 'nan') { 'NAN' }
+    if    ($match->{num} eq 'inf') { '"Inf"' }
+    elsif ($match->{num} eq 'nan') { '"NaN"' }
     else                           { $match->{num}+0 }
 }
 
@@ -358,18 +324,9 @@ sub _map_grep_usort {
     my $ary = $match->{array};
     my $expr = $match->{expr};
 
+    my $perlop = $which eq 'map' ? 'map' : $which eq 'grep' ? 'grep' : 'sort';
     my $uuid = $self->new_marker('subexpr', $expr);
-
-    if ($which eq 'map') {
-        return "USEBEGIN(_)-$uuid array_map(function(\$_)USE()-$uuid { return (TODO-$uuid); }, $ary)USEEND-$uuid";
-    } elsif ($which eq 'grep') {
-        return "USEBEGIN(_)-$uuid call_user_func(function()USE()-$uuid { ".
-            "\$_f = function(\$_)USE()-$uuid { return (TODO-$uuid); }; ".
-            "\$_x = array(); foreach($ary as \$_i) { if (\$_f(\$_i)) \$_x[] = \$_i; }; return \$_x; })USEEND-$uuid";
-    } elsif ($which eq 'usort') {
-        return "USEBEGIN(a,b)-$uuid call_user_func(function()USE()-$uuid { ".
-            "\$_x = $ary; usort(\$_x, function(\$a, \$b)USE()-$uuid { return (TODO-$uuid); }); return \$_x; })USEEND-$uuid";
-    }
+    "[$perlop({ TODO-$uuid } \@{$ary})]";
 }
 
 sub rule_func_map {
@@ -411,18 +368,17 @@ sub _quote {
         if    ($c eq '"') { push @c, '\\"' }
         elsif ($c eq "\\") { push @c, "\\\\" }
         elsif ($c eq '$') { push @c, "\\\$" }
+        elsif ($c eq '@') { push @c, '\\@' }
         elsif ($o >= 32 && $o <= 127) { push @c, $c }
-        #elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
-        elsif ($o > 255) { die "Unicode escape sequence is currently not supported in PHP" }
+        elsif ($o > 255) { push @c, sprintf("\\x{%04x}", $o) }
         else  { push @c, sprintf("\\x%02x", $o) }
     }
     '"' . join("", @c) . '"';
 }
 
-sub php {
+sub compile {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
-
     for my $m (@{ $self->markers }) {
         my $type = $m->[0];
         next unless $type eq 'subexpr';
@@ -431,93 +387,60 @@ sub php {
         my $subres = Language::Expr::Parser::parse_expr($subexpr, $self);
         $res =~ s/TODO-$uuid/$subres/g;
     }
-
-    #print "DEBUG: intermediate result: $res\n\n";
-    #print "DEBUG: markers: ", join(", ", map { "[".join(", ", grep {defined} @$_)."]" } $self->markers ), "\n\n";
-
-    $res = $self->_prepare_use($res);
-    $res = $self->_substitute_use($res);
-
     $self->markers([]);
-    #print "DEBUG: final result: $res\n\n";
     $res;
 }
 
-sub _prepare_use2 {
-    my ($self, $marker_ids_re, $str, $marker_id, $vars) = @_;
-    $str =~ s/USE\(([^)]*)\)-($marker_ids_re)/$2 ne $marker_id ? "USE($1,$vars)-$2" : "USE($1)-$2"/eg;
-    $str;
-}
-
-sub _prepare_use {
-    my ($self, $str) = @_;
-    if (@{ $self->markers }) {
-        my $marker_ids_re = $self->marker_ids_re;
-        while (1) {
-            last unless $str =~ s{USEBEGIN\((\w+(?:,\w+)*)\)-($marker_ids_re) (.+)USEEND-\2}
-                                 {$self->_prepare_use2($marker_ids_re, $3, $2, $1)}eg;
-        }
-    }
-    $str;
-}
-
-sub _substitute_use {
-    my ($self, $str) = @_;
-    if (@{ $self->markers }) {
-        my $marker_ids_re = $self->marker_ids_re;
-        $str =~ s/USE\(([^)]*)\)-($marker_ids_re)/
-            my @v = uniq(grep {length} split(m!,!, $1));
-            if (@v) { " use (".join(", ", map {"\$$_"} @v).")" } else { "" }/eg;
-    }
-    $str;
+sub eval {
+    my ($self, $expr) = @_;
+    my $res = eval "package Language::Expr::Compiler::perl; no strict; " . $self->compile($expr);
+    die if $@;
+    $res;
 }
 
 1;
-# ABSTRACT: Compile Language::Expr expression to PHP
+# ABSTRACT: Compile Language::Expr expression to Perl
 
 =head1 SYNOPSIS
 
- use Language::Expr::Compiler::PHP;
- my $phpc = Language::Expr::Compiler::PHP->new;
- print $phpc->php('[1, 2, 3])'); # prints: array(1, 2, 3)
+ use Language::Expr::Compiler::Perl;
+ my $plc = Language::Expr::Compiler::Perl->new;
+ print $plc->perl('1 ^^ 2'); # prints '1 xor 2'
 
- # map Expr function to PHP function
- $phpc->func_mapping->{uc} = 'strtoupper';
- print $phpc->php(q{uc("party like it's ") . ceil(1998.9)}); # prints: strtoupper("party like it's " + ceil(1998.9)
 
 =head1 DESCRIPTION
 
-Compiles Language::Expr expression to PHP code. Some notes:
+Compiles Language::Expr expression to Perl code. Some notes:
 
 =over 4
 
-=item * PHP version
+=item * Emitted Perl code version
 
-This compiler emits PHP 5.3 code (it uses lambda functions).
+Emitted Perl code requires Perl 5.10 (it uses 5.10's "//" defined-or
+operator) and also the L<boolean> module (it uses 'true' and 'false'
+objects).
 
-Currently to test emitted JavaScript code, we use PHP command line
-interpreter as the L<PHP> and L<PHP::Interpreter> modules are still
-not up to par.
+=item * Perliness
 
-=item * PHP-ness
+The emitted Perl code will follow Perl's notion of true and false,
+e.g. the expression '"" || "0" || 2' will result to 2 since Perl
+thinks that "" and "0" are false. It is also weakly typed like Perl,
+i.e. allows '1 + "2"' to become 3.
 
-The emitted PHP code will follow PHP's weak typing, coercion rules,
-notions of true/false (which, fortunately, mimics closely that of
-Perl).
-
-=item * Variables by default simply use PHP variables.
+=item * Variables by default simply use Perl variables.
 
 E.g. $a becomes $a, and so on. Be careful not to make variables which
-are invalid in PHP, e.g. $.. or ${foo/bar}.
+are invalid in Perl, e.g. $.. or ${foo/bar} (but ${foo::bar} is okay
+because it translates to $foo::bar).
 
 You can customize this behaviour by subclassing rule_var() or by providing a
 hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
 
-=item * Functions by default simply use PHP functions.
+=item * Functions by default simply use Perl functions.
 
-foo() becomes foo(). Except those mentioned in B<func_mapping>
-(e.g. uc() becomes strtoupper() if func_mapping->{uc} is
-'strtoupper').
+Unless those specified in func_mapping. For example, if
+$compiler->func_mapping->{foo} = "Foo::do_it", then the expression
+'foo(1)' will be compiled into 'Foo::do_it(1)'.
 
 You can customize this behaviour by subclassing rule_func() or by providing a
 hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
@@ -529,9 +452,7 @@ hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
 
 =for Pod::Coverage ^(rule|expr)_.+
 
-=head2 php($expr) => $php_code
+=head2 compile($expr) => $perl_code
 
-Convert Language::Expr expression into PHP code. Dies if there is syntax error
+Convert Language::Expr expression into Perl code. Dies if there is syntax error
 in expression.
-
-=cut
