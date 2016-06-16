@@ -1,6 +1,6 @@
 package Language::Expr::Compiler::Perl;
-# ABSTRACT: Compile Language::Expr expression to Perl
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -12,57 +12,6 @@ with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Compiler::Base';
 
 use boolean;
-
-=head1 SYNOPSIS
-
- use Language::Expr::Compiler::Perl;
- my $plc = Language::Expr::Compiler::Perl->new;
- print $plc->perl('1 ^^ 2'); # prints '1 xor 2'
-
-=head1 DESCRIPTION
-
-Compiles Language::Expr expression to Perl code. Some notes:
-
-=over 4
-
-=item * Emitted Perl code version
-
-Emitted Perl code requires Perl 5.10 (it uses 5.10's "//" defined-or
-operator) and also the L<boolean> module (it uses 'true' and 'false'
-objects).
-
-=item * Perliness
-
-The emitted Perl code will follow Perl's notion of true and false,
-e.g. the expression '"" || "0" || 2' will result to 2 since Perl
-thinks that "" and "0" are false. It is also weakly typed like Perl,
-i.e. allows '1 + "2"' to become 3.
-
-=item * Variables by default simply use Perl variables.
-
-E.g. $a becomes $a, and so on. Be careful not to make variables which
-are invalid in Perl, e.g. $.. or ${foo/bar} (but ${foo::bar} is okay
-because it translates to $foo::bar).
-
-You can customize this behaviour by subclassing rule_var() or by providing a
-hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
-
-=item * Functions by default simply use Perl functions.
-
-Unless those specified in func_mapping. For example, if
-$compiler->func_mapping->{foo} = "Foo::do_it", then the expression
-'foo(1)' will be compiled into 'Foo::do_it(1)'.
-
-You can customize this behaviour by subclassing rule_func() or by providing a
-hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
-
-=back
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
@@ -427,13 +376,6 @@ sub _quote {
     '"' . join("", @c) . '"';
 }
 
-=head2 perl($expr) => $perl_code
-
-Convert Language::Expr expression into Perl code. Dies if there is
-syntax error in expression.
-
-=cut
-
 sub perl {
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
@@ -458,3 +400,60 @@ sub eval {
 }
 
 1;
+# ABSTRACT: Compile Language::Expr expression to Perl
+
+=head1 SYNOPSIS
+
+ use Language::Expr::Compiler::Perl;
+ my $plc = Language::Expr::Compiler::Perl->new;
+ print $plc->perl('1 ^^ 2'); # prints '1 xor 2'
+
+
+=head1 DESCRIPTION
+
+Compiles Language::Expr expression to Perl code. Some notes:
+
+=over 4
+
+=item * Emitted Perl code version
+
+Emitted Perl code requires Perl 5.10 (it uses 5.10's "//" defined-or
+operator) and also the L<boolean> module (it uses 'true' and 'false'
+objects).
+
+=item * Perliness
+
+The emitted Perl code will follow Perl's notion of true and false,
+e.g. the expression '"" || "0" || 2' will result to 2 since Perl
+thinks that "" and "0" are false. It is also weakly typed like Perl,
+i.e. allows '1 + "2"' to become 3.
+
+=item * Variables by default simply use Perl variables.
+
+E.g. $a becomes $a, and so on. Be careful not to make variables which
+are invalid in Perl, e.g. $.. or ${foo/bar} (but ${foo::bar} is okay
+because it translates to $foo::bar).
+
+You can customize this behaviour by subclassing rule_var() or by providing a
+hook_var() (see documentation in L<Language::Expr::Compiler::Base>).
+
+=item * Functions by default simply use Perl functions.
+
+Unless those specified in func_mapping. For example, if
+$compiler->func_mapping->{foo} = "Foo::do_it", then the expression
+'foo(1)' will be compiled into 'Foo::do_it(1)'.
+
+You can customize this behaviour by subclassing rule_func() or by providing a
+hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
+
+=back
+
+
+=head1 METHODS
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head2 perl($expr) => $perl_code
+
+Convert Language::Expr expression into Perl code. Dies if there is syntax error
+in expression.

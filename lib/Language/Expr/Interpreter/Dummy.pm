@@ -1,6 +1,6 @@
 package Language::Expr::Interpreter::Dummy;
-# ABSTRACT: Dummy interpreter for Language::Expr (used for testing)
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -11,19 +11,7 @@ use Moo;
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
-=head1 DESCRIPTION
-
-This interpreter does nothing. It is used only for testing the parser.
-
-=head1 ATTRIBUTES
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
-
-sub rule_pair_simple { }
+.sub rule_pair_simple { }
 sub rule_pair_string { }
 sub rule_or_xor { }
 sub rule_ternary { }
@@ -56,3 +44,18 @@ sub expr_preprocess { }
 sub expr_postprocess { }
 
 1;
+# ABSTRACT: Dummy interpreter for Language::Expr (used for testing)
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head1 DESCRIPTION
+
+This interpreter does nothing. It is used only for testing the parser.
+
+
+=head1 ATTRIBUTES
+
+
+=head1 METHODS
+
+=cut

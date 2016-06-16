@@ -1,8 +1,11 @@
 # just to make PodWeaver happy at the moment
 package Language::Expr::Manual::Syntax;
-# ABSTRACT: Description of the Language::Expr language
 
+# DATE
 # VERSION
+
+1;
+# ABSTRACT: Description of the Language::Expr language
 
 =head1 OVERVIEW
 

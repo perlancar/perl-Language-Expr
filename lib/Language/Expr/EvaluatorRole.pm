@@ -1,6 +1,6 @@
 package Language::Expr::EvaluatorRole;
-# ABSTRACT: Specification for Language::Expr interpreter/compiler
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -40,23 +40,6 @@ requires 'rule_num';
 requires 'rule_parenthesis';
 requires 'expr_preprocess';
 requires 'expr_postprocess';
-
-=head1 METHODS
-
-=head2 parse_dquotestr($raw_parts) -> [{type=>"STR"|"VAR"}, value=>...}, ...]
-
-Instead of parsing parts themselves, consumers can use this method (typically in
-their rule_dquotestr). This method converts each Expr escapes into Perl string
-and variables. For example:
-
- parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
-   {type=>"STR", value=>'abc\t\\'},
-   {type=>"VAR", value=>'foo'},
-   {type=>"STR", value=>' '},
-   {type=>"VAR", value=>'bar baz'},
- )
-
-=cut
 
 sub parse_dquotestr {
     my ($self, @parts) = @_;
@@ -107,18 +90,6 @@ sub parse_dquotestr {
     \@res;
 }
 
-=head2 parse_squotestr($raw_parts) => [{type=>STR, value=>...}, ...]
-
-Instead of parsing parts themselves, consumers can use this method (typically in
-their rule_squotestr). This method converts Expr single quoted string into Perl
-string.
-
- parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
-   {type=>"STR", value=>'abc\t\\$foo ${bar baz}'},
- )
-
-=cut
-
 sub parse_squotestr {
     my ($self, @parts) = @_;
     if (ref($parts[0]) eq 'ARRAY') { splice @parts, 0, 1, @{ $parts[0] } }
@@ -138,3 +109,29 @@ sub parse_squotestr {
 }
 
 1;
+# ABSTRACT: Specification for Language::Expr interpreter/compiler
+
+=head1 METHODS
+
+=head2 parse_dquotestr($raw_parts) -> [{type=>"STR"|"VAR"}, value=>...}, ...]
+
+Instead of parsing parts themselves, consumers can use this method (typically in
+their rule_dquotestr). This method converts each Expr escapes into Perl string
+and variables. For example:
+
+ parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
+   {type=>"STR", value=>'abc\t\\'},
+   {type=>"VAR", value=>'foo'},
+   {type=>"STR", value=>' '},
+   {type=>"VAR", value=>'bar baz'},
+ )
+
+=head2 parse_squotestr($raw_parts) => [{type=>STR, value=>...}, ...]
+
+Instead of parsing parts themselves, consumers can use this method (typically in
+their rule_squotestr). This method converts Expr single quoted string into Perl
+string.
+
+ parse_dquotestr('abc', "\\t", '\\\\', '$foo', ' ', '${bar baz}') -> (
+   {type=>"STR", value=>'abc\t\\$foo ${bar baz}'},
+ )

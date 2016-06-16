@@ -1,6 +1,6 @@
 package Language::Expr::Interpreter::Default;
-# ABSTRACT: A default interpreter for Language::Expr
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -13,62 +13,9 @@ extends 'Language::Expr::Evaluator';
 use List::Util 'reduce';
 use boolean;
 
-=head1 SYNOPSIS
-
- use Language::Expr::Interpreter::Default;
- my $itp = Language::Expr::Interpreter::Default->new;
- $itp->vars->{a} = 'A';
- say $itp->eval(q["$a b" . "c"]); # "A b c"
-
-=head1 DESCRIPTION
-
-Interprets Language::Expr expression. Some notes:
-
-=over 4
-
-=item * Uses L<boolean> module.
-
-Comparison like '1 > 1' and '
-
-=item * Follows Perl's notion of true and false.
-
-That is, this expression ' "" || "0" || 2 ' will result to 2 because
-Perl thinks "" and "0" are false.
-
-=back
-
-=head1 ATTRIBUTES
-
-=head2 vars => {NAME => VAL, ...}
-
-Store variables.
-
-=cut
-
 has vars  => (is => 'rw', default => sub { {} });
-
-=head2 funcs => {NAME => CODEREF, ...}
-
-List known functions.
-
-=cut
-
 has funcs => (is => 'rw', default => sub { {} });
-
-=head2 level => INT
-
-Current recursion level.
-
-=cut
-
 has level => (is => 'rw', default => sub{0});
-
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
 
 sub rule_pair_simple {
     my ($self, %args) = @_;
@@ -393,10 +340,55 @@ sub expr_postprocess {
     $result;
 }
 
+1;
+# ABSTRACT: A default interpreter for Language::Expr
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head1 SYNOPSIS
+
+ use Language::Expr::Interpreter::Default;
+ my $itp = Language::Expr::Interpreter::Default->new;
+ $itp->vars->{a} = 'A';
+ say $itp->eval(q["$a b" . "c"]); # "A b c"
+
+=head1 DESCRIPTION
+
+Interprets Language::Expr expression. Some notes:
+
+=over 4
+
+=item * Uses L<boolean> module.
+
+Comparison like '1 > 1' and '
+
+=item * Follows Perl's notion of true and false.
+
+That is, this expression ' "" || "0" || 2 ' will result to 2 because
+Perl thinks "" and "0" are false.
+
+=back
+
+=head1 ATTRIBUTES
+
+=head2 vars => {NAME => VAL, ...}
+
+Store variables.
+
+=head2 funcs => {NAME => CODEREF, ...}
+
+List known functions.
+
+=head2 level => INT
+
+Current recursion level.
+
+
+=head1 METHODS
+
+
 =head1 BUGS/TODOS
 
 Currently subexpression (map/grep/usort) doesn't work yet.
 
 =cut
-
-1;

@@ -1,6 +1,6 @@
 package Language::Expr::Interpreter::VarEnumer;
-# ABSTRACT: Enumerate variables mentioned in Language::Expr expression
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -12,27 +12,7 @@ use experimental 'smartmatch';
 with 'Language::Expr::EvaluatorRole';
 extends 'Language::Expr::Evaluator';
 
-=head1 ATTRIBUTES
-
-=head2 result => ARRAYREF
-
-Store the list of variables seen during parsing.
-
-=cut
-
 has result => (is => 'rw');
-
-=head1 METHODS
-
-=for Pod::Coverage ^(rule|expr)_.+
-
-=cut
-
-=head2 add_var(VAR)
-
-Add variable to B<result> if it is not already in there.
-
-=cut
 
 sub add_var {
     my ($self, $v) = @_;
@@ -130,10 +110,27 @@ sub eval {
     $self->result;
 }
 
+1;
+# ABSTRACT: Enumerate variables mentioned in Language::Expr expression
+
+=head1 ATTRIBUTES
+
+=head2 result => ARRAYREF
+
+Store the list of variables seen during parsing.
+
+
+=head1 METHODS
+
+=for Pod::Coverage ^(rule|expr)_.+
+
+=head2 add_var(VAR)
+
+Add variable to B<result> if it is not already in there.
+
+
 =head1 BUGS/TODOS
 
 Currently $_ in map/grep variables and $a & $b in usort are counted.
 
 =cut
-
-1;
