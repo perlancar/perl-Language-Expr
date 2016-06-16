@@ -1,6 +1,6 @@
 package Language::Expr::Parser;
-# ABSTRACT: Parse Language::Expr expression
 
+# DATE
 # VERSION
 
 use 5.010;
@@ -8,19 +8,16 @@ use 5.010;
 #use strict;
 #use warnings;
 
+use Regexp::Grammars;
+
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(parse_expr);
 
 my $MAX_LEVELS = 3;
 
-=head1 METHODS
-
-=head2 parse_expr($str, $obj)
-
-Parse expression in $str. Will call various rule_*() methods in $obj.
-
-=cut
+# WARN: this is not thread-safe!?
+our $obj;
 
 sub parse_expr {
     my ($str, $obj_arg, $level) = @_;
@@ -28,10 +25,7 @@ sub parse_expr {
     $level //= 0;
     die "Recursion level ($level) too deep (max $MAX_LEVELS)" if $level >= $MAX_LEVELS;
 
-    use Regexp::Grammars;
-
     # WARN: this is not thread-safe!?
-    state $obj;
     local $subexpr_stack = [];
 
     # create not just 1 but 0..$MAX_LEVELS-1 of grammar objects, each
@@ -297,6 +291,16 @@ sub parse_expr {
     $obj_arg->expr_postprocess(result => $/{answer});
 }
 
+1;
+# ABSTRACT: Parse Language::Expr expression
+
+=head1 METHODS
+
+=head2 parse_expr($str, $obj)
+
+Parse expression in $str. Will call various rule_*() methods in $obj.
+
+
 =head1 KNOWN BUGS
 
 =over 4
@@ -306,5 +310,3 @@ sub parse_expr {
 =back
 
 =cut
-
-1;
