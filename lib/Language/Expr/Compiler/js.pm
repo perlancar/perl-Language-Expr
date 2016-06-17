@@ -353,7 +353,7 @@ sub _map_grep_usort {
     } elsif ($which eq 'grep') {
         return "($ary).filter(function(_){ return (TODO-$uuid); })";
     } elsif ($which eq 'usort') {
-        return "($ary).map(function(x) x).sort(function(a, b){ return (TODO-$uuid); })";
+        return "($ary).sort(function(a, b){ return (TODO-$uuid); })";
     }
 }
 

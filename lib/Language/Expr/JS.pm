@@ -41,6 +41,9 @@ sub eval_expr_js {
     my $src = join(
         "",
         _comment("expr: $expr\n"),
+        ($opts->{vars} ?
+             _comment("declare vars\n") . join("", map { "let $_ = ".$json->encode($opts->{vars}{$_}).";\n" } sort keys %{$opts->{vars}})
+             : ""),
         "console.log(JSON.stringify(",
         $jsc->compile($expr),
         "))",
@@ -49,8 +52,16 @@ sub eval_expr_js {
     print $jsh $src;
     close($jsh) or die "Can't write JS code to file $jsfn: $!";
 
-    my $out = IPC::System::Options::readpipe($nodejs_path, $jsfn);
-    $json->decode($out);
+    my ($stdout, $stderr);
+    IPC::System::Options::system(
+        {capture_stdout => \$stdout, capture_stderr => \$stderr},
+        $nodejs_path, "--use_strict", "--harmony_scoping", $jsfn,
+    );
+    die "nodejs exists non-zero (".($? >> 8)."): $stderr" if $?;
+    if ($stdout eq "undefined\n") {
+        return undef;
+    }
+    $json->decode($stdout);
 }
 
 1;
