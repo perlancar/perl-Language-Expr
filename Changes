@@ -1,5 +1,15 @@
 Revision history for Language-Expr
 
+0.25    2016-06-17 (PERLANCAR)
+
+	- No functional changes.
+
+	- [test] Forgot to skip t/compiler-js.t when node.js is not
+	  available.
+
+	- [test] Add note about the many skipped tests in compiler-js.t.
+
+
 0.24    2016-06-16 (PERLANCAR)
 
         - Adjust to recent Regexp::Grammars & perl, reenable tests because RG is
