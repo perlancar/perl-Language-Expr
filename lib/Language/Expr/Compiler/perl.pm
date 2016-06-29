@@ -458,3 +458,7 @@ hook_func() (see documentation in L<Language::Expr::Compiler::Base>).
 
 Convert Language::Expr expression into Perl code. Dies if there is syntax error
 in expression.
+
+=head2 eval($expr) => any
+
+Convert Language::Expr expression into Perl code and then eval() it.

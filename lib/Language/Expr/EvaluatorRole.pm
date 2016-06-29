@@ -41,12 +41,6 @@ requires 'rule_parenthesis';
 requires 'expr_preprocess';
 requires 'expr_postprocess';
 
-sub eval {
-    my ($self, $expr) = @_;
-    my $res = Language::Expr::Parser::parse_expr($expr, $self);
-    $res;
-}
-
 sub parse_dquotestr {
     my ($self, @parts) = @_;
     if (ref($parts[0]) eq 'ARRAY') { splice @parts, 0, 1, @{ $parts[0] } }
