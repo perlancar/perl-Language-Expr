@@ -377,6 +377,8 @@ sub _quote {
 }
 
 sub compile {
+    require Language::Expr::Parser;
+
     my ($self, $expr) = @_;
     my $res = Language::Expr::Parser::parse_expr($expr, $self);
     for my $m (@{ $self->markers }) {

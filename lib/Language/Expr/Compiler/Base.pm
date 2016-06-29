@@ -10,7 +10,6 @@ use warnings;
 use UUID::Tiny ':std';
 
 use Mo qw(build default);
-extends 'Language::Expr::Evaluator';
 
 # [[type, uuid, data], ...]
 has markers => (is => 'rw', default => sub { [] });
