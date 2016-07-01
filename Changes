@@ -1,5 +1,13 @@
 Revision history for Language-Expr
 
+0.28    2016-07-01 (PERLANCAR)
+
+	- No functional changes.
+
+	- [test] Skip JS test if node.js doesn't grok --harmony_scoping (<
+	  v0.5.10) [CT].
+
+
 0.27    2016-06-29 (PERLANCAR)
 
         - [Bugfix] Forgot to remove Language::Expr::Evaluator, forgot to require
