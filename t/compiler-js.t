@@ -7,12 +7,15 @@ use Test::More;
 use Test::Exception;
 use Language::Expr;
 use Language::Expr::JS qw(eval_expr_js);
-use Nodejs::Util qw(get_nodejs_path);
+use Nodejs::Util qw(nodejs_available);
 use POSIX;
 use lib "./t";
 require "stdtests.pl";
 
-plan skip_all => "Node.js not available" unless get_nodejs_path();
+# 0.5.10 is the first version that groks --harmony_scoping
+my $res = nodejs_available(min_version => "0.5.10");
+diag "node.js detection result: ", explain $res;
+plan skip_all => $res->[1] unless $res->[0] == 200;
 
 my $jsc = Language::Expr->new->get_compiler('js');
 # add this to code "let a=1; let b=2; let ary1=['one','two','three']; let hash1={one:1, two:2, three:3};";
