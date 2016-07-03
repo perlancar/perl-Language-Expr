@@ -20,16 +20,12 @@ sub _comment {
 
 sub eval_expr_js {
     require File::Temp;
-    require IPC::System::Options;
     require JSON::MaybeXS;
     require Language::Expr::Compiler::js;
     require Nodejs::Util;
 
     my ($expr, $opts) = @_;
     $opts //= {};
-
-    state $nodejs_path = Nodejs::Util::get_nodejs_path();
-    die "Can't find node.js in PATH" unless $nodejs_path;
 
     state $default_jsc = Language::Expr::Compiler::js->new;
 
@@ -53,9 +49,13 @@ sub eval_expr_js {
     close($jsh) or die "Can't write JS code to file $jsfn: $!";
 
     my ($stdout, $stderr);
-    IPC::System::Options::system(
-        {capture_stdout => \$stdout, capture_stderr => \$stderr},
-        $nodejs_path, "--use_strict", "--harmony_scoping", $jsfn,
+    Nodejs::Util::system_nodejs(
+        {
+            harmony_scoping => 1,
+            capture_stdout => \$stdout,
+            capture_stderr => \$stderr
+        },
+        $jsfn,
     );
     die "nodejs exists non-zero (".($? >> 8)."): $stderr" if $?;
     if ($stdout eq "undefined\n") {
