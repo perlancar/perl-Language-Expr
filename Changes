@@ -1,5 +1,11 @@
 Revision history for Language-Expr
 
+0.29    2016-07-03 (PERLANCAR)
+
+        - [test] Use Nodejs::Util::system_nodejs to properly enable harmony
+          scoping in different node.js versions [CT].
+
+
 0.28    2016-07-01 (PERLANCAR)
 
 	- No functional changes.
