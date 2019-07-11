@@ -1,10 +1,10 @@
-0.29    2016-07-03 (PERLANCAR)
+0.29    2016-07-03  Released-By: PERLANCAR
 
         - [test] Use Nodejs::Util::system_nodejs to properly enable harmony
           scoping in different node.js versions [CT].
 
 
-0.28    2016-07-01 (PERLANCAR)
+0.28    2016-07-01  Released-By: PERLANCAR
 
 	- No functional changes.
 
@@ -12,20 +12,20 @@
 	  v0.5.10) [CT].
 
 
-0.27    2016-06-29 (PERLANCAR)
+0.27    2016-06-29  Released-By: PERLANCAR
 
         - [Bugfix] Forgot to remove Language::Expr::Evaluator, forgot to require
           Language::Expr::Parser [RT#115715].
 
 
-0.26    2016-06-17 (PERLANCAR)
+0.26    2016-06-17  Released-By: PERLANCAR
 
 	- Reenable some tests for JavaScript compiler because we now run
 	  nodejs with --use_strict and --harmony_scoping to enable 'let'
 	  support.
 
 
-0.25    2016-06-17 (PERLANCAR)
+0.25    2016-06-17  Released-By: PERLANCAR
 
 	- No functional changes.
 
@@ -35,7 +35,7 @@
 	- [test] Add note about the many skipped tests in compiler-js.t.
 
 
-0.24    2016-06-16 (PERLANCAR)
+0.24    2016-06-16  Released-By: PERLANCAR
 
         - Adjust to recent Regexp::Grammars & perl, reenable tests because RG is
           no longer broken on recent perls. Module now works again and re-pass
@@ -53,44 +53,44 @@
           dist Language-Expr-Compiler-php.
 
 
-0.23    2014-05-01 (SHARYANTO)
+0.23    2014-05-01  Released-By: SHARYANTO
 
         - No functional changes.
 
         - Second attempt at disabling most tests.
 
 
-0.22    2014-04-28 (SHARYANTO)
+0.22    2014-04-28  Released-By: SHARYANTO
 
         - No functional changes.
 
         - Disable most tests for now since Regexp::Grammars is broken.
 
 
-0.21    2013-08-05 (SHARYANTO)
+0.21    2013-08-05  Released-By: SHARYANTO
 
         - No functional changes. Add 'use experimental "smartmatch"' for
           5.18+ [CT].
 
 
-0.20    2013-07-15 (SHARYANTO)
+0.20    2013-07-15  Released-By: SHARYANTO
 
         - No functional changes. Replace given() with if-else due to failing CT
           reports for 5.18.
 
 
-0.19    2012-07-13 (SHARYANTO)
+0.19    2012-07-13  Released-By: SHARYANTO
 
         - No functional changes. Disable JS and PHP tests for now due to possible
           problems with Regexp::Grammar.
 
 
-0.18    2011-02-23 (SHARYANTO)
+0.18    2011-02-23  Released-By: SHARYANTO
 
         - Switch from Mouse to Moo.
 
 
-0.17    2011-01-12 (SHARYANTO)
+0.17    2011-01-12  Released-By: SHARYANTO
 
         - Language: Ternary operator ?:.
 
@@ -99,7 +99,7 @@
         - Some grammar optimizations.
 
 
-0.16    2011-01-11 (SHARYANTO)
+0.16    2011-01-11  Released-By: SHARYANTO
 
         - Add more documentation.
 
@@ -109,7 +109,7 @@
           compiler).
 
 
-0.15    2011-01-11 (SHARYANTO)
+0.15    2011-01-11  Released-By: SHARYANTO
 
         - Add more documentation.
 
@@ -118,46 +118,46 @@
         - Language: Support octal/hexadecimal/binary number literals.
 
 
-0.14    2011-01-06 (SHARYANTO)
+0.14    2011-01-06  Released-By: SHARYANTO
 
         - Correct and expand synopsis.
 
 
-0.13    2010-10-25 (SHARYANTO)
+0.13    2010-10-25  Released-By: SHARYANTO
 
         - If hook_{var,func} returns undef, the default behaviour is used.
 
 
-0.12    2010-10-25 (SHARYANTO)
+0.12    2010-10-25  Released-By: SHARYANTO
 
         - Add hook_func property.
 
 
-0.11    2010-10-16 (SHARYANTO)
+0.11    2010-10-16  Released-By: SHARYANTO
 
         - Fix handling of quoted string.
 
         - All compilers get hook_var property, not just Perl.
 
 
-0.10    2010-10-13 (SHARYANTO)
+0.10    2010-10-13  Released-By: SHARYANTO
 
         - Add hook_var property to Language::Expr::Compiler::Perl.
 
 
-0.09    2010-07-01 (SHARYANTO)
+0.09    2010-07-01  Released-By: SHARYANTO
 
         - Require List::MoreUtils.
 
 
-0.08    2010-06-29 (SHARYANTO)
+0.08    2010-06-29  Released-By: SHARYANTO
 
         - PHP compiler/emitter.
 
         - Parser: Split rule_subscripting into rule_subscripting_{var,expr} to
           accomodate PHP's limitation (can't subscript against expression).
 
-        - Language: because many target languages (including PHP and JavaScript)
+        - Language: because many target languages  Released-By: including PHP and JavaScript
           don't support expression before "=>", only bareword \w+ and string
           literals are now allowed in left side of pair.
 
@@ -165,41 +165,41 @@
           func_mapping->{length} = ':length').
 
 
-0.07    2010-06-25 (SHARYANTO)
+0.07    2010-06-25  Released-By: SHARYANTO
 
         - Adjust for new Regexp::Grammars 1.005.
 
 
-0.06    2010-06-23 (SHARYANTO)
+0.06    2010-06-23  Released-By: SHARYANTO
 
         - JavaScript compiler/emitter.
 
         - Small fixes & additional documentation.
 
 
-0.05    2010-06-19 (SHARYANTO)
+0.05    2010-06-19  Released-By: SHARYANTO
 
         - Fix tests for FreeBSD [reported by cpantesters].
 
 
-0.04    2010-06-17 (SHARYANTO)
+0.04    2010-06-17  Released-By: SHARYANTO
 
         - Add Perl emitter (supports map/grep/usort) (now used by default).
 
         - Reorganize modules.
 
 
-0.03    2010-06-11 (SHARYANTO)
+0.03    2010-06-11  Released-By: SHARYANTO
 
         - Add map(), grep(), and usort() (but so far only working in parser
           level only).
 
 
-0.02    2010-05-12 (SHARYANTO)
+0.02    2010-05-12  Released-By: SHARYANTO
 
         - Add enum_vars().
 
 
-0.01    2010-05-07 (SHARYANTO)
+0.01    2010-05-07  Released-By: SHARYANTO
 
         - First release.
